@@ -7,7 +7,7 @@ CXXFLAGS = -std=c++11
 CFLAGS   = -std=c++11
 OBJ      = tc.o
 LINKOBJ  = tc.o
-BIN      = tc.so tc.dll
+BIN      = tc.so
 RM       = rm -f
 
 .PHONY: all all-before all-after clean clean-custom

@@ -3,10 +3,18 @@
 
 
 #include "./tc.h"
+
+#ifndef _GLIBCXX_HAS_GTHREADS
 #define _GLIBCXX_HAS_GTHREADS
+#endif
+
+#ifndef __GLIBC__
 #define __GLIBC__
+#endif
+
 #include <thread>
 #include <chrono>
+
 void tsleep(int milliseconds){  
 	std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));  
 }
