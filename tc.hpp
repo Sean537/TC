@@ -29,7 +29,141 @@ Copyright (C) 2024-2025 RabbitMax and Sean537. All rights reserved.
     #include <sys/ioctl.h> // 终端IO控制 Terminal IO control
 #endif
 
+// ===== ANSI前景色/背景色/字体样式宏（全局作用域，支持TCOLOR_XXX、BCOLOR_XXX、TFONT_XXX） =====
+#define TCOLOR_BLACK   "\033[30m"
+#define TCOLOR_RED     "\033[31m"
+#define TCOLOR_GREEN   "\033[32m"
+#define TCOLOR_YELLOW  "\033[33m"
+#define TCOLOR_BLUE    "\033[34m"
+#define TCOLOR_MAGENTA "\033[35m"
+#define TCOLOR_CYAN    "\033[36m"
+#define TCOLOR_WHITE   "\033[37m"
+#define TCOLOR_DEFAULT "\033[39m"
+#define TCOLOR_RESET   "\033[0m"
+#define TCOLOR_RGB(r, g, b) tc::RGBColorWrapper(r, g, b)
+#define BCOLOR_BLACK   "\033[40m"
+#define BCOLOR_RED     "\033[41m"
+#define BCOLOR_GREEN   "\033[42m"
+#define BCOLOR_YELLOW  "\033[43m"
+#define BCOLOR_BLUE    "\033[44m"
+#define BCOLOR_MAGENTA "\033[45m"
+#define BCOLOR_CYAN    "\033[46m"
+#define BCOLOR_WHITE   "\033[47m"
+#define BCOLOR_DEFAULT "\033[49m"
+// ===== ANSI字体样式宏（全局作用域，直接用） =====
+#define TFONT_BOLD        "\033[1m"   // 粗体/加粗
+#define TFONT_FAINT       "\033[2m"   // 微弱/淡色
+#define TFONT_ITALIC      "\033[3m"   // 斜体
+#define TFONT_UNDERLINE   "\033[4m"   // 下划线
+#define TFONT_BLINK_SLOW  "\033[5m"   // 慢速闪烁
+#define TFONT_BLINK_FAST  "\033[6m"   // 快速闪烁
+#define TFONT_REVERSE     "\033[7m"   // 反色
+#define TFONT_CONCEAL     "\033[8m"   // 隐藏
+#define TFONT_CROSSED     "\033[9m"   // 删除线
+#define TFONT_DEFAULT     "\033[10m"  // 默认字体
+#define TFONT_FRAKTUR     "\033[20m"  // Fraktur字体（部分终端支持）
+#define TFONT_DOUBLE_UNDERLINE "\033[21m" // 双下划线/粗体关闭
+#define TFONT_NORMAL      "\033[22m"  // 粗体/淡色关闭
+#define TFONT_NOT_ITALIC  "\033[23m"  // 关闭斜体/Fraktur
+#define TFONT_NO_UNDERLINE "\033[24m" // 关闭下划线
+#define TFONT_NO_BLINK    "\033[25m"  // 关闭闪烁
+#define TFONT_NO_REVERSE  "\033[27m"  // 关闭反色
+#define TFONT_REVEAL      "\033[28m"  // 关闭隐藏
+#define TFONT_NOT_CROSSED "\033[29m"  // 关闭删除线
+#define TFONT_THICK       TFONT_BOLD   // 兼容别名
+#define TFONT_RESET       "\033[0m"   // 全部重置
+// 用法示例：tc::println(TCOLOR_RED, BCOLOR_YELLOW, TFONT_BOLD, "红字黄底粗体")
+
 namespace tc { // 主命名空间 Main namespace
+
+// ========== print/println ========== //
+// 链式print/println类，兼容Python风格
+// 链式print/println类，兼容Python风格
+class PrintProxy {
+public:
+    const PrintProxy& print() const { return *this; }
+    template<typename... Args>
+    const PrintProxy& print(Args&&... args) const { (void)std::initializer_list<int>{(std::cout << std::forward<Args>(args), 0)...}; return *this; }
+    template<typename... Args>
+    const PrintProxy& println(Args&&... args) const { (void)std::initializer_list<int>{(std::cout << std::forward<Args>(args), 0)...}; std::cout << std::endl; return *this; }
+};
+inline const PrintProxy& print() { static PrintProxy p; return p; }
+inline const PrintProxy& println() { static PrintProxy p; std::cout << std::endl; return p; }
+
+// 支持一次性多参数打印的print/println
+template<typename... Args>
+inline void print(Args&&... args) { (void)std::initializer_list<int>{(std::cout << std::forward<Args>(args), 0)...}; }
+template<typename... Args>
+inline void println(Args&&... args) { (void)std::initializer_list<int>{(std::cout << std::forward<Args>(args), 0)...}; std::cout << std::endl; }
+
+// ========== wait/waitKey ========== //
+inline void wait(double seconds) { std::this_thread::sleep_for(std::chrono::milliseconds((int)(seconds*1000))); }
+#ifdef _WIN32
+#include <conio.h>
+inline void waitKey() { _getch(); }
+#else
+#include <termios.h>
+inline void waitKey() {
+    termios oldt, newt;
+    tcgetattr(0, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~ICANON;
+    tcsetattr(0, TCSANOW, &newt);
+    getchar();
+    tcsetattr(0, TCSANOW, &oldt);
+}
+#endif
+
+// ========== Printer类 ========== //
+class Printer {
+public:
+    Printer& clear() { std::cout << "\033[2J\033[H"; return *this; }
+    Printer& moveCursor(int x, int y) { std::cout << "\033[" << y << ";" << x << "H"; return *this; }
+    Printer& print() { return *this; }
+    template<typename... Args>
+    Printer& print(Args&&... args) { (void)std::initializer_list<int>{(std::cout << std::forward<Args>(args), 0)...}; return *this; }
+    template<typename... Args>
+    Printer& println(Args&&... args) { (void)std::initializer_list<int>{(std::cout << std::forward<Args>(args), 0)...}; std::cout << std::endl; return *this; }
+    Printer& hideCursor() { std::cout << "\033[?25l"; return *this; }
+    Printer& showCursor() { std::cout << "\033[?25h"; return *this; }
+    enum class Direction { Up, Down, Left, Right };
+    Printer& moveCursor(Direction dir, int n) {
+        switch(dir) {
+            case Direction::Up: std::cout << "\033[" << n << "A"; break;
+            case Direction::Down: std::cout << "\033[" << n << "B"; break;
+            case Direction::Right: std::cout << "\033[" << n << "C"; break;
+            case Direction::Left: std::cout << "\033[" << n << "D"; break;
+        }
+        return *this;
+    }
+    std::pair<int,int> getSize() {
+#ifdef _WIN32
+        CONSOLE_SCREEN_BUFFER_INFO csbi;
+        int cols = 80, rows = 25;
+        HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+        if (GetConsoleScreenBufferInfo(h, &csbi)) {
+            cols = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+            rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+        }
+        return {cols, rows};
+#else
+        struct winsize size;
+        if (ioctl(1, TIOCGWINSZ, &size) == 0)
+            return {size.ws_col, size.ws_row};
+        return {80, 25};
+#endif
+    }
+};
+inline Printer printer() { return Printer(); }
+
+
+
+
+
+
+
+
+
 
 // Windows 颜色常量映射，便于跨平台统一接口
 // Windows color constant mapping for cross-platform interface
@@ -383,20 +517,6 @@ public:
 };
 
 // 全局颜色常量，便于直接使用 Global color constants, easy to use
-static const ColorWrapper TCOLOR_BLACK(ColorController::Color::BLACK); // 黑色 Black
-static const ColorWrapper TCOLOR_RED(ColorController::Color::RED); // 红色 Red
-static const ColorWrapper TCOLOR_GREEN(ColorController::Color::GREEN); // 绿色 Green
-static const ColorWrapper TCOLOR_YELLOW(ColorController::Color::YELLOW); // 黄色 Yellow
-static const ColorWrapper TCOLOR_BLUE(ColorController::Color::BLUE); // 蓝色 Blue
-static const ColorWrapper TCOLOR_MAGENTA(ColorController::Color::MAGENTA); // 洋红 Magenta
-static const ColorWrapper TCOLOR_CYAN(ColorController::Color::CYAN); // 青色 Cyan
-static const ColorWrapper TCOLOR_WHITE(ColorController::Color::WHITE); // 白色 White
-static const ColorWrapper TCOLOR_RESET(ColorController::Color::RESET); // 重置 Reset
-
-// 字体样式常量 Font style constants
-static const FontStyleWrapper TFONT_THICK(true); // 粗体 Bold
-static const FontStyleWrapper TFONT_BOLD(true);  // 粗体 Bold (别名 Alias)
-static const FontStyleWrapper TFONT_RESET(false); // 样式重置 Style reset
 
 // RGB颜色宏，便于流式创建RGB颜色
 // RGB color macro, easy to create RGB color in stream
@@ -520,4 +640,26 @@ inline std::string yellow(const std::string& text) {
     return colorize(text, ColorController::Color::YELLOW);
 }
 
+// ========== 进度条 ========== //
+class ProgressBar {
+    int width_;
+    std::string done_, todo_;
+    std::string color_;
+public:
+    ProgressBar(int width, std::string done = "#", std::string todo = "-", std::string color = TCOLOR_GREEN)
+        : width_(width), done_(std::move(done)), todo_(std::move(todo)), color_(std::move(color)) {}
+    void show(double progress, const std::string& msg = "") {
+        int pos = static_cast<int>(width_ * progress);
+        std::cout << "\r" << color_ << "[";
+        for (int i = 0; i < width_; ++i) std::cout << (i < pos ? done_ : todo_);
+        std::cout << "] " << int(progress * 100) << "% " << msg << TCOLOR_RESET << std::flush;
+    }
+    void finish() {
+        show(1.0, "完成!");
+        std::cout << std::endl;
+    }
+};
+
+
 } // namespace tc
+
