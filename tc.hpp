@@ -115,6 +115,8 @@ inline void wait(double seconds) { std::this_thread::sleep_for(std::chrono::mill
 #ifdef _WIN32
 #include <conio.h>
 inline void waitKey() { _getch(); }
+inline void waitKey(char key) { while (_getch() != key) {} }
+inline void waitKey(int key) { while (_getch() != key) {} }
 #else
 #include <termios.h>
 inline void waitKey() {
@@ -126,6 +128,17 @@ inline void waitKey() {
     getchar();
     tcsetattr(0, TCSANOW, &oldt);
 }
+inline void waitKey(char key) {
+    termios oldt, newt;
+    tcgetattr(0, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~ICANON;
+    tcsetattr(0, TCSANOW, &newt);
+    int ch;
+    do { ch = getchar(); } while (ch != key);
+    tcsetattr(0, TCSANOW, &oldt);
+}
+inline void waitKey(int key) { waitKey((char)key); }
 #endif
 
 // ========== Printer类 ========== //
@@ -676,4 +689,160 @@ public:
 
 
 } // namespace tc
+
+// ===== 系统相关API及全局宏 =====
+#include <ctime>
+#include <cstdlib>
+#include <cstring>
+#ifdef _WIN32
+    #include <windows.h>
+#endif
+
+// --- getSystemTime ---
+#define SYS_YEAR   1
+#define SYS_MONTH  2
+#define SYS_DAY    3
+#define SYS_HOUR   4
+#define SYS_MINUTE 5
+#define SYS_SECOND 6
+#define SYS_TIMESTAMP 0
+namespace tc {
+    inline int getSystemTime(int type = SYS_TIMESTAMP) {
+        std::time_t t = std::time(nullptr);
+        std::tm* tm_ptr;
+#ifdef _WIN32
+        std::tm tm_buf;
+        localtime_s(&tm_buf, &t);
+        tm_ptr = &tm_buf;
+#else
+        tm_ptr = std::localtime(&t);
+#endif
+        switch(type) {
+            case SYS_YEAR:   return tm_ptr->tm_year + 1900;
+            case SYS_MONTH:  return tm_ptr->tm_mon + 1;
+            case SYS_DAY:    return tm_ptr->tm_mday;
+            case SYS_HOUR:   return tm_ptr->tm_hour;
+            case SYS_MINUTE: return tm_ptr->tm_min;
+            case SYS_SECOND: return tm_ptr->tm_sec;
+            default:         return static_cast<int>(t);
+        }
+    }
+}
+
+// --- systemConsole ---
+namespace tc {
+    inline int systemConsole(const char* cmd) {
+        return std::system(cmd);
+    }
+    inline int systemConsole(const std::string& cmd) {
+        return std::system(cmd.c_str());
+    }
+}
+
+// --- 系统环境宏定义 ---
+#define OS_UNKNOWN      0
+#define OS_WINDOWS      100
+#define OS_WINDOWSNT3   103
+#define OS_WINDOWSNT4   104
+#define OS_WINDOWSNT5   105
+#define OS_WINDOWSNT6   106
+#define OS_WINDOWSNT10  110
+#define OS_WINDOWSNT11  111
+#define OS_WIN95        195
+#define OS_WIN98        198
+#define OS_WINME        199
+#define OS_WINCE        120
+#define OS_LINUX        200
+#define OS_ANDROID      210
+#define OS_MACOS        300
+#define OS_IOS          310
+#define OS_BSD          400
+#define OS_UNIX         500
+#define OS_DOS          600
+#define OS_BEOS         700
+#define OS_OS2          800
+#define OS_NEXTSTEP     900
+
+// --- systemCheck ---
+#include <string>
+namespace tc {
+    inline int systemCheck() {
+#if defined(_WIN32) || defined(_WIN64)
+        // 优先用RtlGetVersion获取真实主版本号
+        typedef LONG (WINAPI *RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
+        HMODULE hMod = ::GetModuleHandleW(L"ntdll.dll");
+        if (hMod) {
+            RtlGetVersionPtr fx = (RtlGetVersionPtr)::GetProcAddress(hMod, "RtlGetVersion");
+            if (fx) {
+                RTL_OSVERSIONINFOW rovi = {0};
+                rovi.dwOSVersionInfoSize = sizeof(rovi);
+                if (fx(&rovi) == 0) {
+                    // 细分Windows主版本号
+                    if (rovi.dwMajorVersion == 3)  return OS_WINDOWSNT3;
+                    if (rovi.dwMajorVersion == 4)  return OS_WINDOWSNT4;
+                    if (rovi.dwMajorVersion == 5)  return OS_WINDOWSNT5;
+                    if (rovi.dwMajorVersion == 6)  return OS_WINDOWSNT6;
+                    if (rovi.dwMajorVersion == 10) {
+                        // Win10/11区分：Win11为10.0.22000及以上
+                        if (rovi.dwBuildNumber >= 22000) return OS_WINDOWSNT11;
+                        else return OS_WINDOWSNT10;
+                    }
+                    if (rovi.dwMajorVersion > 10) return OS_WINDOWSNT11; // 未来主版本
+                }
+            }
+        }
+        // 兼容老方案
+        OSVERSIONINFOEX osvi = {0};
+        osvi.dwOSVersionInfoSize = sizeof(osvi);
+        if (GetVersionEx((OSVERSIONINFO*)&osvi)) {
+            if (osvi.dwMajorVersion == 3)  return OS_WINDOWSNT3;
+            if (osvi.dwMajorVersion == 4)  return OS_WINDOWSNT4;
+            if (osvi.dwMajorVersion == 5)  return OS_WINDOWSNT5;
+            if (osvi.dwMajorVersion == 6)  return OS_WINDOWSNT6;
+            if (osvi.dwMajorVersion == 10) {
+                if (osvi.dwBuildNumber >= 22000) return OS_WINDOWSNT11;
+                else return OS_WINDOWSNT10;
+            }
+            if (osvi.dwMajorVersion > 10) return OS_WINDOWSNT11;
+            // 9x系列
+            if (osvi.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS) {
+                if (osvi.dwMinorVersion == 0) return OS_WIN95;
+                if (osvi.dwMinorVersion == 10) return OS_WIN98;
+                if (osvi.dwMinorVersion == 90) return OS_WINME;
+            }
+            // CE
+#ifdef VER_PLATFORM_WIN32_CE
+            if (osvi.dwPlatformId == VER_PLATFORM_WIN32_CE) return OS_WINCE;
+#endif
+            return OS_WINDOWS;
+        }
+        return OS_WINDOWS;
+#elif defined(__ANDROID__)
+        return OS_ANDROID;
+#elif defined(__APPLE__)
+    #include <TargetConditionals.h>
+    #if TARGET_OS_IPHONE
+        return OS_IOS;
+    #else
+        return OS_MACOS;
+    #endif
+#elif defined(__linux__)
+        return OS_LINUX;
+#elif defined(__unix__)
+        return OS_UNIX;
+#elif defined(__FreeBSD__)
+        return OS_BSD;
+#elif defined(__MSDOS__) || defined(_MSDOS) || defined(__DOS__)
+        return OS_DOS;
+#elif defined(__BEOS__)
+        return OS_BEOS;
+#elif defined(__OS2__)
+        return OS_OS2;
+#elif defined(__NeXT__)
+        return OS_NEXTSTEP;
+#else
+        return OS_UNKNOWN;
+#endif
+    }
+}
 

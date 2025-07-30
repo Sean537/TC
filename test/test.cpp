@@ -1,6 +1,7 @@
 #include "../tc.hpp"
 
-int main() {
+int main()
+{
     // 1. 基本颜色输出
     tc::tout << TCOLOR_GREEN << "Hello world!" << TCOLOR_RESET << std::endl;
     tc::tout << TCOLOR_RED << "红色" << TCOLOR_RESET << std::endl;
@@ -62,10 +63,98 @@ int main() {
     tc::tout << "进度条示例:" << std::endl;
     tc::ProgressBar bar(50, "█", "░", TCOLOR_GREEN);
 
-    for (int i = 0; i <= 100; ++i) {
+    for (int i = 0; i <= 100; ++i)
+    {
         bar.show(i / 100.0, "处理中...");
         tc::wait(0.05);
     }
     bar.finish();
+
+    // 12. 系统相关API示例
+    // 🖥️ 执行系统命令（如清屏）
+    tc::systemConsole("cls");
+
+    // 🕒 获取系统时间
+    int year = tc::getSystemTime(SYS_YEAR);
+    int month = tc::getSystemTime(SYS_MONTH);
+    int day = tc::getSystemTime(SYS_DAY);
+    int hour = tc::getSystemTime(SYS_HOUR);
+    int minute = tc::getSystemTime(SYS_MINUTE);
+    int second = tc::getSystemTime(SYS_SECOND);
+    int timestamp = tc::getSystemTime(); // 默认Unix时间戳
+    tc::println("当前时间: ", year, "-", month, "-", day, " ", hour, ":", minute, ":", second, " (Unix: ", timestamp, ")");
+
+    // 🛡️ 检查系统环境
+    int os = tc::systemCheck();
+    switch (os)
+    {
+    case OS_WINDOWSNT11:
+        tc::println("当前系统: Windows 11");
+        break;
+    case OS_WINDOWSNT10:
+        tc::println("当前系统: Windows 10");
+        break;
+    case OS_WINDOWSNT6:
+        tc::println("当前系统: Windows Vista/7/8/8.1");
+        break;
+    case OS_WINDOWSNT5:
+        tc::println("当前系统: Windows 2000/XP/2003");
+        break;
+    case OS_WINDOWSNT4:
+        tc::println("当前系统: Windows NT 4.x");
+        break;
+    case OS_WINDOWSNT3:
+        tc::println("当前系统: Windows NT 3.x");
+        break;
+    case OS_WIN95:
+        tc::println("当前系统: Windows 95");
+        break;
+    case OS_WIN98:
+        tc::println("当前系统: Windows 98");
+        break;
+    case OS_WINME:
+        tc::println("当前系统: Windows Me");
+        break;
+    case OS_WINCE:
+        tc::println("当前系统: Windows CE");
+        break;
+    case OS_WINDOWS:
+        tc::println("当前系统: Windows (其他)");
+        break;
+    case OS_LINUX:
+        tc::println("当前系统: Linux");
+        break;
+    case OS_ANDROID:
+        tc::println("当前系统: Android");
+        break;
+    case OS_MACOS:
+        tc::println("当前系统: macOS");
+        break;
+    case OS_IOS:
+        tc::println("当前系统: iOS");
+        break;
+    case OS_BSD:
+        tc::println("当前系统: BSD");
+        break;
+    case OS_UNIX:
+        tc::println("当前系统: Unix-like");
+        break;
+    case OS_DOS:
+        tc::println("当前系统: MS-DOS");
+        break;
+    case OS_BEOS:
+        tc::println("当前系统: BeOS");
+        break;
+    case OS_OS2:
+        tc::println("当前系统: OS/2");
+        break;
+    case OS_NEXTSTEP:
+        tc::println("当前系统: NeXTSTEP");
+        break;
+    default:
+        tc::println("未知或其他系统, code=", os);
+    }
+
+    tc::waitKey();
     return 0;
 }

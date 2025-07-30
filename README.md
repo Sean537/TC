@@ -71,6 +71,34 @@ int main() {
     }
     bar.finish();
 
+    // 🖥️ 执行系统命令（如清屏）
+    tc::systemConsole("echo TC systemConsole test");
+
+    // 🕒 获取系统时间
+    int year = tc::getSystemTime(SYS_YEAR);
+    int month = tc::getSystemTime(SYS_MONTH);
+    int day = tc::getSystemTime(SYS_DAY);
+    int hour = tc::getSystemTime(SYS_HOUR);
+    int minute = tc::getSystemTime(SYS_MINUTE);
+    int second = tc::getSystemTime(SYS_SECOND);
+    int timestamp = tc::getSystemTime(); // 默认Unix时间戳
+    tc::println("当前时间: ", year, "-", month, "-", day, " ", hour, ":", minute, ":", second, " (Unix: ", timestamp, ")");
+
+    // 🛡️ 检查系统环境
+    int os = tc::systemCheck();
+    if (os == OS_WINDOWSNT10) tc::println("当前系统: Windows 10/11");
+    else if (os == OS_WINDOWSNT6) tc::println("当前系统: Windows Vista/7/8");
+    else if (os == OS_WINDOWSNT5) tc::println("当前系统: Windows 2000/XP");
+    else if (os == OS_LINUX) tc::println("当前系统: Linux");
+    else if (os == OS_MACOS) tc::println("当前系统: macOS");
+    else if (os == OS_IOS) tc::println("当前系统: iOS");
+    else if (os == OS_ANDROID) tc::println("当前系统: Android");
+    else if (os == OS_DOS) tc::println("当前系统: MS-DOS");
+    else if (os == OS_BEOS) tc::println("当前系统: BeOS");
+    else if (os == OS_OS2) tc::println("当前系统: OS/2");
+    else if (os == OS_NEXTSTEP) tc::println("当前系统: NeXTSTEP");
+    else tc::println("未知或其他系统, code=", os);
+
     return 0;
 }
 ```
@@ -112,7 +140,7 @@ TCOLOR_RGB(r, g, b)
 | TFONT_NORMAL              | 粗体/淡色关闭    | \033[22m     | 大多数终端支持，Windows 10+ 支持 |
 | TFONT_NOT_ITALIC          | 关闭斜体/Fraktur | \033[23m     | 部分终端支持，Windows 10+ 支持有限 |
 | TFONT_NO_UNDERLINE        | 关闭下划线       | \033[24m     | 大多数终端支持，Windows 10+ 支持 |
-| TFONT_NO_BLINK            | 关闭闪烁         | \033[25m     | 很少终端支持，Windows 10+ 基本不支持 |
+| TFONT_NO_BLINK            | 关闭闪烁         | \033[25m      | 很少终端支持，Windows 10+ 基本不支持 |
 | TFONT_NO_REVERSE          | 关闭反色         | \033[27m     | 大多数终端支持，Windows 10+ 支持 |
 | TFONT_REVEAL              | 关闭隐藏         | \033[28m     | 很少终端支持，Windows 10+ 基本不支持 |
 | TFONT_NOT_CROSSED         | 关闭删除线       | \033[29m     | 部分终端支持，Windows 10+ 支持有限 |
@@ -142,6 +170,12 @@ TCOLOR_RGB(r, g, b)
 - `tc::ProgressBar bar(width, doneChar, todoChar, color)`
 - `bar.show(progress, msg)`
 - `bar.finish()`
+
+### 🖥️ 系统相关API
+
+- `tc::getSystemTime(int type = SYS_TIMESTAMP)`：获取当前时间（年、月、日、时、分、秒、Unix时间戳），可用 `SYS_YEAR`、`SYS_MONTH`、`SYS_DAY`、`SYS_HOUR`、`SYS_MINUTE`、`SYS_SECOND`、`SYS_TIMESTAMP` 选择。
+- `tc::systemConsole(const char* 或 std::string)`：执行系统命令。
+- `tc::systemCheck()`：检测当前操作系统，返回全局宏（如 `OS_WINDOWSNT10`、`OS_LINUX` 等）。
 
 ---
 
