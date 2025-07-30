@@ -1,5 +1,6 @@
 /*
 tc.hpp
+Version 1.0.0
 
 This file is part of TC, a C++ terminal color and style library.
 
