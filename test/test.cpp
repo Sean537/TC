@@ -155,6 +155,7 @@ int main()
         tc::println("未知或其他系统, code=", os);
     }
 
-    tc::waitKey();
+    tc::println("按ESC键退出...");
+    tc::waitKey(KEY_ESC);
     return 0;
 }

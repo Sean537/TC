@@ -140,6 +140,33 @@ inline void waitKey(char key) {
 }
 inline void waitKey(int key) { waitKey((char)key); }
 #endif
+#define KEY_ESC      27
+#define KEY_SPACE    32
+#define KEY_ENTER    13
+#define KEY_TAB       9
+#define KEY_BACKSPACE 8
+#define KEY_INSERT   0x2D
+#define KEY_DELETE   0x2E
+#define KEY_HOME     0x24
+#define KEY_END      0x23
+#define KEY_PAGEUP   0x21
+#define KEY_PAGEDOWN 0x22
+#define KEY_UP       0x26
+#define KEY_DOWN     0x28
+#define KEY_LEFT     0x25
+#define KEY_RIGHT    0x27
+#define KEY_F1       0x70
+#define KEY_F2       0x71
+#define KEY_F3       0x72
+#define KEY_F4       0x73
+#define KEY_F5       0x74
+#define KEY_F6       0x75
+#define KEY_F7       0x76
+#define KEY_F8       0x77
+#define KEY_F9       0x78
+#define KEY_F10      0x79
+#define KEY_F11      0x7A
+#define KEY_F12      0x7B
 
 // ========== Printer类 ========== //
 class Printer {
