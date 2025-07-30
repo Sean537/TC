@@ -1,11 +1,24 @@
 /*
 tc.hpp
 
-Copyright (C) 2024-2025 RabbitMax and Sean537. All rights reserved.
+This file is part of TC, a C++ terminal color and style library.
+
+Online repository:
+- https://github.com/Sean537/TC
+- https://gitee.com/sean537/TC
+
+Copyright (C) 2024-2025 537 Studio. All rights reserved.
+
+Contributors:
+- Sean537
+- RabbitMax
+
 */
 
 #ifndef TC_HPP // 头文件保护，防止重复包含 Header guard, prevent multiple inclusion
 #define TC_HPP
+
+#define TC_VERSION "1.0.0" // 版本号 Version number
 
 #include <iostream> // 标准输入输出流 Standard IO stream
 #include <string>    // 字符串 String
