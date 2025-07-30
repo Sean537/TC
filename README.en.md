@@ -264,10 +264,10 @@ int year = tc::getSystemTime(SYS_YEAR);
 int timestamp = tc::getSystemTime(); // Unix timestamp
 ```
 
-### ⌨️ waitKey New Features
+### ⌨️ waitKey
 
 - `tc::waitKey()`: Wait for any key
-- `tc::waitKey(char key)` / `tc::waitKey(int key)`: Wait for specific key (e.g. tc::waitKey('A'), tc::waitKey(TC_KEY_ESC))
+- `tc::waitKey(char key)` / `tc::waitKey(int key)`: Wait for specific key (e.g. tc::waitKey('A'), tc::waitKey(KEY_ESC))
 
 #### Common Special Key Macros
 

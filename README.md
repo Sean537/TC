@@ -264,10 +264,10 @@ int year = tc::getSystemTime(SYS_YEAR);
 int timestamp = tc::getSystemTime(); // Unix时间戳
 ```
 
-### ⌨️ waitKey新版功能
+### ⌨️ waitKey
 
 - `tc::waitKey()`：等待任意按键
-- `tc::waitKey(char key)` / `tc::waitKey(int key)`：等待特定按键（如 tc::waitKey('A')、tc::waitKey(TC_KEY_ESC)）
+- `tc::waitKey(char key)` / `tc::waitKey(int key)`：等待特定按键（如 tc::waitKey('A')、tc::waitKey(KEY_ESC)）
 
 #### 常用特殊按键宏
 
