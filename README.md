@@ -87,33 +87,33 @@ int main() {
     // 🛡️ 检查系统环境
     int os = tc::systemCheck();
     switch (os) {
-    case OS_WINDOWSNT11:
-        tc::println("当前系统: Windows 11");
-        break;
-    case OS_WINDOWSNT10:
-        tc::println("当前系统: Windows 10");
-        break;
-    case OS_WINDOWSNT6:
-        tc::println("当前系统: Windows Vista/7/8/8.1");
-        break;
-    case OS_LINUX:
-        tc::println("当前系统: Linux");
-        break;
-    case OS_MACOS:
-        tc::println("当前系统: macOS");
-        break;
-    case OS_BEOS:
-        tc::println("当前系统: BeOS");
-        break;
-    case OS_OS2:
-        tc::println("当前系统: OS/2");
-        break;
-    case OS_NEXTSTEP:
-        tc::println("当前系统: NeXTSTEP");
-        break;
-    // ...有更多系统的支持
-    default:
-        tc::println("未知或其他系统, code=", os);
+        case OS_WINDOWSNT11:
+            tc::println("当前系统: Windows 11");
+            break;
+        case OS_WINDOWSNT10:
+            tc::println("当前系统: Windows 10");
+            break;
+        case OS_WINDOWSNT6:
+            tc::println("当前系统: Windows Vista/7/8/8.1");
+            break;
+        case OS_LINUX:
+            tc::println("当前系统: Linux");
+            break;
+        case OS_MACOS:
+            tc::println("当前系统: macOS");
+            break;
+        case OS_BEOS:
+            tc::println("当前系统: BeOS");
+            break;
+        case OS_OS2:
+            tc::println("当前系统: OS/2");
+            break;
+        case OS_NEXTSTEP:
+            tc::println("当前系统: NeXTSTEP");
+            break;
+        // ...有更多系统的支持
+        default:
+            tc::println("未知或其他系统, code=", os);
     }
 
     return 0;

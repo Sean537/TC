@@ -87,33 +87,33 @@ int main() {
     // 🛡️ Detect system environment
     int os = tc::systemCheck();
     switch (os) {
-    case OS_WINDOWSNT11:
-        tc::println("System: Windows 11");
-        break;
-    case OS_WINDOWSNT10:
-        tc::println("System: Windows 10");
-        break;
-    case OS_WINDOWSNT6:
-        tc::println("System: Windows Vista/7/8/8.1");
-        break;
-    case OS_LINUX:
-        tc::println("System: Linux");
-        break;
-    case OS_MACOS:
-        tc::println("System: macOS");
-        break;
-    case OS_BEOS:
-        tc::println("System: BeOS");
-        break;
-    case OS_OS2:
-        tc::println("System: OS/2");
-        break;
-    case OS_NEXTSTEP:
-        tc::println("System: NeXTSTEP");
-        break;
-    // ...more systems supported
-    default:
-        tc::println("Unknown or other system, code=", os);
+        case OS_WINDOWSNT11:
+            tc::println("System: Windows 11");
+            break;
+        case OS_WINDOWSNT10:
+            tc::println("System: Windows 10");
+            break;
+        case OS_WINDOWSNT6:
+            tc::println("System: Windows Vista/7/8/8.1");
+            break;
+        case OS_LINUX:
+            tc::println("System: Linux");
+            break;
+        case OS_MACOS:
+            tc::println("System: macOS");
+            break;
+        case OS_BEOS:
+            tc::println("System: BeOS");
+            break;
+        case OS_OS2:
+            tc::println("System: OS/2");
+            break;
+        case OS_NEXTSTEP:
+            tc::println("System: NeXTSTEP");
+            break;
+        // ...more systems supported
+        default:
+            tc::println("Unknown or other system, code=", os);
     }
 
     return 0;
