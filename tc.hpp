@@ -787,8 +787,22 @@ namespace tc {
 #define OS_UNIX         500
 #define OS_DOS          600
 #define OS_BEOS         700
-#define OS_OS2          800
-#define OS_NEXTSTEP     900
+#define OS_HAIKU        701
+#define OS_AIX          800
+#define OS_SOLARIS      810
+#define OS_MINIX        820
+#define OS_QNX          830
+#define OS_VMS          840
+#define OS_AMIGAOS      850
+#define OS_MORPHOS      851
+#define OS_FREEMINT     852
+#define OS_HPUX         860
+#define OS_IRIX         861
+#define OS_SCO          862
+#define OS_OPENVMS      863
+#define OS_RISCOS       870
+#define OS_OS2          900
+#define OS_NEXTSTEP     910
 
 // --- systemCheck ---
 #include <string>
@@ -846,6 +860,34 @@ namespace tc {
         return OS_WINDOWS;
 #elif defined(__ANDROID__)
         return OS_ANDROID;
+#elif defined(__HAIKU__)
+        return OS_HAIKU;
+#elif defined(_AIX) || defined(__AIX__)
+        return OS_AIX;
+#elif defined(__sun) && defined(__SVR4)
+        return OS_SOLARIS;
+#elif defined(__minix)
+        return OS_MINIX;
+#elif defined(__QNX__)
+        return OS_QNX;
+#elif defined(__VMS) || defined(__VMS__)
+        return OS_VMS;
+#elif defined(__amigaos__)
+        return OS_AMIGAOS;
+#elif defined(__MORPHOS__)
+        return OS_MORPHOS;
+#elif defined(__MINT__)
+        return OS_FREEMINT;
+#elif defined(__hpux) || defined(__hpux__)
+        return OS_HPUX;
+#elif defined(__sgi)
+        return OS_IRIX;
+#elif defined(__SCO_VERSION__)
+        return OS_SCO;
+#elif defined(__OPENVMS)
+        return OS_OPENVMS;
+#elif defined(__riscos)
+        return OS_RISCOS;
 #elif defined(__APPLE__)
     #include <TargetConditionals.h>
     #if TARGET_OS_IPHONE

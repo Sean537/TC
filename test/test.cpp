@@ -86,8 +86,7 @@ int main()
 
     // 🛡️ 检查系统环境
     int os = tc::systemCheck();
-    switch (os)
-    {
+    switch (os) {
     case OS_WINDOWSNT11:
         tc::println("当前系统: Windows 11");
         break;

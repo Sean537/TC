@@ -1,8 +1,8 @@
 # TC.hpp - ✨ 跨平台终端控制头文件库
 
 [![C++17](https://img.shields.io/badge/C%2B%2B-17%2B-blue.svg)](https://en.cppreference.com/w/cpp/compiler_support)
-[![平台](https://img.shields.io/badge/平台-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)](#)
-[![Header-Only](https://img.shields.io/badge/Header--Only-Yes-green.svg)](#)
+[![平台](https://img.shields.io/badge/平台-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)]
+[![Header-Only](https://img.shields.io/badge/Header--Only-Yes-green.svg)]
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 > 🚀 一个现代化的 C++17 终端控制库，支持彩色输出、字体样式、延时、进度条、终端控制等，跨平台、零依赖、纯头文件！
@@ -86,18 +86,35 @@ int main() {
 
     // 🛡️ 检查系统环境
     int os = tc::systemCheck();
-    if (os == OS_WINDOWSNT10) tc::println("当前系统: Windows 10/11");
-    else if (os == OS_WINDOWSNT6) tc::println("当前系统: Windows Vista/7/8");
-    else if (os == OS_WINDOWSNT5) tc::println("当前系统: Windows 2000/XP");
-    else if (os == OS_LINUX) tc::println("当前系统: Linux");
-    else if (os == OS_MACOS) tc::println("当前系统: macOS");
-    else if (os == OS_IOS) tc::println("当前系统: iOS");
-    else if (os == OS_ANDROID) tc::println("当前系统: Android");
-    else if (os == OS_DOS) tc::println("当前系统: MS-DOS");
-    else if (os == OS_BEOS) tc::println("当前系统: BeOS");
-    else if (os == OS_OS2) tc::println("当前系统: OS/2");
-    else if (os == OS_NEXTSTEP) tc::println("当前系统: NeXTSTEP");
-    else tc::println("未知或其他系统, code=", os);
+    switch (os) {
+    case OS_WINDOWSNT11:
+        tc::println("当前系统: Windows 11");
+        break;
+    case OS_WINDOWSNT10:
+        tc::println("当前系统: Windows 10");
+        break;
+    case OS_WINDOWSNT6:
+        tc::println("当前系统: Windows Vista/7/8/8.1");
+        break;
+    case OS_LINUX:
+        tc::println("当前系统: Linux");
+        break;
+    case OS_MACOS:
+        tc::println("当前系统: macOS");
+        break;
+    case OS_BEOS:
+        tc::println("当前系统: BeOS");
+        break;
+    case OS_OS2:
+        tc::println("当前系统: OS/2");
+        break;
+    case OS_NEXTSTEP:
+        tc::println("当前系统: NeXTSTEP");
+        break;
+    // ...有更多系统的支持
+    default:
+        tc::println("未知或其他系统, code=", os);
+    }
 
     return 0;
 }
@@ -119,7 +136,6 @@ TFONT_BOLD, TFONT_FAINT, TFONT_ITALIC, TFONT_UNDERLINE, TFONT_BLINK_SLOW, TFONT_
 // RGB
 TCOLOR_RGB(r, g, b)
 ```
-
 
 ### 字体样式宏（TFONT_XXX）
 
@@ -148,6 +164,7 @@ TCOLOR_RGB(r, g, b)
 | TFONT_RESET               | 全部重置         | \033[0m      | 大多数终端支持，Windows 10+ 支持 |
 
 > ⚠️ **兼容性说明**：
+>
 > - Linux/macOS 下主流终端（如 GNOME Terminal、iTerm2、Konsole、Alacritty 等）大多支持常用样式（粗体、下划线、反色、部分斜体/删除线）。
 > - Windows 10 及以上原生终端支持大部分常用样式（粗体、下划线、反色），但对斜体、删除线、闪烁等支持有限。
 > - 旧版 Windows CMD/PowerShell 仅支持极少数样式，建议升级或使用 Windows Terminal。
@@ -173,9 +190,113 @@ TCOLOR_RGB(r, g, b)
 
 ### 🖥️ 系统相关API
 
-- `tc::getSystemTime(int type = SYS_TIMESTAMP)`：获取当前时间（年、月、日、时、分、秒、Unix时间戳），可用 `SYS_YEAR`、`SYS_MONTH`、`SYS_DAY`、`SYS_HOUR`、`SYS_MINUTE`、`SYS_SECOND`、`SYS_TIMESTAMP` 选择。
-- `tc::systemConsole(const char* 或 std::string)`：执行系统命令。
-- `tc::systemCheck()`：检测当前操作系统，返回全局宏（如 `OS_WINDOWSNT10`、`OS_LINUX` 等）。
+- `tc::getSystemTime(int type = SYS_TIMESTAMP)`：获取当前时间（年、月、日、时、分、秒、Unix时间戳）
+- `tc::systemConsole(const char* 或 std::string)`：执行系统命令
+- `tc::systemCheck()`：检测当前操作系统，返回下表宏之一
+
+#### 支持的系统宏
+
+| 宏名 | 说明 |
+|------|------|
+| OS_WINDOWSNT11 | Windows 11 及更高 |
+| OS_WINDOWSNT10 | Windows 10 |
+| OS_WINDOWSNT6  | Windows Vista/7/8/8.1 |
+| OS_WINDOWSNT5  | Windows 2000/XP/2003 |
+| OS_WINDOWSNT4  | Windows NT 4.x |
+| OS_WINDOWSNT3  | Windows NT 3.x |
+| OS_WIN95       | Windows 95 |
+| OS_WIN98       | Windows 98 |
+| OS_WINME       | Windows Me |
+| OS_WINCE       | Windows CE |
+| OS_WINDOWS     | 其他Windows |
+| OS_LINUX       | Linux |
+| OS_ANDROID     | Android |
+| OS_MACOS       | macOS |
+| OS_IOS         | iOS |
+| OS_BSD         | BSD |
+| OS_UNIX        | Unix-like |
+| OS_DOS         | MS-DOS |
+| OS_BEOS        | BeOS |
+| OS_HAIKU       | Haiku |
+| OS_AIX         | IBM AIX |
+| OS_SOLARIS     | Solaris |
+| OS_MINIX       | Minix |
+| OS_QNX         | QNX |
+| OS_VMS         | VMS/OpenVMS |
+| OS_AMIGAOS     | AmigaOS |
+| OS_MORPHOS     | MorphOS |
+| OS_FREEMINT    | FreeMiNT |
+| OS_HPUX        | HP-UX |
+| OS_IRIX        | SGI IRIX |
+| OS_SCO         | SCO UnixWare/OpenServer |
+| OS_OPENVMS     | OpenVMS |
+| OS_RISCOS      | RISC OS |
+| OS_OS2         | IBM OS/2 |
+| OS_NEXTSTEP    | NeXTSTEP |
+| OS_UNKNOWN     | 未知/其他 |
+
+#### 用法示例
+
+```cpp
+int os = tc::systemCheck();
+switch (os) {
+    case OS_WINDOWSNT11: tc::println("Windows 11"); break;
+    case OS_LINUX: tc::println("Linux"); break;
+    // ... 其他系统 ...
+    default: tc::println("未知系统, code=", os);
+}
+```
+
+### ⏱️ 获取系统时间
+
+| 宏名 | 说明 |
+|------|------|
+| SYS_YEAR      | 年 |
+| SYS_MONTH     | 月 |
+| SYS_DAY       | 日 |
+| SYS_HOUR      | 时 |
+| SYS_MINUTE    | 分 |
+| SYS_SECOND    | 秒 |
+| SYS_TIMESTAMP | Unix时间戳（默认） |
+
+```cpp
+int year = tc::getSystemTime(SYS_YEAR);
+int timestamp = tc::getSystemTime(); // Unix时间戳
+```
+
+### ⌨️ waitKey新版功能
+
+- `tc::waitKey()`：等待任意按键
+- `tc::waitKey(char key)` / `tc::waitKey(int key)`：等待特定按键（如 tc::waitKey('A')、tc::waitKey(TC_KEY_ESC)）
+
+#### 常用特殊按键宏
+
+| 宏名 | 说明 |
+|------|------|
+| KEY_ESC      | ESC |
+| KEY_SPACE    | 空格 |
+| KEY_ENTER    | 回车 |
+| KEY_TAB      | Tab |
+| KEY_BACKSPACE| 退格 |
+| KEY_INSERT   | Insert |
+| KEY_DELETE   | Delete |
+| TC_KEY_HOME     | Home |
+| KEY_END      | End |
+| KEY_PAGEUP   | PageUp |
+| KEY_PAGEDOWN | PageDown |
+| KEY_UP       | 上方向键 |
+| KEY_DOWN     | 下方向键 |
+| KEY_LEFT     | 左方向键 |
+| KEY_RIGHT    | 右方向键 |
+| KEY_F1 ~ KEY_F12 | F1~F12 功能键 |
+
+```cpp
+tc::waitKey(); // 等待任意键
+// 等待按下A键
+tc::waitKey('A');
+// 等待ESC键
+tc::waitKey(KEY_ESC);
+```
 
 ---
 
@@ -195,4 +316,3 @@ MIT
 ## 🌐 联系
 
 - 📥 电子邮件：<wushaoquan666@outlook.com>
-
