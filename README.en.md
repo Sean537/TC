@@ -280,7 +280,7 @@ int timestamp = tc::getSystemTime(); // Unix timestamp
 | KEY_BACKSPACE| Backspace |
 | KEY_INSERT   | Insert |
 | KEY_DELETE   | Delete |
-| TC_KEY_HOME     | Home |
+| KEY_HOME     | Home |
 | KEY_END      | End |
 | KEY_PAGEUP   | PageUp |
 | KEY_PAGEDOWN | PageDown |
