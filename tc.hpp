@@ -1,6 +1,6 @@
 /*
 tc.hpp
-Version 1.0.0
+Version 1.0.1
 
 This file is part of TC, a C++ terminal color and style library.
 
@@ -16,9 +16,10 @@ Contributors:
 
 */
 
-#pragma once // 头文件保护，防止重复包含 Header guard, prevent multiple inclusion
+#ifndef TC_HPP // 头文件保护，防止重复包含 Header guard, prevent multiple inclusion
+#define TC_HPP
 
-#define TC_VERSION "1.0.0" // 版本号 Version number
+#define TC_VERSION "1.0.1" // 版本号 Version number
 
 #include <iostream> // 标准输入输出流 Standard IO stream
 #include <string>    // 字符串 String
@@ -916,3 +917,4 @@ namespace tc {
     }
 }
 
+#endif // TC_HPP
