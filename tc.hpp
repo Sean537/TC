@@ -16,8 +16,7 @@ Contributors:
 
 */
 
-#ifndef TC_HPP // 头文件保护，防止重复包含 Header guard, prevent multiple inclusion
-#define TC_HPP
+#pragma once // 头文件保护，防止重复包含 Header guard, prevent multiple inclusion
 
 #define TC_VERSION "1.0.0" // 版本号 Version number
 
@@ -218,6 +217,8 @@ inline Printer printer() { return Printer(); }
 
 
 
+
+#ifdef _WIN32 // Windows平台分支 Windows platform branch
 
 // Windows 颜色常量映射，便于跨平台统一接口
 // Windows color constant mapping for cross-platform interface
