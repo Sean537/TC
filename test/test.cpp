@@ -65,14 +65,16 @@ int main()
 
     for (int i = 0; i <= 100; ++i)
     {
-        bar.show(i / 100.0, "处理中...");
+        bar.show(i / 100.0, "加载中...");
         tc::wait(0.05);
     }
-    bar.finish();
+    bar.finish("完成！");
+
+    tc::tsleep(1000); // 等待1秒钟
 
     // 12. 系统相关API示例
     // 🖥️ 执行系统命令（如清屏）
-    tc::systemConsole("cls");
+    tc::systemConsole("clear");
 
     // 🕒 获取系统时间
     int year = tc::getSystemTime(SYS_YEAR);

@@ -702,14 +702,14 @@ class ProgressBar {
 public:
     ProgressBar(int width, std::string done = "#", std::string todo = "-", std::string color = TCOLOR_GREEN)
         : width_(width), done_(std::move(done)), todo_(std::move(todo)), color_(std::move(color)) {}
-    void show(double progress, const std::string& msg = "") {
+    void show(double progress, const std::string& msg = "Loading...") {
         int pos = static_cast<int>(width_ * progress);
         std::cout << "\r" << color_ << "[";
         for (int i = 0; i < width_; ++i) std::cout << (i < pos ? done_ : todo_);
         std::cout << "] " << int(progress * 100) << "% " << msg << TCOLOR_RESET << std::flush;
     }
-    void finish() {
-        show(1.0, "完成!");
+    void finish(std::string content = "Finished") {
+        show(1.0, content);
         std::cout << std::endl;
     }
 };
