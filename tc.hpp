@@ -40,243 +40,470 @@ Menu:
   - systemCheck函数
 */
 
-#ifndef TC_HPP // 头文件保护，防止重复包含 Header guard, prevent multiple inclusion
+#ifndef TC_HPP // 头文件保护，防止重复包含 | Header guard, prevent multiple inclusion
 #define TC_HPP
 
-#define TC_VERSION "1.0.1" // 版本号 Version number
+#define TC_VERSION "1.0.1" // 版本号定义 | Version number definition
 
-#include <iostream> // 标准输入输出流 Standard IO stream
-#include <string>    // 字符串 String
-#include <sstream>   // 字符串流 String stream
-#include <thread>    // 线程 Thread
-#include <chrono>    // 时间相关 Chrono
-#include <memory>    // 智能指针 Smart pointer
-#include <functional>// 函数对象 Function object
-#include <type_traits>// 类型特性 Type traits
-#include <stack>     // 栈 Stack
+// 包含所需的标准库头文件 | Include required standard library headers
+#include <iostream>    // 标准输入输出流，用于控制台输出 | Standard IO stream for console output
+#include <string>      // 字符串类，用于文本处理 | String class for text processing
+#include <sstream>     // 字符串流，用于字符串格式化 | String stream for string formatting
+#include <thread>      // 线程库，用于延时操作 | Thread library for delay operations
+#include <chrono>      // 时间相关功能，用于计时 | Time-related functionality for timing
+#include <memory>      // 智能指针，用于资源管理 | Smart pointers for resource management
+#include <functional>  // 函数对象，用于回调函数 | Function objects for callbacks
+#include <type_traits> // 类型特性，用于模板元编程 | Type traits for template metaprogramming
+#include <stack>       // 栈容器，用于颜色状态管理 | Stack container for color state management
 
-#ifdef _WIN32 // Windows平台分支 Windows platform branch
-    #include <windows.h> // Windows API
-    #include <io.h>      // IO操作 IO operations
-    #include <fcntl.h>   // 文件控制 File control
-    #ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING // 启用虚拟终端处理宏 Enable virtual terminal processing macro
-        #define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
+// 平台特定头文件包含 | Platform-specific header includes
+#ifdef _WIN32 // Windows平台特定代码 | Windows platform specific code
+    #include <windows.h> // Windows API函数和数据类型 | Windows API functions and data types
+    #include <io.h>      // Windows IO操作函数，如_setmode | Windows IO operation functions like _setmode
+    #include <fcntl.h>   // 文件控制选项，如O_BINARY | File control options like O_BINARY
+    #ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING // 如果未定义虚拟终端处理宏 | If virtual terminal processing macro is not defined
+        #define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004 // 定义ANSI转义序列支持标志 | Define ANSI escape sequence support flag
     #endif
-#else // 非Windows平台 Non-Windows platform
-    #include <unistd.h>  // Unix标准函数 Unix standard functions
-    #include <sys/ioctl.h> // 终端IO控制 Terminal IO control
+#else // 非Windows平台（Unix/Linux/macOS等） | Non-Windows platforms (Unix/Linux/macOS etc.)
+    #include <unistd.h>    // POSIX API，提供sleep等函数 | POSIX API providing functions like sleep
+    #include <sys/ioctl.h> // 终端IO控制，用于获取终端大小 | Terminal IO control for getting terminal size
 #endif
 
-// ===== ANSI前景色/背景色/字体样式宏（全局作用域，支持TCOLOR_XXX、BCOLOR_XXX、TFONT_XXX） =====
-#define TCOLOR_BLACK   "\033[30m"
-#define TCOLOR_RED     "\033[31m"
-#define TCOLOR_GREEN   "\033[32m"
-#define TCOLOR_YELLOW  "\033[33m"
-#define TCOLOR_BLUE    "\033[34m"
-#define TCOLOR_MAGENTA "\033[35m"
-#define TCOLOR_CYAN    "\033[36m"
-#define TCOLOR_WHITE   "\033[37m"
-#define TCOLOR_DEFAULT "\033[39m"
-#define TCOLOR_RESET   "\033[0m"
-#define TCOLOR_RGB(r, g, b) tc::RGBColorWrapper(r, g, b)
-#define BCOLOR_BLACK   "\033[40m"
-#define BCOLOR_RED     "\033[41m"
-#define BCOLOR_GREEN   "\033[42m"
-#define BCOLOR_YELLOW  "\033[43m"
-#define BCOLOR_BLUE    "\033[44m"
-#define BCOLOR_MAGENTA "\033[45m"
-#define BCOLOR_CYAN    "\033[46m"
-#define BCOLOR_WHITE   "\033[47m"
-#define BCOLOR_DEFAULT "\033[49m"
-// ===== ANSI字体样式宏（全局作用域，直接用） =====
-#define TFONT_BOLD        "\033[1m"   // 粗体/加粗
-#define TFONT_FAINT       "\033[2m"   // 微弱/淡色
-#define TFONT_ITALIC      "\033[3m"   // 斜体
-#define TFONT_UNDERLINE   "\033[4m"   // 下划线
-#define TFONT_BLINK_SLOW  "\033[5m"   // 慢速闪烁
-#define TFONT_BLINK_FAST  "\033[6m"   // 快速闪烁
-#define TFONT_REVERSE     "\033[7m"   // 反色
-#define TFONT_CONCEAL     "\033[8m"   // 隐藏
-#define TFONT_CROSSED     "\033[9m"   // 删除线
-#define TFONT_DEFAULT     "\033[10m"  // 默认字体
-#define TFONT_FRAKTUR     "\033[20m"  // Fraktur字体（部分终端支持）
-#define TFONT_DOUBLE_UNDERLINE "\033[21m" // 双下划线/粗体关闭
-#define TFONT_NORMAL      "\033[22m"  // 粗体/淡色关闭
-#define TFONT_NOT_ITALIC  "\033[23m"  // 关闭斜体/Fraktur
-#define TFONT_NO_UNDERLINE "\033[24m" // 关闭下划线
-#define TFONT_NO_BLINK    "\033[25m"  // 关闭闪烁
-#define TFONT_NO_REVERSE  "\033[27m"  // 关闭反色
-#define TFONT_REVEAL      "\033[28m"  // 关闭隐藏
-#define TFONT_NOT_CROSSED "\033[29m"  // 关闭删除线
-#define TFONT_THICK       TFONT_BOLD   // 兼容别名
-#define TFONT_RESET       "\033[0m"   // 全部重置
-// 用法示例：tc::println(TCOLOR_RED, BCOLOR_YELLOW, TFONT_BOLD, "红字黄底粗体")
+// ===== ANSI前景色宏定义（全局作用域） | ANSI foreground color macros (global scope) =====
+// 这些宏定义了ANSI转义序列，用于设置文本颜色 | These macros define ANSI escape sequences for text colors
+#define TCOLOR_BLACK   "\033[30m"  // 黑色文本 | Black text
+#define TCOLOR_RED     "\033[31m"  // 红色文本 | Red text
+#define TCOLOR_GREEN   "\033[32m"  // 绿色文本 | Green text
+#define TCOLOR_YELLOW  "\033[33m"  // 黄色文本 | Yellow text
+#define TCOLOR_BLUE    "\033[34m"  // 蓝色文本 | Blue text
+#define TCOLOR_MAGENTA "\033[35m"  // 洋红色文本 | Magenta text
+#define TCOLOR_CYAN    "\033[36m"  // 青色文本 | Cyan text
+#define TCOLOR_WHITE   "\033[37m"  // 白色文本 | White text
+#define TCOLOR_DEFAULT "\033[39m"  // 默认前景色 | Default foreground color
+#define TCOLOR_RESET   "\033[0m"   // 重置所有属性 | Reset all attributes
+#define TCOLOR_RGB(r, g, b) tc::RGBColorWrapper(r, g, b) // RGB自定义颜色 | Custom RGB color
 
-namespace tc { // 主命名空间 Main namespace
+// ===== ANSI背景色宏定义（全局作用域） | ANSI background color macros (global scope) =====
+// 这些宏定义了ANSI转义序列，用于设置背景颜色 | These macros define ANSI escape sequences for background colors
+#define BCOLOR_BLACK   "\033[40m"  // 黑色背景 | Black background
+#define BCOLOR_RED     "\033[41m"  // 红色背景 | Red background
+#define BCOLOR_GREEN   "\033[42m"  // 绿色背景 | Green background
+#define BCOLOR_YELLOW  "\033[43m"  // 黄色背景 | Yellow background
+#define BCOLOR_BLUE    "\033[44m"  // 蓝色背景 | Blue background
+#define BCOLOR_MAGENTA "\033[45m"  // 洋红色背景 | Magenta background
+#define BCOLOR_CYAN    "\033[46m"  // 青色背景 | Cyan background
+#define BCOLOR_WHITE   "\033[47m"  // 白色背景 | White background
+#define BCOLOR_DEFAULT "\033[49m"  // 默认背景色 | Default background color
+// ===== ANSI字体样式宏（全局作用域） | ANSI font style macros (global scope) =====
+// 这些宏定义了ANSI转义序列，用于设置文本样式 | These macros define ANSI escape sequences for text styles
+#define TFONT_BOLD        "\033[1m"   // 粗体/加粗文本 | Bold text
+#define TFONT_FAINT       "\033[2m"   // 微弱/淡色文本 | Faint/dim text
+#define TFONT_ITALIC      "\033[3m"   // 斜体文本 | Italic text
+#define TFONT_UNDERLINE   "\033[4m"   // 下划线文本 | Underlined text
+#define TFONT_BLINK_SLOW  "\033[5m"   // 慢速闪烁文本 | Slow blinking text
+#define TFONT_BLINK_FAST  "\033[6m"   // 快速闪烁文本 | Rapid blinking text
+#define TFONT_REVERSE     "\033[7m"   // 反色（前景背景互换） | Reversed colors (swap fg/bg)
+#define TFONT_CONCEAL     "\033[8m"   // 隐藏文本 | Concealed/hidden text
+#define TFONT_CROSSED     "\033[9m"   // 删除线文本 | Crossed-out text
+#define TFONT_DEFAULT     "\033[10m"  // 默认字体 | Default font
+#define TFONT_FRAKTUR     "\033[20m"  // Fraktur字体（部分终端支持） | Fraktur font (limited support)
+#define TFONT_DOUBLE_UNDERLINE "\033[21m" // 双下划线/粗体关闭 | Double underline/bold off
+#define TFONT_NORMAL      "\033[22m"  // 粗体/淡色关闭 | Normal intensity (not bold/faint)
+#define TFONT_NOT_ITALIC  "\033[23m"  // 关闭斜体/Fraktur | Not italic/fraktur
+#define TFONT_NO_UNDERLINE "\033[24m" // 关闭下划线 | Underline off
+#define TFONT_NO_BLINK    "\033[25m"  // 关闭闪烁 | Blink off
+#define TFONT_NO_REVERSE  "\033[27m"  // 关闭反色 | Reverse off
+#define TFONT_REVEAL      "\033[28m"  // 关闭隐藏 | Conceal off
+#define TFONT_NOT_CROSSED "\033[29m"  // 关闭删除线 | Crossed-out off
+#define TFONT_THICK       TFONT_BOLD  // 兼容别名（粗体） | Compatible alias for bold
+#define TFONT_RESET       "\033[0m"   // 全部重置（所有属性） | Reset all attributes
 
-// ========== print/println ========== //
-// 链式print/println类，兼容Python风格
-// 链式print/println类，兼容Python风格
+// 用法示例 | Usage example: tc::println(TCOLOR_RED, BCOLOR_YELLOW, TFONT_BOLD, "红字黄底粗体 | Bold red text on yellow background")
+
+namespace tc { // 主命名空间，包含所有TC库功能 | Main namespace containing all TC library functionality
+
+// ========== print/println 函数 | print/println functions ========== //
+/**
+ * PrintProxy类 - 提供链式调用风格的打印功能
+ * PrintProxy class - Provides chainable printing functionality
+ * 
+ * 这个类允许类似Python的链式打印操作，如：print("Hello").print(" ").println("World")
+ * This class allows Python-like chaining of print operations, e.g.: print("Hello").print(" ").println("World")
+ */
 class PrintProxy {
 public:
+    // 无参数打印，返回自身引用以支持链式调用 | No-argument print, returns self-reference for chaining
     const PrintProxy& print() const { return *this; }
+    
+    // 可变参数模板打印，支持任意数量和类型的参数 | Variadic template print, supports any number and type of arguments
     template<typename... Args>
-    const PrintProxy& print(Args&&... args) const { (void)std::initializer_list<int>{(std::cout << std::forward<Args>(args), 0)...}; return *this; }
+    const PrintProxy& print(Args&&... args) const { 
+        // 使用初始化列表技巧展开参数包 | Using initializer list trick to expand parameter pack
+        (void)std::initializer_list<int>{(std::cout << std::forward<Args>(args), 0)...}; 
+        return *this; 
+    }
+    
+    // 可变参数模板行打印，带换行符 | Variadic template line print with newline
     template<typename... Args>
-    const PrintProxy& println(Args&&... args) const { (void)std::initializer_list<int>{(std::cout << std::forward<Args>(args), 0)...}; std::cout << std::endl; return *this; }
+    const PrintProxy& println(Args&&... args) const { 
+        (void)std::initializer_list<int>{(std::cout << std::forward<Args>(args), 0)...}; 
+        std::cout << std::endl; 
+        return *this; 
+    }
 };
+
+// 全局print函数，返回PrintProxy实例以支持链式调用 | Global print function, returns PrintProxy instance for chaining
 inline const PrintProxy& print() { static PrintProxy p; return p; }
+
+// 全局println函数，输出换行符并返回PrintProxy实例 | Global println function, outputs newline and returns PrintProxy instance
 inline const PrintProxy& println() { static PrintProxy p; std::cout << std::endl; return p; }
 
-// 支持一次性多参数打印的print/println
+/**
+ * 全局print/println函数 - 支持一次性多参数打印
+ * Global print/println functions - Support one-time multi-parameter printing
+ * 
+ * 这些函数提供了简单的接口来打印多个参数，类似于Python的print函数
+ * These functions provide a simple interface to print multiple arguments, similar to Python's print function
+ */
+// 全局print函数，一次性打印多个参数 | Global print function, prints multiple arguments at once
 template<typename... Args>
-inline void print(Args&&... args) { (void)std::initializer_list<int>{(std::cout << std::forward<Args>(args), 0)...}; }
-template<typename... Args>
-inline void println(Args&&... args) { (void)std::initializer_list<int>{(std::cout << std::forward<Args>(args), 0)...}; std::cout << std::endl; }
+inline void print(Args&&... args) { 
+    (void)std::initializer_list<int>{(std::cout << std::forward<Args>(args), 0)...}; 
+}
 
-// ========== wait/waitKey ========== //
-inline void wait(double seconds) { std::this_thread::sleep_for(std::chrono::milliseconds((int)(seconds*1000))); }
-#ifdef _WIN32
-#include <conio.h>
-inline void waitKey() { _getch(); }
-inline void waitKey(char key) { while (_getch() != key) {} }
-inline void waitKey(int key) { while (_getch() != key) {} }
-#else
-#include <termios.h>
+// 全局println函数，一次性打印多个参数并换行 | Global println function, prints multiple arguments and adds newline
+template<typename... Args>
+inline void println(Args&&... args) { 
+    (void)std::initializer_list<int>{(std::cout << std::forward<Args>(args), 0)...}; 
+    std::cout << std::endl; 
+}
+
+// ========== wait/waitKey 函数 | wait/waitKey functions ========== //
+/**
+ * wait函数 - 暂停程序执行指定的秒数
+ * wait function - Pauses program execution for specified seconds
+ * 
+ * @param seconds 等待的秒数，支持小数 | Number of seconds to wait, supports decimals
+ */
+inline void wait(double seconds) { 
+    // 将秒转换为毫秒并暂停线程 | Convert seconds to milliseconds and pause thread
+    std::this_thread::sleep_for(std::chrono::milliseconds((int)(seconds*1000))); 
+}
+
+#ifdef _WIN32 // Windows平台实现 | Windows platform implementation
+#include <conio.h> // 控制台输入输出函数 | Console input/output functions
+
+/**
+ * waitKey函数 - 等待任意按键按下
+ * waitKey function - Waits for any key press
+ */
+inline void waitKey() { _getch(); } // 使用_getch()获取按键，不回显 | Use _getch() to get key without echo
+
+/**
+ * waitKey函数 - 等待指定字符按键按下
+ * waitKey function - Waits for specific character key press
+ * 
+ * @param key 等待的字符按键 | Character key to wait for
+ */
+inline void waitKey(char key) { 
+    while (_getch() != key) {} // 循环直到按下指定键 | Loop until specified key is pressed
+}
+
+/**
+ * waitKey函数 - 等待指定键码按键按下
+ * waitKey function - Waits for specific key code press
+ * 
+ * @param key 等待的键码 | Key code to wait for
+ */
+inline void waitKey(int key) { 
+    while (_getch() != key) {} // 循环直到按下指定键码 | Loop until specified key code is pressed
+}
+
+#else // 非Windows平台实现 | Non-Windows platform implementation
+#include <termios.h> // 终端IO设置 | Terminal IO settings
+
+/**
+ * waitKey函数 - 等待任意按键按下（Unix/Linux/macOS版本）
+ * waitKey function - Waits for any key press (Unix/Linux/macOS version)
+ */
 inline void waitKey() {
-    termios oldt, newt;
-    tcgetattr(0, &oldt);
+    termios oldt, newt; // 终端设置结构体 | Terminal settings structures
+    tcgetattr(0, &oldt); // 获取当前终端设置 | Get current terminal settings
     newt = oldt;
-    newt.c_lflag &= ~ICANON;
-    tcsetattr(0, TCSANOW, &newt);
-    getchar();
-    tcsetattr(0, TCSANOW, &oldt);
+    newt.c_lflag &= ~ICANON; // 禁用规范模式，允许立即读取按键 | Disable canonical mode for immediate key reading
+    tcsetattr(0, TCSANOW, &newt); // 应用新设置 | Apply new settings
+    getchar(); // 读取一个字符 | Read one character
+    tcsetattr(0, TCSANOW, &oldt); // 恢复原始设置 | Restore original settings
 }
-inline void waitKey(char key) {
-    termios oldt, newt;
-    tcgetattr(0, &oldt);
-    newt = oldt;
-    newt.c_lflag &= ~ICANON;
-    tcsetattr(0, TCSANOW, &newt);
-    int ch;
-    do { ch = getchar(); } while (ch != key);
-    tcsetattr(0, TCSANOW, &oldt);
-}
-inline void waitKey(int key) { waitKey((char)key); }
-#endif
-#define KEY_ESC      27
-#define KEY_SPACE    32
-#define KEY_ENTER    13
-#define KEY_TAB       9
-#define KEY_BACKSPACE 8
-#define KEY_INSERT   0x2D
-#define KEY_DELETE   0x2E
-#define KEY_HOME     0x24
-#define KEY_END      0x23
-#define KEY_PAGEUP   0x21
-#define KEY_PAGEDOWN 0x22
-#define KEY_UP       0x26
-#define KEY_DOWN     0x28
-#define KEY_LEFT     0x25
-#define KEY_RIGHT    0x27
-#define KEY_F1       0x70
-#define KEY_F2       0x71
-#define KEY_F3       0x72
-#define KEY_F4       0x73
-#define KEY_F5       0x74
-#define KEY_F6       0x75
-#define KEY_F7       0x76
-#define KEY_F8       0x77
-#define KEY_F9       0x78
-#define KEY_F10      0x79
-#define KEY_F11      0x7A
-#define KEY_F12      0x7B
 
-// ========== Printer类 ========== //
+/**
+ * waitKey函数 - 等待指定字符按键按下（Unix/Linux/macOS版本）
+ * waitKey function - Waits for specific character key press (Unix/Linux/macOS version)
+ * 
+ * @param key 等待的字符按键 | Character key to wait for
+ */
+inline void waitKey(char key) {
+    termios oldt, newt; // 终端设置结构体 | Terminal settings structures
+    tcgetattr(0, &oldt); // 获取当前终端设置 | Get current terminal settings
+    newt = oldt;
+    newt.c_lflag &= ~ICANON; // 禁用规范模式，允许立即读取按键 | Disable canonical mode for immediate key reading
+    tcsetattr(0, TCSANOW, &newt); // 应用新设置 | Apply new settings
+    int ch;
+    do { ch = getchar(); } while (ch != key); // 循环直到按下指定键 | Loop until specified key is pressed
+    tcsetattr(0, TCSANOW, &oldt); // 恢复原始设置 | Restore original settings
+}
+
+/**
+ * waitKey函数 - 等待指定键码按键按下（Unix/Linux/macOS版本）
+ * waitKey function - Waits for specific key code press (Unix/Linux/macOS version)
+ * 
+ * @param key 等待的键码 | Key code to wait for
+ */
+inline void waitKey(int key) { waitKey((char)key); } // 转换为字符并调用字符版本 | Convert to char and call char version
+#endif
+// 按键常量定义，用于waitKey函数 | Key constants for waitKey function
+#define KEY_ESC      27    // Escape键 | Escape key
+#define KEY_SPACE    32    // 空格键 | Space key
+#define KEY_ENTER    13    // 回车键 | Enter key
+#define KEY_TAB       9    // Tab键 | Tab key
+#define KEY_BACKSPACE 8    // 退格键 | Backspace key
+#define KEY_INSERT   0x2D  // Insert键 | Insert key
+#define KEY_DELETE   0x2E  // Delete键 | Delete key
+#define KEY_HOME     0x24  // Home键 | Home key
+#define KEY_END      0x23  // End键 | End key
+#define KEY_PAGEUP   0x21  // Page Up键 | Page Up key
+#define KEY_PAGEDOWN 0x22  // Page Down键 | Page Down key
+#define KEY_UP       0x26  // 上箭头键 | Up arrow key
+#define KEY_DOWN     0x28  // 下箭头键 | Down arrow key
+#define KEY_LEFT     0x25  // 左箭头键 | Left arrow key
+#define KEY_RIGHT    0x27  // 右箭头键 | Right arrow key
+#define KEY_F1       0x70  // F1功能键 | F1 function key
+#define KEY_F2       0x71  // F2功能键 | F2 function key
+#define KEY_F3       0x72  // F3功能键 | F3 function key
+#define KEY_F4       0x73  // F4功能键 | F4 function key
+#define KEY_F5       0x74  // F5功能键 | F5 function key
+#define KEY_F6       0x75  // F6功能键 | F6 function key
+#define KEY_F7       0x76  // F7功能键 | F7 function key
+#define KEY_F8       0x77  // F8功能键 | F8 function key
+#define KEY_F9       0x78  // F9功能键 | F9 function key
+#define KEY_F10      0x79  // F10功能键 | F10 function key
+#define KEY_F11      0x7A  // F11功能键 | F11 function key
+#define KEY_F12      0x7B  // F12功能键 | F12 function key
+
+// ========== Printer类 - 终端打印和控制 | Printer class - Terminal printing and control ========== //
+/**
+ * Printer类 - 提供终端控制和打印功能的链式接口
+ * Printer class - Provides a chainable interface for terminal control and printing
+ * 
+ * 这个类封装了终端控制操作，如清屏、移动光标、显示/隐藏光标等，
+ * 并提供链式调用接口，使得多个操作可以连续执行。
+ * 
+ * This class encapsulates terminal control operations such as clearing screen,
+ * moving cursor, showing/hiding cursor, etc., and provides a chainable interface
+ * allowing multiple operations to be executed in sequence.
+ */
 class Printer {
 public:
+    /**
+     * 清屏并将光标移动到左上角
+     * Clear screen and move cursor to top-left corner
+     * 
+     * @return 对象自身引用，支持链式调用 | Self reference for chaining
+     */
     Printer& clear() { std::cout << "\033[2J\033[H"; return *this; }
+    
+    /**
+     * 将光标移动到指定坐标
+     * Move cursor to specified coordinates
+     * 
+     * @param x 列坐标（从1开始） | Column coordinate (1-based)
+     * @param y 行坐标（从1开始） | Row coordinate (1-based)
+     * @return 对象自身引用，支持链式调用 | Self reference for chaining
+     */
     Printer& moveCursor(int x, int y) { std::cout << "\033[" << y << ";" << x << "H"; return *this; }
+    
+    /**
+     * 无参数打印函数
+     * No-argument print function
+     * 
+     * @return 对象自身引用，支持链式调用 | Self reference for chaining
+     */
     Printer& print() { return *this; }
+    
+    /**
+     * 可变参数打印函数
+     * Variadic print function
+     * 
+     * @param args 要打印的参数 | Arguments to print
+     * @return 对象自身引用，支持链式调用 | Self reference for chaining
+     */
     template<typename... Args>
-    Printer& print(Args&&... args) { (void)std::initializer_list<int>{(std::cout << std::forward<Args>(args), 0)...}; return *this; }
+    Printer& print(Args&&... args) { 
+        (void)std::initializer_list<int>{(std::cout << std::forward<Args>(args), 0)...}; 
+        return *this; 
+    }
+    
+    /**
+     * 可变参数打印函数，带换行
+     * Variadic print function with newline
+     * 
+     * @param args 要打印的参数 | Arguments to print
+     * @return 对象自身引用，支持链式调用 | Self reference for chaining
+     */
     template<typename... Args>
-    Printer& println(Args&&... args) { (void)std::initializer_list<int>{(std::cout << std::forward<Args>(args), 0)...}; std::cout << std::endl; return *this; }
+    Printer& println(Args&&... args) { 
+        (void)std::initializer_list<int>{(std::cout << std::forward<Args>(args), 0)...}; 
+        std::cout << std::endl; 
+        return *this; 
+    }
+    
+    /**
+     * 隐藏光标
+     * Hide cursor
+     * 
+     * @return 对象自身引用，支持链式调用 | Self reference for chaining
+     */
     Printer& hideCursor() { std::cout << "\033[?25l"; return *this; }
+    
+    /**
+     * 显示光标
+     * Show cursor
+     * 
+     * @return 对象自身引用，支持链式调用 | Self reference for chaining
+     */
     Printer& showCursor() { std::cout << "\033[?25h"; return *this; }
+    
+    /**
+     * 光标移动方向枚举
+     * Cursor movement direction enum
+     */
     enum class Direction { Up, Down, Left, Right };
+    
+    /**
+     * 按指定方向移动光标
+     * Move cursor in specified direction
+     * 
+     * @param dir 移动方向 | Movement direction
+     * @param n 移动步数 | Number of steps to move
+     * @return 对象自身引用，支持链式调用 | Self reference for chaining
+     */
     Printer& moveCursor(Direction dir, int n) {
         switch(dir) {
-            case Direction::Up: std::cout << "\033[" << n << "A"; break;
-            case Direction::Down: std::cout << "\033[" << n << "B"; break;
-            case Direction::Right: std::cout << "\033[" << n << "C"; break;
-            case Direction::Left: std::cout << "\033[" << n << "D"; break;
+            case Direction::Up: std::cout << "\033[" << n << "A"; break;     // 向上移动 | Move up
+            case Direction::Down: std::cout << "\033[" << n << "B"; break;   // 向下移动 | Move down
+            case Direction::Right: std::cout << "\033[" << n << "C"; break;  // 向右移动 | Move right
+            case Direction::Left: std::cout << "\033[" << n << "D"; break;   // 向左移动 | Move left
         }
         return *this;
     }
+    
+    /**
+     * 获取终端窗口大小
+     * Get terminal window size
+     * 
+     * @return 包含宽度和高度的对组 | Pair containing width and height
+     */
     std::pair<int,int> getSize() {
 #ifdef _WIN32
+        // Windows平台实现 | Windows platform implementation
         CONSOLE_SCREEN_BUFFER_INFO csbi;
-        int cols = 80, rows = 25;
+        int cols = 80, rows = 25;  // 默认值 | Default values
         HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
         if (GetConsoleScreenBufferInfo(h, &csbi)) {
+            // 计算实际窗口大小 | Calculate actual window size
             cols = csbi.srWindow.Right - csbi.srWindow.Left + 1;
             rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
         }
         return {cols, rows};
 #else
+        // Unix/Linux/macOS平台实现 | Unix/Linux/macOS platform implementation
         struct winsize size;
         if (ioctl(1, TIOCGWINSZ, &size) == 0)
             return {size.ws_col, size.ws_row};
-        return {80, 25};
+        return {80, 25};  // 默认值 | Default values
 #endif
     }
 };
+
+/**
+ * 创建并返回一个Printer对象
+ * Create and return a Printer object
+ * 
+ * @return 新的Printer对象 | New Printer object
+ */
 inline Printer printer() { return Printer(); }
 
-#ifdef _WIN32 // Windows平台分支 Windows platform branch
+#ifdef _WIN32 // Windows平台特定代码 | Windows platform specific code
 
-// Windows 颜色常量映射，便于跨平台统一接口
-// Windows color constant mapping for cross-platform interface
+/**
+ * Windows颜色常量映射命名空间
+ * Windows color constant mapping namespace
+ * 
+ * 这个命名空间定义了Windows控制台API的颜色常量，将它们映射为更易用的名称，
+ * 便于与ANSI颜色代码保持一致的跨平台接口。
+ * 
+ * This namespace defines color constants for the Windows Console API, mapping them
+ * to more user-friendly names, facilitating a consistent cross-platform interface
+ * with ANSI color codes.
+ */
 namespace win32_colors {
-    constexpr WORD BLACK = 0; // 黑色 Black
-    constexpr WORD DARK_BLUE = FOREGROUND_BLUE; // 深蓝 Dark blue
-    constexpr WORD DARK_GREEN = FOREGROUND_GREEN; // 深绿 Dark green
-    constexpr WORD DARK_CYAN = FOREGROUND_GREEN | FOREGROUND_BLUE; // 深青 Dark cyan
-    constexpr WORD DARK_RED = FOREGROUND_RED; // 深红 Dark red
-    constexpr WORD DARK_MAGENTA = FOREGROUND_RED | FOREGROUND_BLUE; // 深洋红 Dark magenta
-    constexpr WORD DARK_YELLOW = FOREGROUND_RED | FOREGROUND_GREEN; // 深黄 Dark yellow
-    constexpr WORD GRAY = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE; // 灰色 Gray
-    constexpr WORD DARK_GRAY = FOREGROUND_INTENSITY; // 深灰 Dark gray
-    constexpr WORD BLUE = FOREGROUND_BLUE | FOREGROUND_INTENSITY; // 亮蓝 Bright blue
-    constexpr WORD GREEN = FOREGROUND_GREEN | FOREGROUND_INTENSITY; // 亮绿 Bright green
-    constexpr WORD CYAN = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY; // 亮青 Bright cyan
-    constexpr WORD RED = FOREGROUND_RED | FOREGROUND_INTENSITY; // 亮红 Bright red
-    constexpr WORD MAGENTA = FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY; // 亮洋红 Bright magenta
-    constexpr WORD YELLOW = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY; // 亮黄 Bright yellow
-    constexpr WORD WHITE = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY; // 白色 White
+    constexpr WORD BLACK = 0;                                                  // 黑色前景色 | Black foreground
+    constexpr WORD DARK_BLUE = FOREGROUND_BLUE;                                // 深蓝前景色 | Dark blue foreground
+    constexpr WORD DARK_GREEN = FOREGROUND_GREEN;                              // 深绿前景色 | Dark green foreground
+    constexpr WORD DARK_CYAN = FOREGROUND_GREEN | FOREGROUND_BLUE;             // 深青前景色 | Dark cyan foreground
+    constexpr WORD DARK_RED = FOREGROUND_RED;                                  // 深红前景色 | Dark red foreground
+    constexpr WORD DARK_MAGENTA = FOREGROUND_RED | FOREGROUND_BLUE;            // 深洋红前景色 | Dark magenta foreground
+    constexpr WORD DARK_YELLOW = FOREGROUND_RED | FOREGROUND_GREEN;            // 深黄前景色 | Dark yellow foreground
+    constexpr WORD GRAY = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE; // 灰色前景色 | Gray foreground
+    constexpr WORD DARK_GRAY = FOREGROUND_INTENSITY;                           // 深灰前景色 | Dark gray foreground
+    constexpr WORD BLUE = FOREGROUND_BLUE | FOREGROUND_INTENSITY;              // 亮蓝前景色 | Bright blue foreground
+    constexpr WORD GREEN = FOREGROUND_GREEN | FOREGROUND_INTENSITY;            // 亮绿前景色 | Bright green foreground
+    constexpr WORD CYAN = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;  // 亮青前景色 | Bright cyan foreground
+    constexpr WORD RED = FOREGROUND_RED | FOREGROUND_INTENSITY;                // 亮红前景色 | Bright red foreground
+    constexpr WORD MAGENTA = FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY; // 亮洋红前景色 | Bright magenta foreground
+    constexpr WORD YELLOW = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY; // 亮黄前景色 | Bright yellow foreground
+    constexpr WORD WHITE = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY; // 白色前景色 | White foreground
 }
 
-// Windows 控制台管理类，封装颜色/光标/清屏等操作
-// Windows console manager, encapsulates color/cursor/clear screen etc.
+/**
+ * Windows控制台管理类
+ * Windows console manager class
+ * 
+ * 这个类封装了Windows控制台API的操作，提供颜色设置、光标控制、清屏等功能。
+ * 采用单例模式设计，确保全局只有一个控制台管理实例。
+ * 
+ * This class encapsulates Windows Console API operations, providing functionality
+ * for color setting, cursor control, screen clearing, etc. It uses the singleton
+ * design pattern to ensure only one console manager instance exists globally.
+ */
 class Win32Console {
 private:
-    HANDLE hConsole_; // 控制台句柄 Console handle
-    CONSOLE_SCREEN_BUFFER_INFO originalInfo_; // 原始缓冲区信息 Original buffer info
-    std::stack<WORD> colorStack_; // 颜色栈 Color stack
-    bool initialized_ = false; // 初始化标志 Initialization flag
+    HANDLE hConsole_;                        // 控制台句柄 | Console handle
+    CONSOLE_SCREEN_BUFFER_INFO originalInfo_; // 原始缓冲区信息，用于恢复初始状态 | Original buffer info for restoring initial state
+    std::stack<WORD> colorStack_;            // 颜色栈，用于保存和恢复颜色设置 | Color stack for saving and restoring color settings
+    bool initialized_ = false;               // 初始化标志，指示控制台是否成功初始化 | Initialization flag indicating if console was successfully initialized
 
-    // 构造函数，初始化控制台和UTF-8支持
-    // Constructor, initialize console and UTF-8 support
+    /**
+     * 私有构造函数，初始化控制台和UTF-8支持
+     * Private constructor, initializes console and UTF-8 support
+     * 
+     * 单例模式的一部分，防止外部直接创建实例
+     * Part of singleton pattern, prevents direct instance creation from outside
+     */
     Win32Console() {
-        hConsole_ = GetStdHandle(STD_OUTPUT_HANDLE); // 获取标准输出句柄 Get standard output handle
+        // 获取标准输出句柄 | Get standard output handle
+        hConsole_ = GetStdHandle(STD_OUTPUT_HANDLE);
+        
         if (hConsole_ != INVALID_HANDLE_VALUE) {
-            GetConsoleScreenBufferInfo(hConsole_, &originalInfo_); // 获取原始信息 Get original info
+            // 获取原始控制台信息 | Get original console information
+            GetConsoleScreenBufferInfo(hConsole_, &originalInfo_);
             initialized_ = true;
-            // 设置UTF-8支持 Set UTF-8 support
-            SetConsoleOutputCP(CP_UTF8);
-            SetConsoleCP(CP_UTF8);
-            // 尝试启用ANSI处理 Try enable ANSI processing
+            
+            // 设置UTF-8编码支持 | Set UTF-8 encoding support
+            SetConsoleOutputCP(CP_UTF8);  // 输出编码设为UTF-8 | Set output encoding to UTF-8
+            SetConsoleCP(CP_UTF8);        // 输入编码设为UTF-8 | Set input encoding to UTF-8
+            
+            // 尝试启用ANSI转义序列处理 | Try to enable ANSI escape sequence processing
             DWORD dwMode = 0;
             if (GetConsoleMode(hConsole_, &dwMode)) {
                 SetConsoleMode(hConsole_, dwMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
@@ -285,166 +512,286 @@ private:
     }
 
 public:
-    // 单例获取实例 Get singleton instance
+    /**
+     * 获取单例实例
+     * Get singleton instance
+     * 
+     * @return Win32Console的单例引用 | Singleton reference to Win32Console
+     */
     static Win32Console& getInstance() {
-        static Win32Console instance;
+        static Win32Console instance;  // 静态局部变量保证线程安全的单例 | Static local variable ensures thread-safe singleton
         return instance;
     }
 
-    // 判断是否初始化 Is initialized
+    /**
+     * 判断控制台是否成功初始化
+     * Check if console was successfully initialized
+     * 
+     * @return 初始化状态 | Initialization status
+     */
     bool isInitialized() const { return initialized_; }
 
-    // 设置颜色 Set color
+    /**
+     * 设置控制台文本颜色
+     * Set console text color
+     * 
+     * @param color Windows控制台颜色属性 | Windows console color attribute
+     */
     void setColor(WORD color) {
         if (initialized_) {
             SetConsoleTextAttribute(hConsole_, color);
         }
     }
 
-    // 推入当前颜色到栈 Push current color to stack
+    /**
+     * 保存当前颜色并设置新颜色
+     * Save current color and set new color
+     * 
+     * @param color 要设置的新颜色 | New color to set
+     */
     void pushColor(WORD color) {
         if (initialized_) {
+            // 获取当前颜色并保存到栈中 | Get current color and save to stack
             CONSOLE_SCREEN_BUFFER_INFO info;
             GetConsoleScreenBufferInfo(hConsole_, &info);
             colorStack_.push(info.wAttributes);
+            
+            // 设置新颜色 | Set new color
             setColor(color);
         }
     }
 
-    // 弹出颜色栈并恢复 Pop color stack and restore
+    /**
+     * 恢复之前保存的颜色
+     * Restore previously saved color
+     */
     void popColor() {
         if (initialized_ && !colorStack_.empty()) {
+            // 从栈中弹出颜色并设置 | Pop color from stack and set it
             setColor(colorStack_.top());
             colorStack_.pop();
         }
     }
 
-    // 重置为原始颜色 Reset to original color
+    /**
+     * 重置为原始控制台颜色
+     * Reset to original console color
+     */
     void resetColor() {
         if (initialized_) {
             setColor(originalInfo_.wAttributes);
         }
     }
 
-    // 获取当前颜色 Get current color
+    /**
+     * 获取当前控制台颜色
+     * Get current console color
+     * 
+     * @return 当前颜色属性 | Current color attribute
+     */
     WORD getCurrentColor() const {
         if (initialized_) {
             CONSOLE_SCREEN_BUFFER_INFO info;
             GetConsoleScreenBufferInfo(hConsole_, &info);
             return info.wAttributes;
         }
-        return win32_colors::WHITE;
+        return win32_colors::WHITE;  // 默认返回白色 | Default to white
     }
 
-    // 移动光标 Move cursor
+    /**
+     * 移动控制台光标到指定位置
+     * Move console cursor to specified position
+     * 
+     * @param x 列坐标（从0开始） | Column coordinate (0-based)
+     * @param y 行坐标（从0开始） | Row coordinate (0-based)
+     */
     void moveCursor(int x, int y) {
         if (initialized_) {
+            // 创建坐标并设置光标位置 | Create coordinates and set cursor position
             COORD coord = {static_cast<SHORT>(x), static_cast<SHORT>(y)};
             SetConsoleCursorPosition(hConsole_, coord);
         }
     }
 
-    // 清屏 Clear screen
+    /**
+     * 清空控制台屏幕
+     * Clear console screen
+     */
     void clearScreen() {
         if (initialized_) {
+            // 获取当前缓冲区信息 | Get current buffer info
             CONSOLE_SCREEN_BUFFER_INFO info;
             GetConsoleScreenBufferInfo(hConsole_, &info);
+            
             DWORD written;
             COORD topLeft = {0, 0};
+            
+            // 用空格填充整个缓冲区 | Fill entire buffer with spaces
             FillConsoleOutputCharacter(hConsole_, ' ', 
                 info.dwSize.X * info.dwSize.Y, topLeft, &written);
+                
+            // 用当前属性填充整个缓冲区 | Fill entire buffer with current attributes
             FillConsoleOutputAttribute(hConsole_, info.wAttributes,
                 info.dwSize.X * info.dwSize.Y, topLeft, &written);
+                
+            // 将光标移回左上角 | Move cursor back to top-left
             SetConsoleCursorPosition(hConsole_, topLeft);
         }
     }
 
-    // 获取终端尺寸 Get console size
+    /**
+     * 获取控制台窗口大小
+     * Get console window size
+     * 
+     * @return 包含宽度和高度的对组 | Pair containing width and height
+     */
     std::pair<int, int> getConsoleSize() const {
         if (initialized_) {
             CONSOLE_SCREEN_BUFFER_INFO info;
             GetConsoleScreenBufferInfo(hConsole_, &info);
+            // 计算可见窗口大小 | Calculate visible window size
             return {info.srWindow.Right - info.srWindow.Left + 1,
                    info.srWindow.Bottom - info.srWindow.Top + 1};
         }
-        return {80, 25}; // 默认值 Default value
+        return {80, 25};  // 默认大小 | Default size
     }
 
-    // RGB转16色近似 Approximate RGB to 16 color
+    /**
+     * 将RGB颜色近似转换为Windows控制台16色
+     * Approximate RGB color to Windows console 16-color
+     * 
+     * @param r 红色分量(0-255) | Red component (0-255)
+     * @param g 绿色分量(0-255) | Green component (0-255)
+     * @param b 蓝色分量(0-255) | Blue component (0-255)
+     * @return Windows控制台颜色属性 | Windows console color attribute
+     */
     WORD rgbToWin32Color(int r, int g, int b) const {
-        // 简单的RGB到16色映射 Simple RGB to 16 color mapping
-        bool isRed = r > 128;
-        bool isGreen = g > 128;
-        bool isBlue = b > 128;
-        bool isBright = (r + g + b) > 384;
+        // 简单的RGB到16色映射算法 | Simple RGB to 16-color mapping algorithm
+        bool isRed = r > 128;    // 红色分量是否足够高 | Is red component high enough
+        bool isGreen = g > 128;  // 绿色分量是否足够高 | Is green component high enough
+        bool isBlue = b > 128;   // 蓝色分量是否足够高 | Is blue component high enough
+        bool isBright = (r + g + b) > 384;  // 整体亮度是否足够高 | Is overall brightness high enough
+        
         WORD color = 0;
+        // 根据各分量设置对应的位 | Set corresponding bits based on components
         if (isRed) color |= FOREGROUND_RED;
         if (isGreen) color |= FOREGROUND_GREEN;
         if (isBlue) color |= FOREGROUND_BLUE;
         if (isBright) color |= FOREGROUND_INTENSITY;
+        
+        // 如果结果为0（黑色），返回白色作为默认值 | If result is 0 (black), return white as default
         return color ? color : win32_colors::WHITE;
     }
 
-    // 析构函数，重置颜色 Destructor, reset color
+    /**
+     * 析构函数，重置控制台颜色
+     * Destructor, resets console color
+     */
     ~Win32Console() {
         if (initialized_) {
-            resetColor();
+            resetColor();  // 恢复原始颜色 | Restore original color
         }
     }
 };
 
-// 非Windows平台：ANSI转义序列定义
-// Non-Windows platform: ANSI escape sequence definitions
-#else
+#else // 非Windows平台（Unix/Linux/macOS等） | Non-Windows platforms (Unix/Linux/macOS etc.)
+
+/**
+ * ANSI转义序列命名空间
+ * ANSI escape sequence namespace
+ * 
+ * 这个命名空间为非Windows平台定义了ANSI转义序列常量，
+ * 用于控制终端文本颜色和样式。
+ * 
+ * This namespace defines ANSI escape sequence constants for non-Windows platforms,
+ * used to control terminal text colors and styles.
+ */
 namespace ansi {
-    constexpr const char* ESC = "\033["; // 转义前缀 Escape prefix
-    constexpr const char* RESET = "\033[0m"; // 重置 Reset
-    // 基本颜色 Basic colors
-    constexpr const char* BLACK = "\033[30m"; // 黑色 Black
-    constexpr const char* RED = "\033[31m"; // 红色 Red
-    constexpr const char* GREEN = "\033[32m"; // 绿色 Green
-    constexpr const char* YELLOW = "\033[33m"; // 黄色 Yellow
-    constexpr const char* BLUE = "\033[34m"; // 蓝色 Blue
-    constexpr const char* MAGENTA = "\033[35m"; // 洋红 Magenta
-    constexpr const char* CYAN = "\033[36m"; // 青色 Cyan
-    constexpr const char* WHITE = "\033[37m"; // 白色 White
-    // 亮色 Bright colors
-    constexpr const char* BRIGHT_BLACK = "\033[90m"; // 亮黑 Bright black
-    constexpr const char* BRIGHT_RED = "\033[91m"; // 亮红 Bright red
-    constexpr const char* BRIGHT_GREEN = "\033[92m"; // 亮绿 Bright green
-    constexpr const char* BRIGHT_YELLOW = "\033[93m"; // 亮黄 Bright yellow
-    constexpr const char* BRIGHT_BLUE = "\033[94m"; // 亮蓝 Bright blue
-    constexpr const char* BRIGHT_MAGENTA = "\033[95m"; // 亮洋红 Bright magenta
-    constexpr const char* BRIGHT_CYAN = "\033[96m"; // 亮青 Bright cyan
-    constexpr const char* BRIGHT_WHITE = "\033[97m"; // 亮白 Bright white
-    // 文本样式 Text styles
-    constexpr const char* BOLD = "\033[1m"; // 粗体 Bold
-    constexpr const char* DIM = "\033[2m"; // 暗淡 Dim
-    constexpr const char* ITALIC = "\033[3m"; // 斜体 Italic
-    constexpr const char* UNDERLINE = "\033[4m"; // 下划线 Underline
-    constexpr const char* BLINK = "\033[5m"; // 闪烁 Blink
-    constexpr const char* REVERSE = "\033[7m"; // 反色 Reverse
-    constexpr const char* STRIKETHROUGH = "\033[9m"; // 删除线 Strikethrough
+    // 基础转义序列 | Basic escape sequences
+    constexpr const char* ESC = "\033[";     // ANSI转义序列前缀 | ANSI escape sequence prefix
+    constexpr const char* RESET = "\033[0m"; // 重置所有属性 | Reset all attributes
+    
+    // 基本前景色 | Basic foreground colors
+    constexpr const char* BLACK = "\033[30m";   // 黑色文本 | Black text
+    constexpr const char* RED = "\033[31m";     // 红色文本 | Red text
+    constexpr const char* GREEN = "\033[32m";   // 绿色文本 | Green text
+    constexpr const char* YELLOW = "\033[33m";  // 黄色文本 | Yellow text
+    constexpr const char* BLUE = "\033[34m";    // 蓝色文本 | Blue text
+    constexpr const char* MAGENTA = "\033[35m"; // 洋红色文本 | Magenta text
+    constexpr const char* CYAN = "\033[36m";    // 青色文本 | Cyan text
+    constexpr const char* WHITE = "\033[37m";   // 白色文本 | White text
+    
+    // 亮色前景色 | Bright foreground colors
+    constexpr const char* BRIGHT_BLACK = "\033[90m";   // 亮黑/灰色文本 | Bright black/gray text
+    constexpr const char* BRIGHT_RED = "\033[91m";     // 亮红色文本 | Bright red text
+    constexpr const char* BRIGHT_GREEN = "\033[92m";   // 亮绿色文本 | Bright green text
+    constexpr const char* BRIGHT_YELLOW = "\033[93m";  // 亮黄色文本 | Bright yellow text
+    constexpr const char* BRIGHT_BLUE = "\033[94m";    // 亮蓝色文本 | Bright blue text
+    constexpr const char* BRIGHT_MAGENTA = "\033[95m"; // 亮洋红色文本 | Bright magenta text
+    constexpr const char* BRIGHT_CYAN = "\033[96m";    // 亮青色文本 | Bright cyan text
+    constexpr const char* BRIGHT_WHITE = "\033[97m";   // 亮白色文本 | Bright white text
+    
+    // 文本样式 | Text styles
+    constexpr const char* BOLD = "\033[1m";         // 粗体文本 | Bold text
+    constexpr const char* DIM = "\033[2m";          // 暗淡文本 | Dim text
+    constexpr const char* ITALIC = "\033[3m";       // 斜体文本 | Italic text
+    constexpr const char* UNDERLINE = "\033[4m";    // 下划线文本 | Underlined text
+    constexpr const char* BLINK = "\033[5m";        // 闪烁文本 | Blinking text
+    constexpr const char* REVERSE = "\033[7m";      // 反色文本 | Reversed text
+    constexpr const char* STRIKETHROUGH = "\033[9m"; // 删除线文本 | Strikethrough text
 }
 #endif
 
-// 跨平台颜色控制类，统一颜色/样式设置接口
-// Cross-platform color controller, unified color/style interface
+/**
+ * 跨平台颜色控制类
+ * Cross-platform color controller class
+ * 
+ * 这个类提供了统一的颜色和样式设置接口，在不同平台上使用相应的实现。
+ * 在Windows上使用Win32Console API，在其他平台上使用ANSI转义序列。
+ * 
+ * This class provides a unified interface for color and style settings,
+ * using the appropriate implementation on different platforms.
+ * On Windows it uses the Win32Console API, on other platforms it uses ANSI escape sequences.
+ */
 class ColorController {
 public:
-    // 颜色枚举 Color enum
+    /**
+     * 颜色枚举，定义了支持的所有颜色
+     * Color enumeration defining all supported colors
+     */
     enum class Color {
-        BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE,
-        BRIGHT_BLACK, BRIGHT_RED, BRIGHT_GREEN, BRIGHT_YELLOW,
-        BRIGHT_BLUE, BRIGHT_MAGENTA, BRIGHT_CYAN, BRIGHT_WHITE,
-        RESET
+        BLACK,        // 黑色 | Black
+        RED,          // 红色 | Red
+        GREEN,        // 绿色 | Green
+        YELLOW,       // 黄色 | Yellow
+        BLUE,         // 蓝色 | Blue
+        MAGENTA,      // 洋红色 | Magenta
+        CYAN,         // 青色 | Cyan
+        WHITE,        // 白色 | White
+        BRIGHT_BLACK, // 亮黑色/灰色 | Bright black/gray
+        BRIGHT_RED,   // 亮红色 | Bright red
+        BRIGHT_GREEN, // 亮绿色 | Bright green
+        BRIGHT_YELLOW,// 亮黄色 | Bright yellow
+        BRIGHT_BLUE,  // 亮蓝色 | Bright blue
+        BRIGHT_MAGENTA,// 亮洋红色 | Bright magenta
+        BRIGHT_CYAN,  // 亮青色 | Bright cyan
+        BRIGHT_WHITE, // 亮白色 | Bright white
+        RESET         // 重置为默认颜色 | Reset to default color
     };
 
-    // 设置控制台颜色 Set console color
+    /**
+     * 设置控制台文本颜色
+     * Set console text color
+     * 
+     * @param color 要设置的颜色 | Color to set
+     */
     static void setColor(Color color) {
 #ifdef _WIN32
-        auto& console = Win32Console::getInstance(); // 获取Win32控制台实例 Get Win32 console instance
+        // Windows平台实现 | Windows platform implementation
+        auto& console = Win32Console::getInstance(); // 获取Win32控制台单例 | Get Win32Console singleton
         WORD winColor;
+        
+        // 将颜色枚举映射到Windows控制台颜色 | Map color enum to Windows console color
         switch (color) {
             case Color::BLACK: winColor = win32_colors::BLACK; break;
             case Color::RED: winColor = win32_colors::DARK_RED; break;
@@ -464,12 +811,15 @@ public:
             case Color::BRIGHT_WHITE: winColor = win32_colors::WHITE; break;
             case Color::RESET: 
             default: 
-                console.resetColor(); // 重置颜色 Reset color
+                console.resetColor(); // 重置为原始颜色 | Reset to original color
                 return;
         }
-        console.setColor(winColor); // 设置颜色 Set color
+        console.setColor(winColor); // 应用颜色设置 | Apply color setting
 #else
+        // 非Windows平台实现 | Non-Windows platform implementation
         const char* ansiColor;
+        
+        // 将颜色枚举映射到ANSI转义序列 | Map color enum to ANSI escape sequence
         switch (color) {
             case Color::BLACK: ansiColor = ansi::BLACK; break;
             case Color::RED: ansiColor = ansi::RED; break;
@@ -489,201 +839,468 @@ public:
             case Color::BRIGHT_WHITE: ansiColor = ansi::BRIGHT_WHITE; break;
             case Color::RESET: 
             default: 
-                ansiColor = ansi::RESET; // 重置 Reset
+                ansiColor = ansi::RESET; // 重置所有属性 | Reset all attributes
                 break;
         }
-        std::cout << ansiColor; // 输出ANSI序列 Output ANSI sequence
+        std::cout << ansiColor; // 输出ANSI转义序列 | Output ANSI escape sequence
 #endif
     }
 
-    // 设置RGB颜色 Set RGB color
+    /**
+     * 设置RGB颜色
+     * Set RGB color
+     * 
+     * @param r 红色分量(0-255) | Red component (0-255)
+     * @param g 绿色分量(0-255) | Green component (0-255)
+     * @param b 蓝色分量(0-255) | Blue component (0-255)
+     */
     static void setRGBColor(int r, int g, int b) {
 #ifdef _WIN32
+        // Windows平台实现 - 将RGB近似映射到16色 | Windows platform implementation - approximate RGB to 16 colors
         auto& console = Win32Console::getInstance();
-        WORD winColor = console.rgbToWin32Color(r, g, b); // RGB转16色 RGB to 16 color
+        WORD winColor = console.rgbToWin32Color(r, g, b); // RGB转16色近似 | RGB to 16-color approximation
         console.setColor(winColor);
 #else
-        std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m"; // ANSI 24位色 ANSI 24bit color
+        // 非Windows平台实现 - 使用真彩色ANSI序列 | Non-Windows platform implementation - use true color ANSI sequence
+        std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m"; // ANSI 24位真彩色 | ANSI 24-bit true color
 #endif
     }
 
-    // 设置粗体 Set bold
+    /**
+     * 设置文本粗体样式
+     * Set text bold style
+     * 
+     * @param enable 是否启用粗体 | Whether to enable bold
+     */
     static void setBold(bool enable) {
 #ifdef _WIN32
-        // Windows下用高亮实现粗体 Use intensity for bold on Windows
+        // Windows平台实现 - 使用高亮度模拟粗体 | Windows platform implementation - simulate bold with high intensity
         auto& console = Win32Console::getInstance();
         WORD currentColor = console.getCurrentColor();
         if (enable) {
+            // 设置高亮位来模拟粗体 | Set intensity bit to simulate bold
             console.setColor(currentColor | FOREGROUND_INTENSITY);
         } else {
+            // 清除高亮位 | Clear intensity bit
             console.setColor(currentColor & ~FOREGROUND_INTENSITY);
         }
 #else
+        // 非Windows平台实现 - 使用ANSI粗体序列 | Non-Windows platform implementation - use ANSI bold sequence
         if (enable) {
-            std::cout << ansi::BOLD;
+            std::cout << ansi::BOLD; // 启用粗体 | Enable bold
         } else {
-            std::cout << ansi::RESET;
+            std::cout << ansi::RESET; // 重置样式 | Reset style
         }
 #endif
     }
 };
 
-// 颜色包装器类，便于流式输出颜色
-// Color wrapper class, for stream color output
+/**
+ * 颜色包装器类
+ * Color wrapper class
+ * 
+ * 这个类封装了颜色设置，便于在流式输出中使用。
+ * 例如：std::cout << ColorWrapper(ColorController::Color::RED) << "红色文本" << ColorWrapper(ColorController::Color::RESET);
+ * 
+ * This class encapsulates color settings for easy use in stream output.
+ * Example: std::cout << ColorWrapper(ColorController::Color::RED) << "Red text" << ColorWrapper(ColorController::Color::RESET);
+ */
 class ColorWrapper {
 private:
-    ColorController::Color color_; // 颜色枚举 Color enum
+    ColorController::Color color_; // 存储的颜色枚举值 | Stored color enumeration value
+    
 public:
-    explicit ColorWrapper(ColorController::Color color) : color_(color) {} // 构造函数 Constructor
-    // 友元输出重载，设置颜色 Friend output overload, set color
+    /**
+     * 构造函数
+     * Constructor
+     * 
+     * @param color 要使用的颜色 | Color to use
+     */
+    explicit ColorWrapper(ColorController::Color color) : color_(color) {}
+    
+    /**
+     * 输出流操作符重载，使对象可以直接用于流式输出
+     * Output stream operator overload, allowing the object to be used directly in stream output
+     * 
+     * @param os 输出流 | Output stream
+     * @param wrapper 颜色包装器对象 | Color wrapper object
+     * @return 输出流引用，用于链式调用 | Output stream reference for chaining
+     */
     friend std::ostream& operator<<(std::ostream& os, const ColorWrapper& wrapper) {
-        ColorController::setColor(wrapper.color_); // 设置颜色 Set color
+        ColorController::setColor(wrapper.color_); // 应用颜色设置 | Apply color setting
         return os;
     }
 };
 
-// RGB颜色包装器类，支持RGB流式输出
-// RGB color wrapper class, support RGB stream output
+/**
+ * RGB颜色包装器类
+ * RGB color wrapper class
+ * 
+ * 这个类封装了RGB颜色设置，便于在流式输出中使用。
+ * 例如：std::cout << RGBColorWrapper(255, 0, 0) << "红色文本" << ColorWrapper(ColorController::Color::RESET);
+ * 
+ * This class encapsulates RGB color settings for easy use in stream output.
+ * Example: std::cout << RGBColorWrapper(255, 0, 0) << "Red text" << ColorWrapper(ColorController::Color::RESET);
+ */
 class RGBColorWrapper {
 private:
-    int r_, g_, b_; // RGB分量 RGB components
+    int r_, g_, b_; // RGB颜色分量 | RGB color components
+    
 public:
-    RGBColorWrapper(int r, int g, int b) : r_(r), g_(g), b_(b) {} // 构造函数 Constructor
-    // 友元输出重载，设置RGB颜色 Friend output overload, set RGB color
+    /**
+     * 构造函数
+     * Constructor
+     * 
+     * @param r 红色分量(0-255) | Red component (0-255)
+     * @param g 绿色分量(0-255) | Green component (0-255)
+     * @param b 蓝色分量(0-255) | Blue component (0-255)
+     */
+    RGBColorWrapper(int r, int g, int b) : r_(r), g_(g), b_(b) {}
+    
+    /**
+     * 输出流操作符重载，使对象可以直接用于流式输出
+     * Output stream operator overload, allowing the object to be used directly in stream output
+     * 
+     * @param os 输出流 | Output stream
+     * @param wrapper RGB颜色包装器对象 | RGB color wrapper object
+     * @return 输出流引用，用于链式调用 | Output stream reference for chaining
+     */
     friend std::ostream& operator<<(std::ostream& os, const RGBColorWrapper& wrapper) {
-        ColorController::setRGBColor(wrapper.r_, wrapper.g_, wrapper.b_); // 设置RGB Set RGB
+        ColorController::setRGBColor(wrapper.r_, wrapper.g_, wrapper.b_); // 应用RGB颜色设置 | Apply RGB color setting
         return os;
     }
 };
 
-// 字体样式包装器类，支持粗体等样式
-// Font style wrapper class, support bold etc.
+/**
+ * 字体样式包装器类
+ * Font style wrapper class
+ * 
+ * 这个类封装了字体样式设置（目前支持粗体），便于在流式输出中使用。
+ * 例如：std::cout << FontStyleWrapper(true) << "粗体文本" << FontStyleWrapper(false);
+ * 
+ * This class encapsulates font style settings (currently supports bold) for easy use in stream output.
+ * Example: std::cout << FontStyleWrapper(true) << "Bold text" << FontStyleWrapper(false);
+ */
 class FontStyleWrapper {
 private:
-    bool enable_; // 是否启用 Enable flag
+    bool enable_; // 是否启用样式 | Whether to enable the style
+    
 public:
-    explicit FontStyleWrapper(bool enable) : enable_(enable) {} // 构造函数 Constructor
-    // 友元输出重载，设置粗体 Friend output overload, set bold
+    /**
+     * 构造函数
+     * Constructor
+     * 
+     * @param enable 是否启用样式 | Whether to enable the style
+     */
+    explicit FontStyleWrapper(bool enable) : enable_(enable) {}
+    
+    /**
+     * 输出流操作符重载，使对象可以直接用于流式输出
+     * Output stream operator overload, allowing the object to be used directly in stream output
+     * 
+     * @param os 输出流 | Output stream
+     * @param wrapper 字体样式包装器对象 | Font style wrapper object
+     * @return 输出流引用，用于链式调用 | Output stream reference for chaining
+     */
     friend std::ostream& operator<<(std::ostream& os, const FontStyleWrapper& wrapper) {
-        ColorController::setBold(wrapper.enable_); // 设置粗体 Set bold
+        ColorController::setBold(wrapper.enable_); // 应用粗体样式设置 | Apply bold style setting
         return os;
     }
 };
 
-// 延时操作类，支持流式延时
-// Sleep operation class, support stream sleep
+/**
+ * 延时操作类
+ * Sleep operation class
+ * 
+ * 这个类封装了延时操作，便于在流式输出中使用。
+ * 例如：std::cout << "等待开始" << TSleep(1000) << "等待结束";
+ * 
+ * This class encapsulates sleep operations for easy use in stream output.
+ * Example: std::cout << "Wait starts" << TSleep(1000) << "Wait ends";
+ */
 class TSleep {
 private:
-    int milliseconds_; // 毫秒数 Milliseconds
+    int milliseconds_; // 延时的毫秒数 | Milliseconds to sleep
+    
 public:
-    explicit TSleep(int ms) : milliseconds_(ms) {} // 构造函数 Constructor
-    void execute() const { // 执行延时 Execute sleep
+    /**
+     * 构造函数
+     * Constructor
+     * 
+     * @param ms 延时的毫秒数 | Milliseconds to sleep
+     */
+    explicit TSleep(int ms) : milliseconds_(ms) {}
+    
+    /**
+     * 执行延时操作
+     * Execute sleep operation
+     */
+    void execute() const {
+        // 使用标准库的线程休眠功能 | Use standard library thread sleep functionality
         std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds_));
     }
-    // 友元输出重载，流式延时 Friend output overload, stream sleep
+    
+    /**
+     * 输出流操作符重载，使对象可以直接用于流式输出
+     * Output stream operator overload, allowing the object to be used directly in stream output
+     * 
+     * @param os 输出流 | Output stream
+     * @param sleep 延时操作对象 | Sleep operation object
+     * @return 输出流引用，用于链式调用 | Output stream reference for chaining
+     */
     friend std::ostream& operator<<(std::ostream& os, const TSleep& sleep) {
-        sleep.execute();
+        sleep.execute(); // 执行延时 | Execute sleep
         return os;
     }
 };
 
-// 全局颜色常量，便于直接使用 Global color constants, easy to use
+// 全局颜色常量，便于直接使用 | Global color constants for easy use
+// 注意：这些常量已在文件顶部定义为宏 | Note: These constants are already defined as macros at the top of the file
 
-// RGB颜色宏，便于流式创建RGB颜色
-// RGB color macro, easy to create RGB color in stream
+/**
+ * RGB颜色宏，便于流式创建RGB颜色
+ * RGB color macro for easy creation of RGB colors in stream
+ * 
+ * 这个宏允许直接在流式输出中使用RGB颜色
+ * 例如：std::cout << TCOLOR_RGB(255, 0, 0) << "红色文本" << TCOLOR_RESET;
+ * 
+ * This macro allows direct use of RGB colors in stream output
+ * Example: std::cout << TCOLOR_RGB(255, 0, 0) << "Red text" << TCOLOR_RESET;
+ * 
+ * @param r 红色分量(0-255) | Red component (0-255)
+ * @param g 绿色分量(0-255) | Green component (0-255)
+ * @param b 蓝色分量(0-255) | Blue component (0-255)
+ * @return RGBColorWrapper对象 | RGBColorWrapper object
+ */
 #define TCOLOR_RGB(r, g, b) tc::RGBColorWrapper(r, g, b)
 
-// 自定义输出流类，支持链式输出和自定义类型
-// Custom output stream class, support chain output and custom types
+/**
+ * 自定义输出流类
+ * Custom output stream class
+ * 
+ * 这个类提供了增强的输出流功能，支持链式输出和自定义类型。
+ * 它可以处理颜色、RGB颜色、字体样式和延时操作等特殊类型。
+ * 
+ * This class provides enhanced output stream functionality, supporting chain output and custom types.
+ * It can handle special types like colors, RGB colors, font styles, and sleep operations.
+ */
 class TOut {
 private:
-    std::ostream& os_; // 底层输出流 Underlying output stream
+    std::ostream& os_; // 底层输出流引用 | Reference to underlying output stream
+    
 public:
+    /**
+     * 构造函数
+     * Constructor
+     * 
+     * @param os 底层输出流，默认为标准输出 | Underlying output stream, defaults to standard output
+     */
     explicit TOut(std::ostream& os = std::cout) : os_(os) {
 #ifdef _WIN32
-        Win32Console::getInstance(); // 确保Windows控制台初始化 Ensure Windows console initialized
+        // 确保Windows控制台已初始化 | Ensure Windows console is initialized
+        Win32Console::getInstance();
 #endif
     }
-    // 通用输出操作符 Generic output operator
+    
+    /**
+     * 通用输出操作符，处理任意类型的值
+     * Generic output operator, handles values of any type
+     * 
+     * @param value 要输出的值 | Value to output
+     * @return 自身引用，用于链式调用 | Self reference for chaining
+     */
     template<typename T>
     TOut& operator<<(T&& value) {
-        os_ << std::forward<T>(value);
+        os_ << std::forward<T>(value); // 转发值到底层流 | Forward value to underlying stream
         return *this;
     }
-    // 特化处理TSleep Specialize for TSleep
+    
+    /**
+     * 特化的输出操作符，处理延时操作
+     * Specialized output operator for sleep operations
+     * 
+     * @param sleep 延时操作对象 | Sleep operation object
+     * @return 自身引用，用于链式调用 | Self reference for chaining
+     */
     TOut& operator<<(const TSleep& sleep) {
-        sleep.execute();
+        sleep.execute(); // 执行延时 | Execute sleep
         return *this;
     }
-    // 特化处理颜色包装器 Specialize for ColorWrapper
+    
+    /**
+     * 特化的输出操作符，处理颜色包装器
+     * Specialized output operator for color wrappers
+     * 
+     * @param color 颜色包装器对象 | Color wrapper object
+     * @return 自身引用，用于链式调用 | Self reference for chaining
+     */
     TOut& operator<<(const ColorWrapper& color) {
-        os_ << color;
+        os_ << color; // 应用颜色设置 | Apply color setting
         return *this;
     }
-    // 特化处理RGB颜色包装器 Specialize for RGBColorWrapper
+    
+    /**
+     * 特化的输出操作符，处理RGB颜色包装器
+     * Specialized output operator for RGB color wrappers
+     * 
+     * @param color RGB颜色包装器对象 | RGB color wrapper object
+     * @return 自身引用，用于链式调用 | Self reference for chaining
+     */
     TOut& operator<<(const RGBColorWrapper& color) {
-        os_ << color;
+        os_ << color; // 应用RGB颜色设置 | Apply RGB color setting
         return *this;
     }
-    // 特化处理字体样式包装器 Specialize for FontStyleWrapper
+    
+    /**
+     * 特化的输出操作符，处理字体样式包装器
+     * Specialized output operator for font style wrappers
+     * 
+     * @param style 字体样式包装器对象 | Font style wrapper object
+     * @return 自身引用，用于链式调用 | Self reference for chaining
+     */
     TOut& operator<<(const FontStyleWrapper& style) {
-        os_ << style;
+        os_ << style; // 应用字体样式设置 | Apply font style setting
         return *this;
     }
-    // 支持标准流操作符 Support standard stream manipulators
+    
+    /**
+     * 支持标准流操作符，如std::endl
+     * Support for standard stream manipulators like std::endl
+     * 
+     * @param manip 流操作符函数 | Stream manipulator function
+     * @return 自身引用，用于链式调用 | Self reference for chaining
+     */
     TOut& operator<<(std::ostream& (*manip)(std::ostream&)) {
-        os_ << manip;
+        os_ << manip; // 应用流操作符 | Apply stream manipulator
         return *this;
     }
-    // 获取底层流 Get underlying stream
+    
+    /**
+     * 获取底层输出流
+     * Get underlying output stream
+     * 
+     * @return 底层输出流引用 | Reference to underlying output stream
+     */
     std::ostream& stream() { return os_; }
 };
 
-// 全局 tout 对象，类似 std::cout
-// Global tout object, like std::cout
+/**
+ * 全局输出流对象，类似std::cout但具有增强功能
+ * Global output stream object, similar to std::cout but with enhanced features
+ * 
+ * 这个对象可以用于所有标准输出操作，并支持颜色、样式和延时等特殊功能。
+ * 例如：tc::tout << TCOLOR_RED << "红色文本" << TCOLOR_RESET << std::endl;
+ * 
+ * This object can be used for all standard output operations and supports special features
+ * like colors, styles, and sleep operations.
+ * Example: tc::tout << TCOLOR_RED << "Red text" << TCOLOR_RESET << std::endl;
+ */
 static TOut tout(std::cout);
 
-// 延时函数，返回TSleep对象
-// Sleep function, return TSleep object
+/**
+ * 创建延时操作对象
+ * Create sleep operation object
+ * 
+ * @param milliseconds 延时的毫秒数 | Milliseconds to sleep
+ * @return TSleep对象，可用于流式输出 | TSleep object that can be used in stream output
+ */
 inline TSleep tsleep(int milliseconds) {
     return TSleep(milliseconds);
 }
 
-// 延时流操作符类，支持 tc::tsleep_stream << 3000
-// Sleep stream operator class, support tc::tsleep_stream << 3000
+/**
+ * 延时流操作符类
+ * Sleep stream operator class
+ * 
+ * 这个类提供了另一种延时语法，使用左移操作符。
+ * 例如：tc::tsleep_stream << 1000; // 延时1秒
+ * 
+ * This class provides an alternative sleep syntax using the left shift operator.
+ * Example: tc::tsleep_stream << 1000; // Sleep for 1 second
+ */
 class TSleepStream {
 public:
+    /**
+     * 左移操作符重载，执行延时操作
+     * Left shift operator overload, executes sleep operation
+     * 
+     * @param milliseconds 延时的毫秒数 | Milliseconds to sleep
+     */
     void operator<<(int milliseconds) const {
         std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
     }
 };
 
-// 全局延时流对象 Global sleep stream object
+/**
+ * 全局延时流对象
+ * Global sleep stream object
+ * 
+ * 用于执行流式延时操作。
+ * 例如：tc::tsleep_stream << 1000; // 延时1秒
+ * 
+ * Used for stream-style sleep operations.
+ * Example: tc::tsleep_stream << 1000; // Sleep for 1 second
+ */
 static TSleepStream tsleep_stream;
 
-// 终端控制函数 Terminal control functions
+/**
+ * 终端控制函数命名空间
+ * Terminal control functions namespace
+ * 
+ * 这个命名空间提供了一组用于控制终端的函数，如清屏、移动光标和获取终端尺寸。
+ * 这些函数在不同平台上使用相应的实现，提供统一的接口。
+ * 
+ * This namespace provides a set of functions for terminal control, such as clearing the screen,
+ * moving the cursor, and getting terminal size. These functions use the appropriate implementation
+ * on different platforms, providing a unified interface.
+ */
 namespace terminal {
-    // 清屏函数 Clear screen
+    /**
+     * 清空终端屏幕
+     * Clear terminal screen
+     * 
+     * 清除终端中的所有内容并将光标移动到左上角。
+     * Clears all content in the terminal and moves the cursor to the top-left corner.
+     */
     inline void clear() {
 #ifdef _WIN32
+        // Windows平台实现 | Windows platform implementation
         Win32Console::getInstance().clearScreen();
 #else
-        std::cout << "\033[2J\033[H";
+        // 非Windows平台实现 | Non-Windows platform implementation
+        std::cout << "\033[2J\033[H"; // ANSI清屏序列 | ANSI clear screen sequence
 #endif
     }
-    // 移动光标 Move cursor
+    
+    /**
+     * 移动光标到指定位置
+     * Move cursor to specified position
+     * 
+     * @param x 列坐标（从1开始） | Column coordinate (1-based)
+     * @param y 行坐标（从1开始） | Row coordinate (1-based)
+     */
     inline void moveCursor(int x, int y) {
 #ifdef _WIN32
-        Win32Console::getInstance().moveCursor(x, y);
+        // Windows平台实现 | Windows platform implementation
+        Win32Console::getInstance().moveCursor(x - 1, y - 1); // Win32API是0基索引 | Win32 API is 0-based
 #else
-        std::cout << "\033[" << y << ";" << x << "H";
+        // 非Windows平台实现 | Non-Windows platform implementation
+        std::cout << "\033[" << y << ";" << x << "H"; // ANSI光标定位序列 | ANSI cursor positioning sequence
 #endif
     }
-    // 获取终端尺寸 Get terminal size
+    
+    /**
+     * 获取终端窗口大小
+     * Get terminal window size
+     * 
+     * @return 包含宽度和高度的对组 | Pair containing width and height
+     */
     inline std::pair<int, int> getSize() {
 #ifdef _WIN32
+        // Windows平台实现 | Windows platform implementation
         return Win32Console::getInstance().getConsoleSize();
 #else
+        // 非Windows平台实现 | Non-Windows platform implementation
         struct winsize w;
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
         return {w.ws_col, w.ws_row};
@@ -691,101 +1308,273 @@ namespace terminal {
     }
 }
 
-// 便利的颜色函数，返回带颜色的字符串
-// Convenient color functions, return colored string
+/**
+ * 便利的颜色函数
+ * Convenient color functions
+ * 
+ * 这些函数提供了简单的方式来为文本添加颜色，返回已着色的字符串。
+ * 这些函数不会直接输出到终端，而是返回可以存储或进一步处理的字符串。
+ * 
+ * These functions provide a simple way to add color to text, returning the colored string.
+ * They don't output directly to the terminal but return a string that can be stored or further processed.
+ */
+
+/**
+ * 为文本添加指定颜色
+ * Add specified color to text
+ * 
+ * @param text 要着色的文本 | Text to colorize
+ * @param color 要应用的颜色 | Color to apply
+ * @return 带有颜色代码的字符串 | String with color codes
+ */
 inline std::string colorize(const std::string& text, ColorController::Color color) {
     std::ostringstream oss;
+    // 添加颜色代码，文本，然后重置颜色 | Add color code, text, then reset color
     oss << ColorWrapper(color) << text << ColorWrapper(ColorController::Color::RESET);
     return oss.str();
 }
+
+/**
+ * 为文本添加红色
+ * Add red color to text
+ * 
+ * @param text 要着色的文本 | Text to colorize
+ * @return 红色文本字符串 | Red text string
+ */
 inline std::string red(const std::string& text) {
     return colorize(text, ColorController::Color::RED);
 }
+
+/**
+ * 为文本添加绿色
+ * Add green color to text
+ * 
+ * @param text 要着色的文本 | Text to colorize
+ * @return 绿色文本字符串 | Green text string
+ */
 inline std::string green(const std::string& text) {
     return colorize(text, ColorController::Color::GREEN);
 }
+
+/**
+ * 为文本添加蓝色
+ * Add blue color to text
+ * 
+ * @param text 要着色的文本 | Text to colorize
+ * @return 蓝色文本字符串 | Blue text string
+ */
 inline std::string blue(const std::string& text) {
     return colorize(text, ColorController::Color::BLUE);
 }
+
+/**
+ * 为文本添加黄色
+ * Add yellow color to text
+ * 
+ * @param text 要着色的文本 | Text to colorize
+ * @return 黄色文本字符串 | Yellow text string
+ */
 inline std::string yellow(const std::string& text) {
     return colorize(text, ColorController::Color::YELLOW);
 }
 
-// ========== 进度条 ========== //
+// ========== 进度条类 | Progress bar class ========== //
+/**
+ * 进度条类
+ * Progress bar class
+ * 
+ * 这个类提供了一个可自定义的文本进度条，用于显示操作的进度。
+ * 进度条可以自定义宽度、完成和未完成部分的字符，以及颜色。
+ * 
+ * This class provides a customizable text progress bar for displaying operation progress.
+ * The progress bar can be customized with width, characters for completed and uncompleted parts, and color.
+ */
 class ProgressBar {
-    int width_;
-    std::string done_, todo_;
-    std::string color_;
+private:
+    int width_;           // 进度条宽度（字符数） | Progress bar width (in characters)
+    std::string done_;    // 已完成部分的字符 | Character for completed parts
+    std::string todo_;    // 未完成部分的字符 | Character for uncompleted parts
+    std::string color_;   // 进度条颜色（ANSI颜色代码） | Progress bar color (ANSI color code)
+    
 public:
+    /**
+     * 构造函数
+     * Constructor
+     * 
+     * @param width 进度条宽度 | Progress bar width
+     * @param done 已完成部分的字符，默认为"#" | Character for completed parts, defaults to "#"
+     * @param todo 未完成部分的字符，默认为"-" | Character for uncompleted parts, defaults to "-"
+     * @param color 进度条颜色，默认为绿色 | Progress bar color, defaults to green
+     */
     ProgressBar(int width, std::string done = "#", std::string todo = "-", std::string color = TCOLOR_GREEN)
         : width_(width), done_(std::move(done)), todo_(std::move(todo)), color_(std::move(color)) {}
+    
+    /**
+     * 显示进度条
+     * Show progress bar
+     * 
+     * @param progress 进度值(0.0-1.0) | Progress value (0.0-1.0)
+     * @param msg 显示在进度条旁的消息 | Message to display next to the progress bar
+     */
     void show(double progress, const std::string& msg = "Loading...") {
+        // 计算已完成部分的位置 | Calculate position of completed part
         int pos = static_cast<int>(width_ * progress);
-        std::cout << "\r" << color_ << "[";
-        for (int i = 0; i < width_; ++i) std::cout << (i < pos ? done_ : todo_);
+        
+        // 输出进度条 | Output progress bar
+        std::cout << "\r" << color_ << "["; // 回车并开始进度条 | Carriage return and start progress bar
+        
+        // 绘制进度条主体 | Draw progress bar body
+        for (int i = 0; i < width_; ++i) {
+            std::cout << (i < pos ? done_ : todo_); // 根据位置输出已完成或未完成字符 | Output completed or uncompleted character based on position
+        }
+        
+        // 输出百分比和消息 | Output percentage and message
         std::cout << "] " << int(progress * 100) << "% " << msg << TCOLOR_RESET << std::flush;
     }
+    
+    /**
+     * 完成进度条
+     * Finish progress bar
+     * 
+     * 显示100%进度并换行
+     * Shows 100% progress and adds a newline
+     * 
+     * @param content 完成时显示的消息 | Message to display when finished
+     */
     void finish(std::string content = "Finished") {
-        show(1.0, content);
-        std::cout << std::endl;
+        show(1.0, content); // 显示100%进度 | Show 100% progress
+        std::cout << std::endl; // 换行 | Add newline
     }
 };
 
 
-} // namespace tc
+} // namespace tc 结束 | End of namespace tc
 
-// ===== 系统相关API及全局宏 =====
-#include <ctime>
-#include <cstdlib>
-#include <cstring>
+// ===== 系统相关API及全局宏 | System-related APIs and global macros =====
+/**
+ * 系统相关功能部分
+ * System-related functionality section
+ * 
+ * 这部分提供了与系统交互的功能，如获取系统时间、执行系统命令等。
+ * This section provides functionality for interacting with the system,
+ * such as getting system time, executing system commands, etc.
+ */
+#include <ctime>    // 时间相关函数 | Time-related functions
+#include <cstdlib>  // 系统函数，如system() | System functions like system()
+#include <cstring>  // 字符串处理函数 | String handling functions
 #ifdef _WIN32
-    #include <windows.h>
+    #include <windows.h> // Windows特定API | Windows-specific API
 #endif
 
-// --- getSystemTime ---
-#define SYS_YEAR   1
-#define SYS_MONTH  2
-#define SYS_DAY    3
-#define SYS_HOUR   4
-#define SYS_MINUTE 5
-#define SYS_SECOND 6
-#define SYS_TIMESTAMP 0
+// --- 系统时间常量 | System time constants ---
+/**
+ * 系统时间常量，用于getSystemTime函数
+ * System time constants for getSystemTime function
+ */
+#define SYS_YEAR     1  // 年份 | Year
+#define SYS_MONTH    2  // 月份(1-12) | Month (1-12)
+#define SYS_DAY      3  // 日期(1-31) | Day (1-31)
+#define SYS_HOUR     4  // 小时(0-23) | Hour (0-23)
+#define SYS_MINUTE   5  // 分钟(0-59) | Minute (0-59)
+#define SYS_SECOND   6  // 秒钟(0-59) | Second (0-59)
+#define SYS_TIMESTAMP 0  // Unix时间戳 | Unix timestamp
 namespace tc {
+    /**
+     * 获取系统时间
+     * Get system time
+     * 
+     * 这个函数返回当前系统时间的各个组成部分，如年、月、日等，
+     * 或者返回Unix时间戳（自1970年1月1日起的秒数）。
+     * 
+     * This function returns various components of the current system time,
+     * such as year, month, day, etc., or returns the Unix timestamp
+     * (seconds since January 1, 1970).
+     * 
+     * @param type 时间类型常量，默认为时间戳 | Time type constant, defaults to timestamp
+     *             可选值：SYS_YEAR, SYS_MONTH, SYS_DAY, SYS_HOUR, SYS_MINUTE, SYS_SECOND, SYS_TIMESTAMP
+     *             Possible values: SYS_YEAR, SYS_MONTH, SYS_DAY, SYS_HOUR, SYS_MINUTE, SYS_SECOND, SYS_TIMESTAMP
+     * @return 请求的时间值 | Requested time value
+     */
     inline int getSystemTime(int type = SYS_TIMESTAMP) {
+        // 获取当前时间的时间戳 | Get current time timestamp
         std::time_t t = std::time(nullptr);
         std::tm* tm_ptr;
+        
 #ifdef _WIN32
+        // Windows平台使用线程安全版本 | Windows platform uses thread-safe version
         std::tm tm_buf;
         localtime_s(&tm_buf, &t);
         tm_ptr = &tm_buf;
 #else
+        // 非Windows平台使用标准版本 | Non-Windows platform uses standard version
+        // 注意：在某些系统上，localtime可能不是线程安全的 | Note: On some systems, localtime may not be thread-safe
         tm_ptr = std::localtime(&t);
 #endif
+        
+        // 根据请求的类型返回相应的时间值 | Return appropriate time value based on requested type
         switch(type) {
-            case SYS_YEAR:   return tm_ptr->tm_year + 1900;
-            case SYS_MONTH:  return tm_ptr->tm_mon + 1;
-            case SYS_DAY:    return tm_ptr->tm_mday;
-            case SYS_HOUR:   return tm_ptr->tm_hour;
-            case SYS_MINUTE: return tm_ptr->tm_min;
-            case SYS_SECOND: return tm_ptr->tm_sec;
-            default:         return static_cast<int>(t);
+            case SYS_YEAR:   return tm_ptr->tm_year + 1900;  // 年份（tm_year是从1900年开始的） | Year (tm_year is years since 1900)
+            case SYS_MONTH:  return tm_ptr->tm_mon + 1;      // 月份（tm_mon范围是0-11） | Month (tm_mon range is 0-11)
+            case SYS_DAY:    return tm_ptr->tm_mday;         // 日期 | Day of month
+            case SYS_HOUR:   return tm_ptr->tm_hour;         // 小时 | Hour
+            case SYS_MINUTE: return tm_ptr->tm_min;          // 分钟 | Minute
+            case SYS_SECOND: return tm_ptr->tm_sec;          // 秒钟 | Second
+            default:         return static_cast<int>(t);     // 默认返回时间戳 | Default returns timestamp
         }
     }
 }
 
-// --- systemConsole ---
+// --- systemConsole 函数 | systemConsole functions ---
 namespace tc {
+    /**
+     * 执行系统命令（C字符串版本）
+     * Execute system command (C string version)
+     * 
+     * 这个函数使用系统的命令处理器执行指定的命令。
+     * This function executes the specified command using the system's command processor.
+     * 
+     * @param cmd 要执行的命令 | Command to execute
+     * @return 命令的退出状态 | Exit status of the command
+     */
     inline int systemConsole(const char* cmd) {
         return std::system(cmd);
     }
+    
+    /**
+     * 执行系统命令（C++字符串版本）
+     * Execute system command (C++ string version)
+     * 
+     * 这个函数是systemConsole的重载版本，接受C++字符串。
+     * This function is an overloaded version of systemConsole that accepts C++ strings.
+     * 
+     * @param cmd 要执行的命令 | Command to execute
+     * @return 命令的退出状态 | Exit status of the command
+     */
     inline int systemConsole(const std::string& cmd) {
         return std::system(cmd.c_str());
     }
+    
+    /**
+     * 执行系统命令（宽字符版本）
+     * Execute system command (wide character version)
+     * 
+     * 这个函数是systemConsole的宽字符版本，用于支持Unicode命令。
+     * 在Windows上直接使用_wsystem，在其他平台上将宽字符转换为UTF-8。
+     * 
+     * This function is a wide character version of systemConsole for Unicode command support.
+     * On Windows it uses _wsystem directly, on other platforms it converts wide characters to UTF-8.
+     * 
+     * @param cmd 要执行的宽字符命令 | Wide character command to execute
+     * @return 命令的退出状态 | Exit status of the command
+     */
     inline int systemConsoleW(const wchar_t* cmd) {
         #ifdef _WIN32
+            // Windows平台直接使用宽字符系统调用 | Windows platform uses wide character system call directly
             return _wsystem(cmd);
         #else
-            // 在非Windows平台上，需要将宽字符转换为UTF-8
+            // 非Windows平台需要转换为UTF-8 | Non-Windows platforms need conversion to UTF-8
+            #include <locale>
+            #include <codecvt>
             std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
             std::string utf8_cmd = converter.to_bytes(cmd);
             return system(utf8_cmd.c_str());
@@ -793,45 +1582,61 @@ namespace tc {
     }
 }
 
-// --- 系统环境宏定义 ---
-#define OS_UNKNOWN      0
-#define OS_WINDOWS      100
-#define OS_WINDOWSNT3   103
-#define OS_WINDOWSNT4   104
-#define OS_WINDOWSNT5   105
-#define OS_WINDOWSNT6   106
-#define OS_WINDOWSNT10  110
-#define OS_WINDOWSNT11  111
-#define OS_WIN95        195
-#define OS_WIN98        198
-#define OS_WINME        199
-#define OS_WINCE        120
-// --- Linux发行版 ---
-#define OS_LINUX        200  // 通用Linux
-#define OS_UBUNTU       201  // Ubuntu
-#define OS_DEBIAN       202  // Debian
-#define OS_FEDORA       203  // Fedora
-#define OS_CENTOS       204  // CentOS
+// --- 系统环境宏定义 | System environment macro definitions ---
+/**
+ * 操作系统类型常量
+ * Operating system type constants
+ * 
+ * 这些宏定义了各种操作系统的标识符，用于systemCheck函数的返回值。
+ * 每个操作系统类型都有一个唯一的数字代码。
+ * 
+ * These macros define identifiers for various operating systems,
+ * used as return values for the systemCheck function.
+ * Each OS type has a unique numeric code.
+ */
+
+// 未知操作系统 | Unknown operating system
+#define OS_UNKNOWN      0    // 无法识别的操作系统 | Unrecognized operating system
+
+// Windows系列 | Windows family
+#define OS_WINDOWS      100  // 通用Windows标识 | Generic Windows identifier
+#define OS_WINDOWSNT3   103  // Windows NT 3.x
+#define OS_WINDOWSNT4   104  // Windows NT 4.0
+#define OS_WINDOWSNT5   105  // Windows 2000/XP/2003 (NT 5.x)
+#define OS_WINDOWSNT6   106  // Windows Vista/7/8/8.1 (NT 6.x)
+#define OS_WINDOWSNT10  110  // Windows 10 (NT 10.0)
+#define OS_WINDOWSNT11  111  // Windows 11 (NT 10.0 build 22000+)
+#define OS_WIN95        195  // Windows 95
+#define OS_WIN98        198  // Windows 98
+#define OS_WINME        199  // Windows ME
+#define OS_WINCE        120  // Windows CE
+
+// Linux发行版 | Linux distributions
+#define OS_LINUX        200  // 通用Linux标识 | Generic Linux identifier
+#define OS_UBUNTU       201  // Ubuntu Linux
+#define OS_DEBIAN       202  // Debian Linux
+#define OS_FEDORA       203  // Fedora Linux
+#define OS_CENTOS       204  // CentOS Linux
 #define OS_REDHAT       205  // Red Hat Enterprise Linux
-#define OS_SUSE         206  // SUSE/openSUSE
+#define OS_SUSE         206  // SUSE/openSUSE Linux
 #define OS_ARCH         207  // Arch Linux
-#define OS_GENTOO       208  // Gentoo
-#define OS_SLACKWARE    209  // Slackware
-#define OS_ANDROID      210  // Android (基于Linux)
+#define OS_GENTOO       208  // Gentoo Linux
+#define OS_SLACKWARE    209  // Slackware Linux
+#define OS_ANDROID      210  // Android (基于Linux | Based on Linux)
 #define OS_KALI         211  // Kali Linux
 #define OS_MINT         212  // Linux Mint
-#define OS_MANJARO      213  // Manjaro
+#define OS_MANJARO      213  // Manjaro Linux
 #define OS_ALPINE       214  // Alpine Linux
 #define OS_RASPBIAN     215  // Raspbian
-#define OS_DEEPIN       216  // Deepin
+#define OS_DEEPIN       216  // Deepin Linux
 #define OS_ELEMENTARY   217  // Elementary OS
 #define OS_ZORIN        218  // Zorin OS
 #define OS_POPOS        219  // Pop!_OS
 #define OS_CHROMEOS     220  // Chrome OS/Chromium OS
 
-// --- Apple操作系统 ---
-// 现代macOS和Mac OS X版本
-#define OS_MACOS        300  // 通用macOS标识
+// Apple操作系统 | Apple operating systems
+// 现代macOS和Mac OS X版本 | Modern macOS and Mac OS X versions
+#define OS_MACOS        300  // 通用macOS标识 | Generic macOS identifier
 #define OS_MACOS_SONOMA 301  // macOS 14 Sonoma (2023)
 #define OS_MACOS_VENTURA 302 // macOS 13 Ventura (2022)
 #define OS_MACOS_MONTEREY 303 // macOS 12 Monterey (2021)
@@ -854,7 +1659,7 @@ namespace tc {
 #define OS_OSX_CHEETAH  320  // Mac OS X 10.0 Cheetah (2001)
 #define OS_OSX_BETA     321  // Mac OS X Public Beta (2000)
 
-// 经典Macintosh系统
+// 经典Macintosh系统 | Classic Macintosh systems
 #define OS_MACOS9       330  // Mac OS 9 (1999)
 #define OS_MACOS8       331  // Mac OS 8 (1997)
 #define OS_MACOS7       332  // System 7 (1991)
@@ -865,57 +1670,74 @@ namespace tc {
 #define OS_MACOS2       337  // System 2 (1985)
 #define OS_MACOS1       338  // System 1 (1984)
 
-// 其他Apple操作系统
-#define OS_IOS          350  // iOS
-#define OS_IPADOS       351  // iPadOS
-#define OS_WATCHOS      352  // watchOS
-#define OS_TVOS         353  // tvOS
+// 其他Apple操作系统 | Other Apple operating systems
+#define OS_IOS          350  // iOS (iPhone/iPod touch)
+#define OS_IPADOS       351  // iPadOS (iPad)
+#define OS_WATCHOS      352  // watchOS (Apple Watch)
+#define OS_TVOS         353  // tvOS (Apple TV)
 #define OS_VISIONOS     354  // visionOS (Apple Vision Pro)
-#define OS_BRIDGEOS     355  // bridgeOS (Apple T2芯片)
+#define OS_BRIDGEOS     355  // bridgeOS (Apple T2芯片 | Apple T2 chip)
 #define OS_AUDIOOS      356  // audioOS (HomePod)
-#define OS_BSD          400
+
+// BSD系列 | BSD family
+#define OS_BSD          400  // 通用BSD标识 | Generic BSD identifier
 #define OS_DRAGONFLY    401  // DragonFly BSD
 #define OS_NETBSD       402  // NetBSD
 #define OS_OPENBSD      403  // OpenBSD
-#define OS_FREEBSD      404  // FreeBSD (已有BSD，这是更具体的)
-#define OS_UNIX         500
+#define OS_FREEBSD      404  // FreeBSD
+
+// Unix系列 | Unix family
+#define OS_UNIX         500  // 通用Unix标识 | Generic Unix identifier
 #define OS_HURD         501  // GNU Hurd
 #define OS_XENIX        502  // Xenix
-#define OS_DOS          600
+
+// DOS和其他系统 | DOS and other systems
+#define OS_DOS          600  // DOS
 #define OS_PLAN9        601  // Plan 9
 #define OS_INFERNO      602  // Inferno
-#define OS_BEOS         700
-#define OS_HAIKU        701
+
+// BeOS系列 | BeOS family
+#define OS_BEOS         700  // BeOS
+#define OS_HAIKU        701  // Haiku
 #define OS_SYLLABLE     702  // Syllable
 #define OS_MENUETOS     703  // MenuetOS
 #define OS_REACTOS      704  // ReactOS
 #define OS_KOLIBRIOS    705  // KolibriOS
-#define OS_AIX          800
-#define OS_SOLARIS      810
-#define OS_MINIX        820
-#define OS_QNX          830
-#define OS_VMS          840
-#define OS_ZOS          841  // z/OS
-#define OS_OS400        842  // OS/400
-#define OS_TPF          843  // TPF
-#define OS_AMIGAOS      850
-#define OS_MORPHOS      851
-#define OS_FREEMINT     852
-#define OS_HPUX         860
-#define OS_IRIX         861
-#define OS_SCO          862
-#define OS_OPENVMS      863
-#define OS_RISCOS       870
-#define OS_OS2          900
-#define OS_NEXTSTEP     910
+
+// 商业Unix系统 | Commercial Unix systems
+#define OS_AIX          800  // IBM AIX
+#define OS_SOLARIS      810  // Oracle Solaris
+#define OS_MINIX        820  // MINIX
+#define OS_QNX          830  // QNX
+#define OS_VMS          840  // VMS
+#define OS_ZOS          841  // IBM z/OS
+#define OS_OS400        842  // IBM OS/400
+#define OS_TPF          843  // IBM TPF
+
+// 其他操作系统 | Other operating systems
+#define OS_AMIGAOS      850  // AmigaOS
+#define OS_MORPHOS      851  // MorphOS
+#define OS_FREEMINT     852  // FreeMiNT
+#define OS_HPUX         860  // HP-UX
+#define OS_IRIX         861  // IRIX
+#define OS_SCO          862  // SCO
+#define OS_OPENVMS      863  // OpenVMS
+#define OS_RISCOS       870  // RISC OS
+#define OS_OS2          900  // OS/2
+#define OS_NEXTSTEP     910  // NeXTSTEP
+
+// 嵌入式操作系统 | Embedded operating systems
 #define OS_NUTTX        920  // NuttX
 #define OS_ZEPHYR       921  // Zephyr
 #define OS_CONTIKI      922  // Contiki
 #define OS_RIOT         923  // RIOT
+
+// 新兴操作系统 | Emerging operating systems
 #define OS_FUCHSIA      950  // Google Fuchsia
 #define OS_REDOX        951  // Redox OS
 #define OS_HARMONY      952  // Harmony OS
-// --- 嵌入式/实时操作系统 ---
+
+// 嵌入式/实时操作系统 | Embedded/Real-time operating systems
 #define OS_VXWORKS      1000 // VxWorks
 #define OS_RTEMS        1001 // RTEMS
 #define OS_FREERTOS     1002 // FreeRTOS
@@ -927,11 +1749,27 @@ namespace tc {
 #define OS_PSOS         1008 // pSOS
 #define OS_ECOS         1009 // eCos
 
-// --- systemCheck ---
-#include <string>
-#include <algorithm>
+// --- systemCheck 函数 | systemCheck function ---
+/**
+ * 系统检测相关功能
+ * System detection functionality
+ */
+#include <string>     // 字符串处理 | String processing
+#include <algorithm>  // 算法函数 | Algorithm functions
 
 namespace tc {
+    /**
+     * 检测当前操作系统类型
+     * Detect current operating system type
+     * 
+     * 这个函数通过各种平台特定的API和检测方法，
+     * 识别当前运行的操作系统类型和版本。
+     * 
+     * This function identifies the current operating system type and version
+     * through various platform-specific APIs and detection methods.
+     * 
+     * @return 操作系统类型代码（如OS_WINDOWS, OS_LINUX等） | Operating system type code (e.g., OS_WINDOWS, OS_LINUX, etc.)
+     */
     inline int systemCheck() {
 #if defined(_WIN32) || defined(_WIN64)
         // 检测ReactOS (基于Windows NT的开源操作系统)
@@ -1390,10 +2228,22 @@ namespace tc {
 #endif
     } // systemCheck
 
-    // 获取操作系统名称
+    /**
+     * 获取操作系统名称
+     * Get operating system name
+     * 
+     * 根据操作系统代码返回对应的操作系统名称。
+     * Returns the corresponding operating system name based on the OS code.
+     * 
+     * @param osCode 操作系统代码（由systemCheck函数返回） | Operating system code (returned by systemCheck function)
+     * @return 操作系统名称字符串 | Operating system name string
+     */
     inline const char* getOSName(int osCode) {
         switch(osCode) {
+            // 未知操作系统 | Unknown operating system
             case OS_UNKNOWN: return "Unknown OS";
+            
+            // Windows系列 | Windows family
             case OS_WINDOWS: return "Windows";
             case OS_WINDOWSNT3: return "Windows NT 3.x";
             case OS_WINDOWSNT4: return "Windows NT 4.0";
@@ -1406,7 +2256,7 @@ namespace tc {
             case OS_WINME: return "Windows ME";
             case OS_WINCE: return "Windows CE";
             
-            // Linux发行版
+            // Linux发行版 | Linux distributions
             case OS_LINUX: return "Linux";
             case OS_UBUNTU: return "Ubuntu Linux";
             case OS_DEBIAN: return "Debian Linux";
@@ -1429,7 +2279,7 @@ namespace tc {
             case OS_CHROMEOS: return "Chrome OS/Chromium OS";
             case OS_ANDROID: return "Android";
             
-            // macOS和Mac OS X版本
+            // macOS和Mac OS X版本 | macOS and Mac OS X versions
             case OS_MACOS: return "macOS";
             case OS_MACOS_SONOMA: return "macOS 14 Sonoma";
             case OS_MACOS_VENTURA: return "macOS 13 Ventura";
@@ -1453,7 +2303,7 @@ namespace tc {
             case OS_OSX_CHEETAH: return "Mac OS X 10.0 Cheetah";
             case OS_OSX_BETA: return "Mac OS X Public Beta";
             
-            // 经典Macintosh系统
+            // 经典Macintosh系统 | Classic Macintosh systems
             case OS_MACOS9: return "Mac OS 9";
             case OS_MACOS8: return "Mac OS 8";
             case OS_MACOS7: return "System 7";
@@ -1464,7 +2314,7 @@ namespace tc {
             case OS_MACOS2: return "System 2";
             case OS_MACOS1: return "System 1";
             
-            // 其他Apple操作系统
+            // 其他Apple操作系统 | Other Apple operating systems
             case OS_IOS: return "iOS";
             case OS_IPADOS: return "iPadOS";
             case OS_WATCHOS: return "watchOS";
@@ -1473,14 +2323,14 @@ namespace tc {
             case OS_BRIDGEOS: return "bridgeOS";
             case OS_AUDIOOS: return "audioOS";
             
-            // BSD系列
+            // BSD系列 | BSD family
             case OS_BSD: return "BSD";
             case OS_DRAGONFLY: return "DragonFly BSD";
             case OS_NETBSD: return "NetBSD";
             case OS_OPENBSD: return "OpenBSD";
             case OS_FREEBSD: return "FreeBSD";
             
-            // 其他操作系统
+            // 其他操作系统 | Other operating systems
             case OS_UNIX: return "UNIX";
             case OS_HURD: return "GNU Hurd";
             case OS_XENIX: return "Xenix";
@@ -1512,7 +2362,7 @@ namespace tc {
             case OS_OS2: return "OS/2";
             case OS_NEXTSTEP: return "NeXTSTEP";
             
-            // 嵌入式/实时操作系统
+            // 嵌入式/实时操作系统 | Embedded/Real-time operating systems
             case OS_NUTTX: return "NuttX";
             case OS_ZEPHYR: return "Zephyr";
             case OS_CONTIKI: return "Contiki";
@@ -1528,11 +2378,12 @@ namespace tc {
             case OS_PSOS: return "pSOS";
             case OS_ECOS: return "eCos";
             
-            // 新兴操作系统
+            // 新兴操作系统 | Emerging operating systems
             case OS_FUCHSIA: return "Google Fuchsia";
             case OS_REDOX: return "Redox OS";
             case OS_HARMONY: return "Harmony OS";
         
+            // 默认情况 | Default case
             default: return "Unknown OS";
         }
     }
