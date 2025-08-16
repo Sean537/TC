@@ -781,6 +781,16 @@ namespace tc {
     inline int systemConsole(const std::string& cmd) {
         return std::system(cmd.c_str());
     }
+    inline int systemConsoleW(const wchar_t* cmd) {
+        #ifdef _WIN32
+            return _wsystem(cmd);
+        #else
+            // 在非Windows平台上，需要将宽字符转换为UTF-8
+            std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+            std::string utf8_cmd = converter.to_bytes(cmd);
+            return system(utf8_cmd.c_str());
+        #endif
+    }
 }
 
 // --- 系统环境宏定义 ---

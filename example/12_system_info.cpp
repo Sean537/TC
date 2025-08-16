@@ -65,10 +65,10 @@ int main() {
     tc::println(TCOLOR_CYAN, "===========", TCOLOR_RESET);
     
 #ifdef _WIN32
-    tc::systemConsole("echo 当前目录内容:");
+    tc::systemConsoleW(L"echo 当前目录内容:");
     tc::systemConsole("dir");
 #else
-    tc::systemConsole("echo 当前目录内容:");
+    tc::systemConsoleW("echo 当前目录内容:");
     tc::systemConsole("ls -la");
 #endif
     
