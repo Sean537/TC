@@ -14,6 +14,7 @@
   - [延时函数](#延时函数)
   - [按键等待函数](#按键等待函数)
   - [系统相关函数](#系统相关函数)
+  - [终端控制函数](#终端控制函数)
 - [类参考](#类参考)
   - [PrintProxy 类](#printproxy-类)
   - [Printer 类](#printer-类)
@@ -33,152 +34,236 @@
 
 #### 前景色宏
 
-```cpp
-// 在非Windows平台上，这些宏会展开为ANSI转义序列
-// 在Windows平台上，这些宏会被映射到对应的Windows Console API调用
-#define TCOLOR_BLACK   // 黑色前景色
-#define TCOLOR_RED     // 红色前景色
-#define TCOLOR_GREEN   // 绿色前景色
-#define TCOLOR_YELLOW  // 黄色前景色
-#define TCOLOR_BLUE    // 蓝色前景色
-#define TCOLOR_MAGENTA // 洋红前景色
-#define TCOLOR_CYAN    // 青色前景色
-#define TCOLOR_WHITE   // 白色前景色
-#define TCOLOR_DEFAULT // 默认前景色
-#define TCOLOR_RESET   // 重置所有颜色和样式
-#define TCOLOR_RGB(r, g, b) tc::RGBColorWrapper(r, g, b)  // RGB颜色
-```
+| 宏名称 | 描述 |
+|--------|------|
+| `TCOLOR_BLACK` | 黑色前景色 |
+| `TCOLOR_RED` | 红色前景色 |
+| `TCOLOR_GREEN` | 绿色前景色 |
+| `TCOLOR_YELLOW` | 黄色前景色 |
+| `TCOLOR_BLUE` | 蓝色前景色 |
+| `TCOLOR_MAGENTA` | 洋红前景色 |
+| `TCOLOR_CYAN` | 青色前景色 |
+| `TCOLOR_WHITE` | 白色前景色 |
+| `TCOLOR_DEFAULT` | 默认前景色 |
+| `TCOLOR_RESET` | 重置所有颜色和样式 |
+| `TCOLOR_RGB(r, g, b)` | RGB颜色 (0-255) |
+
+> 在非Windows平台上，这些宏会展开为ANSI转义序列；在Windows平台上，这些宏会被映射到对应的Windows Console API调用。
 
 #### 背景色宏
 
-```cpp
-// 在非Windows平台上，这些宏会展开为ANSI转义序列
-// 在Windows平台上，这些宏会被映射到对应的Windows Console API调用
-#define BCOLOR_BLACK   // 黑色背景色
-#define BCOLOR_RED     // 红色背景色
-#define BCOLOR_GREEN   // 绿色背景色
-#define BCOLOR_YELLOW  // 黄色背景色
-#define BCOLOR_BLUE    // 蓝色背景色
-#define BCOLOR_MAGENTA // 洋红背景色
-#define BCOLOR_CYAN    // 青色背景色
-#define BCOLOR_WHITE   // 白色背景色
-#define BCOLOR_DEFAULT // 默认背景色
-```
+| 宏名称 | 描述 |
+|--------|------|
+| `BCOLOR_BLACK` | 黑色背景色 |
+| `BCOLOR_RED` | 红色背景色 |
+| `BCOLOR_GREEN` | 绿色背景色 |
+| `BCOLOR_YELLOW` | 黄色背景色 |
+| `BCOLOR_BLUE` | 蓝色背景色 |
+| `BCOLOR_MAGENTA` | 洋红背景色 |
+| `BCOLOR_CYAN` | 青色背景色 |
+| `BCOLOR_WHITE` | 白色背景色 |
+| `BCOLOR_DEFAULT` | 默认背景色 |
 
 ### 字体样式宏
 
-```cpp
-// 在非Windows平台上，这些宏会展开为ANSI转义序列
-// 在Windows平台上，这些宏会被映射到对应的Windows Console API调用
-#define TFONT_BOLD        // 粗体/加粗
-#define TFONT_FAINT       // 微弱/淡色
-#define TFONT_ITALIC      // 斜体
-#define TFONT_UNDERLINE   // 下划线
-#define TFONT_BLINK_SLOW  // 慢速闪烁
-#define TFONT_BLINK_FAST  // 快速闪烁
-#define TFONT_REVERSE     // 反色
-#define TFONT_CONCEAL     // 隐藏
-#define TFONT_CROSSED     // 删除线
-#define TFONT_DEFAULT     // 默认字体
-#define TFONT_FRAKTUR     // Fraktur字体（部分终端支持）
-#define TFONT_DOUBLE_UNDERLINE // 双下划线/粗体关闭
-#define TFONT_NORMAL      // 粗体/淡色关闭
-#define TFONT_NOT_ITALIC  // 关闭斜体/Fraktur
-#define TFONT_NO_UNDERLINE // 关闭下划线
-#define TFONT_NO_BLINK    // 关闭闪烁
-#define TFONT_NO_REVERSE  // 关闭反色
-#define TFONT_REVEAL      // 关闭隐藏
-#define TFONT_NOT_CROSSED // 关闭删除线
-#define TFONT_THICK       TFONT_BOLD   // 兼容别名
-#define TFONT_RESET       // 全部重置
-```
+| 宏名称 | 描述 |
+|--------|------|
+| `TFONT_BOLD` | 粗体/加粗 |
+| `TFONT_FAINT` | 微弱/淡色 |
+| `TFONT_ITALIC` | 斜体 |
+| `TFONT_UNDERLINE` | 下划线 |
+| `TFONT_BLINK_SLOW` | 慢速闪烁 |
+| `TFONT_BLINK_FAST` | 快速闪烁 |
+| `TFONT_REVERSE` | 反色 |
+| `TFONT_CONCEAL` | 隐藏 |
+| `TFONT_CROSSED` | 删除线 |
+| `TFONT_DEFAULT` | 默认字体 |
+| `TFONT_FRAKTUR` | Fraktur字体（部分终端支持） |
+| `TFONT_DOUBLE_UNDERLINE` | 双下划线/粗体关闭 |
+| `TFONT_NORMAL` | 粗体/淡色关闭 |
+| `TFONT_NOT_ITALIC` | 关闭斜体/Fraktur |
+| `TFONT_NO_UNDERLINE` | 关闭下划线 |
+| `TFONT_NO_BLINK` | 关闭闪烁 |
+| `TFONT_NO_REVERSE` | 关闭反色 |
+| `TFONT_REVEAL` | 关闭隐藏 |
+| `TFONT_NOT_CROSSED` | 关闭删除线 |
+| `TFONT_THICK` | 粗体（TFONT_BOLD的别名） |
+| `TFONT_RESET` | 全部重置 |
 
 ### 按键宏
 
-```cpp
-#define KEY_ESC      27
-#define KEY_SPACE    32
-#define KEY_ENTER    13
-#define KEY_TAB       9
-#define KEY_BACKSPACE 8
-#define KEY_INSERT   0x2D
-#define KEY_DELETE   0x2E
-#define KEY_HOME     0x24
-#define KEY_END      0x23
-#define KEY_PAGEUP   0x21
-#define KEY_PAGEDOWN 0x22
-#define KEY_UP       0x26
-#define KEY_DOWN     0x28
-#define KEY_LEFT     0x25
-#define KEY_RIGHT    0x27
-#define KEY_F1       0x70
-#define KEY_F2       0x71
-#define KEY_F3       0x72
-#define KEY_F4       0x73
-#define KEY_F5       0x74
-#define KEY_F6       0x75
-#define KEY_F7       0x76
-#define KEY_F8       0x77
-#define KEY_F9       0x78
-#define KEY_F10      0x79
-#define KEY_F11      0x7A
-#define KEY_F12      0x7B
-```
+| 宏名称 | 值 | 描述 |
+|--------|-----|------|
+| `KEY_ESC` | 27 | Escape键 |
+| `KEY_SPACE` | 32 | 空格键 |
+| `KEY_ENTER` | 13 | 回车键 |
+| `KEY_TAB` | 9 | Tab键 |
+| `KEY_BACKSPACE` | 8 | 退格键 |
+| `KEY_INSERT` | 0x2D | Insert键 |
+| `KEY_DELETE` | 0x2E | Delete键 |
+| `KEY_HOME` | 0x24 | Home键 |
+| `KEY_END` | 0x23 | End键 |
+| `KEY_PAGEUP` | 0x21 | Page Up键 |
+| `KEY_PAGEDOWN` | 0x22 | Page Down键 |
+| `KEY_UP` | 0x26 | 上箭头键 |
+| `KEY_DOWN` | 0x28 | 下箭头键 |
+| `KEY_LEFT` | 0x25 | 左箭头键 |
+| `KEY_RIGHT` | 0x27 | 右箭头键 |
+| `KEY_F1` - `KEY_F12` | 0x70 - 0x7B | F1至F12功能键 |
 
 ### 系统相关宏
 
 #### 系统时间宏
 
-```cpp
-#define SYS_YEAR   1
-#define SYS_MONTH  2
-#define SYS_DAY    3
-#define SYS_HOUR   4
-#define SYS_MINUTE 5
-#define SYS_SECOND 6
-#define SYS_TIMESTAMP 0
-```
+| 宏名称 | 值 | 描述 |
+|--------|-----|------|
+| `SYS_YEAR` | 1 | 年份 |
+| `SYS_MONTH` | 2 | 月份(1-12) |
+| `SYS_DAY` | 3 | 日期(1-31) |
+| `SYS_HOUR` | 4 | 小时(0-23) |
+| `SYS_MINUTE` | 5 | 分钟(0-59) |
+| `SYS_SECOND` | 6 | 秒钟(0-59) |
+| `SYS_TIMESTAMP` | 0 | Unix时间戳 |
 
 #### 操作系统类型宏
 
-```cpp
-#define OS_UNKNOWN      0
-#define OS_WINDOWS      100
-#define OS_WINDOWSNT3   103
-#define OS_WINDOWSNT4   104
-#define OS_WINDOWSNT5   105
-#define OS_WINDOWSNT6   106
-#define OS_WINDOWSNT10  110
-#define OS_WINDOWSNT11  111
-#define OS_WIN95        195
-#define OS_WIN98        198
-#define OS_WINME        199
-#define OS_WINCE        120
-#define OS_LINUX        200
-#define OS_ANDROID      210
-#define OS_MACOS        300
-#define OS_IOS          310
-#define OS_BSD          400
-#define OS_UNIX         500
-#define OS_DOS          600
-#define OS_BEOS         700
-#define OS_HAIKU        701
-#define OS_AIX          800
-#define OS_SOLARIS      810
-#define OS_MINIX        820
-#define OS_QNX          830
-#define OS_VMS          840
-#define OS_AMIGAOS      850
-#define OS_MORPHOS      851
-#define OS_FREEMINT     852
-#define OS_HPUX         860
-#define OS_IRIX         861
-#define OS_SCO          862
-#define OS_OPENVMS      863
-#define OS_RISCOS       870
-#define OS_OS2          900
-#define OS_NEXTSTEP     910
-```
+##### Windows系列
+
+| 宏名称 | 值 | 描述 |
+|--------|-----|------|
+| `OS_WINDOWS` | 100 | 通用Windows标识 |
+| `OS_WINDOWSNT3` | 103 | Windows NT 3.x |
+| `OS_WINDOWSNT4` | 104 | Windows NT 4.0 |
+| `OS_WINDOWSNT5` | 105 | Windows 2000/XP/2003 (NT 5.x) |
+| `OS_WINDOWSNT6` | 106 | Windows Vista/7/8/8.1 (NT 6.x) |
+| `OS_WINDOWSNT10` | 110 | Windows 10 (NT 10.0) |
+| `OS_WINDOWSNT11` | 111 | Windows 11 (NT 10.0 build 22000+) |
+| `OS_WIN95` | 195 | Windows 95 |
+| `OS_WIN98` | 198 | Windows 98 |
+| `OS_WINME` | 199 | Windows ME |
+| `OS_WINCE` | 120 | Windows CE |
+
+##### Linux发行版
+
+| 宏名称 | 值 | 描述 |
+|--------|-----|------|
+| `OS_LINUX` | 200 | 通用Linux标识 |
+| `OS_UBUNTU` | 201 | Ubuntu Linux |
+| `OS_DEBIAN` | 202 | Debian Linux |
+| `OS_FEDORA` | 203 | Fedora Linux |
+| `OS_CENTOS` | 204 | CentOS Linux |
+| `OS_REDHAT` | 205 | Red Hat Enterprise Linux |
+| `OS_SUSE` | 206 | SUSE/openSUSE Linux |
+| `OS_ARCH` | 207 | Arch Linux |
+| `OS_GENTOO` | 208 | Gentoo Linux |
+| `OS_SLACKWARE` | 209 | Slackware Linux |
+| `OS_ANDROID` | 210 | Android (基于Linux) |
+| `OS_KALI` | 211 | Kali Linux |
+| `OS_MINT` | 212 | Linux Mint |
+| `OS_MANJARO` | 213 | Manjaro Linux |
+| `OS_ALPINE` | 214 | Alpine Linux |
+| `OS_RASPBIAN` | 215 | Raspbian |
+| `OS_DEEPIN` | 216 | Deepin Linux |
+| `OS_ELEMENTARY` | 217 | Elementary OS |
+| `OS_ZORIN` | 218 | Zorin OS |
+| `OS_POPOS` | 219 | Pop!_OS |
+| `OS_CHROMEOS` | 220 | Chrome OS/Chromium OS |
+
+##### Apple操作系统
+
+| 宏名称 | 值 | 描述 |
+|--------|-----|------|
+| `OS_MACOS` | 300 | 通用macOS标识 |
+| `OS_MACOS_SONOMA` | 301 | macOS 14 Sonoma (2023) |
+| `OS_MACOS_VENTURA` | 302 | macOS 13 Ventura (2022) |
+| `OS_MACOS_MONTEREY` | 303 | macOS 12 Monterey (2021) |
+| `OS_MACOS_BIGSUR` | 304 | macOS 11 Big Sur (2020) |
+| `OS_MACOS_CATALINA` | 305 | macOS 10.15 Catalina (2019) |
+| `OS_MACOS_MOJAVE` | 306 | macOS 10.14 Mojave (2018) |
+| `OS_MACOS_HIGHSIERRA` | 307 | macOS 10.13 High Sierra (2017) |
+| `OS_MACOS_SIERRA` | 308 | macOS 10.12 Sierra (2016) |
+| `OS_OSX_ELCAPITAN` | 309 | OS X 10.11 El Capitan (2015) |
+| `OS_OSX_YOSEMITE` | 310 | OS X 10.10 Yosemite (2014) |
+| `OS_OSX_MAVERICKS` | 311 | OS X 10.9 Mavericks (2013) |
+| `OS_OSX_MOUNTAINLION` | 312 | OS X 10.8 Mountain Lion (2012) |
+| `OS_OSX_LION` | 313 | Mac OS X 10.7 Lion (2011) |
+| `OS_OSX_SNOWLEOPARD` | 314 | Mac OS X 10.6 Snow Leopard (2009) |
+| `OS_OSX_LEOPARD` | 315 | Mac OS X 10.5 Leopard (2007) |
+| `OS_OSX_TIGER` | 316 | Mac OS X 10.4 Tiger (2005) |
+| `OS_OSX_PANTHER` | 317 | Mac OS X 10.3 Panther (2003) |
+| `OS_OSX_JAGUAR` | 318 | Mac OS X 10.2 Jaguar (2002) |
+| `OS_OSX_PUMA` | 319 | Mac OS X 10.1 Puma (2001) |
+| `OS_OSX_CHEETAH` | 320 | Mac OS X 10.0 Cheetah (2001) |
+| `OS_OSX_BETA` | 321 | Mac OS X Public Beta (2000) |
+| `OS_MACOS9` | 330 | Mac OS 9 (1999) |
+| `OS_MACOS8` | 331 | Mac OS 8 (1997) |
+| `OS_MACOS7` | 332 | System 7 (1991) |
+| `OS_MACOS6` - `OS_MACOS1` | 333 - 338 | System 6 - System 1 (1988-1984) |
+| `OS_IOS` | 350 | iOS (iPhone/iPod touch) |
+| `OS_IPADOS` | 351 | iPadOS (iPad) |
+| `OS_WATCHOS` | 352 | watchOS (Apple Watch) |
+| `OS_TVOS` | 353 | tvOS (Apple TV) |
+| `OS_VISIONOS` | 354 | visionOS (Apple Vision Pro) |
+| `OS_BRIDGEOS` | 355 | bridgeOS (Apple T2芯片) |
+| `OS_AUDIOOS` | 356 | audioOS (HomePod) |
+
+##### 其他操作系统
+
+| 宏名称 | 值 | 描述 |
+|--------|-----|------|
+| `OS_BSD` | 400 | 通用BSD标识 |
+| `OS_DRAGONFLY` | 401 | DragonFly BSD |
+| `OS_NETBSD` | 402 | NetBSD |
+| `OS_OPENBSD` | 403 | OpenBSD |
+| `OS_FREEBSD` | 404 | FreeBSD |
+| `OS_UNIX` | 500 | 通用Unix标识 |
+| `OS_HURD` | 501 | GNU Hurd |
+| `OS_XENIX` | 502 | Xenix |
+| `OS_DOS` | 600 | DOS |
+| `OS_PLAN9` | 601 | Plan 9 |
+| `OS_INFERNO` | 602 | Inferno |
+| `OS_BEOS` | 700 | BeOS |
+| `OS_HAIKU` | 701 | Haiku |
+| `OS_SYLLABLE` | 702 | Syllable |
+| `OS_MENUETOS` | 703 | MenuetOS |
+| `OS_REACTOS` | 704 | ReactOS |
+| `OS_KOLIBRIOS` | 705 | KolibriOS |
+| `OS_AIX` | 800 | IBM AIX |
+| `OS_SOLARIS` | 810 | Oracle Solaris |
+| `OS_MINIX` | 820 | MINIX |
+| `OS_QNX` | 830 | QNX |
+| `OS_VMS` | 840 | VMS |
+| `OS_ZOS` | 841 | IBM z/OS |
+| `OS_OS400` | 842 | IBM OS/400 |
+| `OS_TPF` | 843 | IBM TPF |
+| `OS_AMIGAOS` | 850 | AmigaOS |
+| `OS_MORPHOS` | 851 | MorphOS |
+| `OS_FREEMINT` | 852 | FreeMiNT |
+| `OS_HPUX` | 860 | HP-UX |
+| `OS_IRIX` | 861 | IRIX |
+| `OS_SCO` | 862 | SCO |
+| `OS_OPENVMS` | 863 | OpenVMS |
+| `OS_RISCOS` | 870 | RISC OS |
+| `OS_OS2` | 900 | OS/2 |
+| `OS_NEXTSTEP` | 910 | NeXTSTEP |
+| `OS_NUTTX` | 920 | NuttX |
+| `OS_ZEPHYR` | 921 | Zephyr |
+| `OS_CONTIKI` | 922 | Contiki |
+| `OS_RIOT` | 923 | RIOT |
+| `OS_FUCHSIA` | 950 | Google Fuchsia |
+| `OS_REDOX` | 951 | Redox OS |
+| `OS_HARMONY` | 952 | Harmony OS |
+| `OS_VXWORKS` | 1000 | VxWorks |
+| `OS_RTEMS` | 1001 | RTEMS |
+| `OS_FREERTOS` | 1002 | FreeRTOS |
+| `OS_THREADX` | 1003 | ThreadX |
+| `OS_INTEGRITY` | 1004 | INTEGRITY |
+| `OS_NUCLEUS` | 1005 | Nucleus RTOS |
+| `OS_UCOSII` | 1006 | μC/OS-II |
+| `OS_UCOSIII` | 1007 | μC/OS-III |
+| `OS_PSOS` | 1008 | pSOS |
+| `OS_ECOS` | 1009 | eCos |
+| `OS_UNKNOWN` | 0 | 无法识别的操作系统 |
 
 ## 命名空间 tc
 
@@ -186,87 +271,59 @@
 
 #### 标准输出函数
 
-```cpp
-// 无参数打印
-inline const PrintProxy& print();
-inline const PrintProxy& println();
-
-// 多参数打印
-template<typename... Args>
-inline void print(Args&&... args);
-template<typename... Args>
-inline void println(Args&&... args);
-
-// 全局输出对象
-static TOut tout(std::cout);
-```
+| 函数 | 描述 |
+|------|------|
+| `print()` | 无参数打印 |
+| `println()` | 无参数打印并换行 |
+| `print(Args&&... args)` | 多参数打印 |
+| `println(Args&&... args)` | 多参数打印并换行 |
+| `tout` | 全局输出对象 (TOut类型) |
 
 #### 颜色函数
 
-```cpp
-// 带颜色的字符串
-inline std::string colorize(const std::string& text, ColorController::Color color);
-inline std::string red(const std::string& text);
-inline std::string green(const std::string& text);
-inline std::string blue(const std::string& text);
-inline std::string yellow(const std::string& text);
-```
+| 函数 | 描述 |
+|------|------|
+| `colorize(const std::string& text, ColorController::Color color)` | 返回带指定颜色的字符串 |
+| `red(const std::string& text)` | 返回带红色的字符串 |
+| `green(const std::string& text)` | 返回带绿色的字符串 |
+| `blue(const std::string& text)` | 返回带蓝色的字符串 |
+| `yellow(const std::string& text)` | 返回带黄色的字符串 |
 
 ### 延时函数
 
-```cpp
-// 等待指定秒数（支持小数）
-inline void wait(double seconds);
-
-// 等待指定毫秒
-inline TSleep tsleep(int milliseconds);
-
-// 延时流对象
-static TSleepStream tsleep_stream;
-```
+| 函数 | 描述 |
+|------|------|
+| `wait(double seconds)` | 等待指定秒数（支持小数） |
+| `tsleep(int milliseconds)` | 等待指定毫秒，返回TSleep对象 |
+| `tsleep_stream` | 延时流对象 (TSleepStream类型) |
 
 ### 按键等待函数
 
-```cpp
-// 等待任意按键
-inline void waitKey();
-
-// 等待特定按键
-inline void waitKey(char key);
-inline void waitKey(int key);
-```
+| 函数 | 描述 |
+|------|------|
+| `waitKey()` | 等待任意按键 |
+| `waitKey(char key)` | 等待特定字符按键 |
+| `waitKey(int key)` | 等待特定键码按键 |
 
 ### 系统相关函数
 
-```cpp
-// 获取系统时间
-inline int getSystemTime(int type = SYS_TIMESTAMP);
-
-// 执行系统命令
-inline int systemConsole(const char* cmd);
-inline int systemConsole(const std::string& cmd);
-
-// 检测系统类型
-inline int systemCheck();
-```
+| 函数 | 描述 | 参数 | 返回值 |
+|------|------|------|--------|
+| `getSystemTime(int type = SYS_TIMESTAMP)` | 获取系统时间 | `type`: 时间类型常量 | 请求的时间值 |
+| `systemConsole(const char* cmd)` | 执行系统命令(C字符串版本) | `cmd`: 要执行的命令 | 命令的退出状态 |
+| `systemConsole(const std::string& cmd)` | 执行系统命令(C++字符串版本) | `cmd`: 要执行的命令 | 命令的退出状态 |
+| `systemConsoleW(const wchar_t* cmd)` | 执行系统命令(宽字符版本) | `cmd`: 要执行的宽字符命令 | 命令的退出状态 |
+| `systemCheck()` | 检测当前操作系统类型 | 无 | 操作系统类型代码 |
+| `getOSName(int osCode)` | 获取操作系统名称 | `osCode`: 操作系统代码 | 操作系统名称字符串 |
 
 ### 终端控制函数
 
-```cpp
-namespace terminal {
-    // 清屏
-    inline void clear();
-    
-    // 移动光标
-    inline void moveCursor(int x, int y);
-    
-    // 获取终端尺寸
-    inline std::pair<int, int> getSize();
-}
-
-// 创建 Printer 对象
-inline Printer printer();
-```
+| 函数 | 描述 | 参数 | 返回值 |
+|------|------|------|--------|
+| `terminal::clear()` | 清屏 | 无 | 无 |
+| `terminal::moveCursor(int x, int y)` | 移动光标到指定位置 | `x`: 列坐标, `y`: 行坐标 | 无 |
+| `terminal::getSize()` | 获取终端尺寸 | 无 | 包含宽度和高度的对组 |
+| `printer()` | 创建Printer对象 | 无 | Printer对象 |
 
 ## 类参考
 
@@ -274,257 +331,125 @@ inline Printer printer();
 
 用于链式打印操作的代理类。
 
-```cpp
-class PrintProxy {
-public:
-    // 无参数打印
-    const PrintProxy& print() const;
-    
-    // 多参数打印
-    template<typename... Args>
-    const PrintProxy& print(Args&&... args) const;
-    
-    // 多参数打印并换行
-    template<typename... Args>
-    const PrintProxy& println(Args&&... args) const;
-};
-```
+| 方法 | 描述 | 参数 | 返回值 |
+|------|------|------|--------|
+| `print()` | 无参数打印 | 无 | PrintProxy引用 |
+| `print(Args&&... args)` | 多参数打印 | 任意类型参数 | PrintProxy引用 |
+| `println(Args&&... args)` | 多参数打印并换行 | 任意类型参数 | PrintProxy引用 |
 
 ### Printer 类
 
 提供终端控制功能的类。
 
-```cpp
-class Printer {
-public:
-    // 清屏
-    Printer& clear();
-    
-    // 移动光标到指定位置
-    Printer& moveCursor(int x, int y);
-    
-    // 无参数打印
-    Printer& print();
-    
-    // 多参数打印
-    template<typename... Args>
-    Printer& print(Args&&... args);
-    
-    // 多参数打印并换行
-    template<typename... Args>
-    Printer& println(Args&&... args);
-    
-    // 隐藏光标
-    Printer& hideCursor();
-    
-    // 显示光标
-    Printer& showCursor();
-    
-    // 方向枚举
-    enum class Direction { Up, Down, Left, Right };
-    
-    // 按方向移动光标
-    Printer& moveCursor(Direction dir, int n);
-    
-    // 获取终端尺寸
-    std::pair<int,int> getSize();
-};
-```
+| 方法 | 描述 | 参数 | 返回值 |
+|------|------|------|--------|
+| `clear()` | 清屏 | 无 | Printer引用 |
+| `moveCursor(int x, int y)` | 移动光标到指定位置 | `x`: 列坐标, `y`: 行坐标 | Printer引用 |
+| `print()` | 无参数打印 | 无 | Printer引用 |
+| `print(Args&&... args)` | 多参数打印 | 任意类型参数 | Printer引用 |
+| `println(Args&&... args)` | 多参数打印并换行 | 任意类型参数 | Printer引用 |
+| `hideCursor()` | 隐藏光标 | 无 | Printer引用 |
+| `showCursor()` | 显示光标 | 无 | Printer引用 |
+| `moveCursor(Direction dir, int n)` | 按方向移动光标 | `dir`: 方向, `n`: 移动距离 | Printer引用 |
+| `getSize()` | 获取终端尺寸 | 无 | 包含宽度和高度的对组 |
 
 ### ColorController 类
 
 控制终端颜色的静态类。
 
-```cpp
-class ColorController {
-public:
-    // 颜色枚举
-    enum class Color {
-        BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE,
-        BRIGHT_BLACK, BRIGHT_RED, BRIGHT_GREEN, BRIGHT_YELLOW,
-        BRIGHT_BLUE, BRIGHT_MAGENTA, BRIGHT_CYAN, BRIGHT_WHITE,
-        RESET
-    };
-    
-    // 设置颜色
-    static void setColor(Color color);
-    
-    // 设置RGB颜色
-    static void setRGBColor(int r, int g, int b);
-    
-    // 设置粗体
-    static void setBold(bool enable);
-};
-```
+| 方法 | 描述 | 参数 | 返回值 |
+|------|------|------|--------|
+| `setColor(Color color)` | 设置颜色 | `color`: 颜色枚举值 | 无 |
+| `setRGBColor(int r, int g, int b)` | 设置RGB颜色 | `r,g,b`: RGB颜色值(0-255) | 无 |
+| `setBold(bool enable)` | 设置粗体 | `enable`: 是否启用 | 无 |
 
 ### ColorWrapper 类
 
 用于流式输出颜色的包装器类。
 
-```cpp
-class ColorWrapper {
-public:
-    // 构造函数
-    explicit ColorWrapper(ColorController::Color color);
-    
-    // 输出运算符重载
-    friend std::ostream& operator<<(std::ostream& os, const ColorWrapper& wrapper);
-};
-```
+| 方法 | 描述 | 参数 | 返回值 |
+|------|------|------|--------|
+| `ColorWrapper(ColorController::Color color)` | 构造函数 | `color`: 颜色枚举值 | 无 |
+| `operator<<` | 输出运算符重载 | `os`: 输出流, `wrapper`: 颜色包装器 | 输出流引用 |
 
 ### RGBColorWrapper 类
 
 用于流式输出RGB颜色的包装器类。
 
-```cpp
-class RGBColorWrapper {
-public:
-    // 构造函数
-    RGBColorWrapper(int r, int g, int b);
-    
-    // 输出运算符重载
-    friend std::ostream& operator<<(std::ostream& os, const RGBColorWrapper& wrapper);
-};
-```
+| 方法 | 描述 | 参数 | 返回值 |
+|------|------|------|--------|
+| `RGBColorWrapper(int r, int g, int b)` | 构造函数 | `r,g,b`: RGB颜色值(0-255) | 无 |
+| `operator<<` | 输出运算符重载 | `os`: 输出流, `wrapper`: RGB颜色包装器 | 输出流引用 |
 
 ### FontStyleWrapper 类
 
 用于流式输出字体样式的包装器类。
 
-```cpp
-class FontStyleWrapper {
-public:
-    // 构造函数
-    explicit FontStyleWrapper(bool enable);
-    
-    // 输出运算符重载
-    friend std::ostream& operator<<(std::ostream& os, const FontStyleWrapper& wrapper);
-};
-```
+| 方法 | 描述 | 参数 | 返回值 |
+|------|------|------|--------|
+| `FontStyleWrapper(bool enable)` | 构造函数 | `enable`: 是否启用 | 无 |
+| `operator<<` | 输出运算符重载 | `os`: 输出流, `wrapper`: 字体样式包装器 | 输出流引用 |
 
 ### TSleep 类
 
 用于延时操作的类。
 
-```cpp
-class TSleep {
-public:
-    // 构造函数
-    explicit TSleep(int ms);
-    
-    // 执行延时
-    void execute() const;
-    
-    // 输出运算符重载
-    friend std::ostream& operator<<(std::ostream& os, const TSleep& sleep);
-};
-```
+| 方法 | 描述 | 参数 | 返回值 |
+|------|------|------|--------|
+| `TSleep(int ms)` | 构造函数 | `ms`: 毫秒数 | 无 |
+| `execute()` | 执行延时 | 无 | 无 |
+| `operator<<` | 输出运算符重载 | `os`: 输出流, `sleep`: 延时对象 | 输出流引用 |
 
 ### TSleepStream 类
 
 用于流式延时的类。
 
-```cpp
-class TSleepStream {
-public:
-    // 延时操作符
-    void operator<<(int milliseconds) const;
-};
-```
+| 方法 | 描述 | 参数 | 返回值 |
+|------|------|------|--------|
+| `operator<<(int milliseconds)` | 延时操作符 | `milliseconds`: 毫秒数 | 无 |
 
 ### ProgressBar 类
 
 进度条类。
 
-```cpp
-class ProgressBar {
-public:
-    // 构造函数
-    ProgressBar(int width, std::string done = "#", std::string todo = "-", std::string color = TCOLOR_GREEN);
-    
-    // 显示进度
-    void show(double progress, const std::string& msg = "Loading...");
-    
-    // 完成进度条
-    void finish(std::string content = "Finished");
-};
-```
+| 方法 | 描述 | 参数 | 返回值 |
+|------|------|------|--------|
+| `ProgressBar(int width, std::string done = "#", std::string todo = "-", std::string color = TCOLOR_GREEN)` | 构造函数 | `width`: 宽度, `done`: 已完成字符, `todo`: 未完成字符, `color`: 颜色 | 无 |
+| `show(double progress, const std::string& msg = "Loading...")` | 显示进度 | `progress`: 进度值(0.0-1.0), `msg`: 消息 | 无 |
+| `finish(std::string content = "Finished")` | 完成进度条 | `content`: 完成消息 | 无 |
 
 ### TOut 类
 
 自定义输出流类，支持链式输出和自定义类型。
 
-```cpp
-class TOut {
-public:
-    // 构造函数
-    explicit TOut(std::ostream& os = std::cout);
-    
-    // 通用输出操作符
-    template<typename T>
-    TOut& operator<<(T&& value);
-    
-    // 特化处理TSleep
-    TOut& operator<<(const TSleep& sleep);
-    
-    // 特化处理颜色包装器
-    TOut& operator<<(const ColorWrapper& color);
-    
-    // 特化处理RGB颜色包装器
-    TOut& operator<<(const RGBColorWrapper& color);
-    
-    // 特化处理字体样式包装器
-    TOut& operator<<(const FontStyleWrapper& style);
-    
-    // 支持标准流操作符
-    TOut& operator<<(std::ostream& (*manip)(std::ostream&));
-    
-    // 获取底层流
-    std::ostream& stream();
-};
-```
+| 方法 | 描述 | 参数 | 返回值 |
+|------|------|------|--------|
+| `TOut(std::ostream& os = std::cout)` | 构造函数 | `os`: 输出流 | 无 |
+| `operator<<(T&& value)` | 通用输出操作符 | `value`: 要输出的值 | TOut引用 |
+| `operator<<(const TSleep& sleep)` | 特化处理TSleep | `sleep`: 延时对象 | TOut引用 |
+| `operator<<(const ColorWrapper& color)` | 特化处理颜色包装器 | `color`: 颜色包装器 | TOut引用 |
+| `operator<<(const RGBColorWrapper& color)` | 特化处理RGB颜色包装器 | `color`: RGB颜色包装器 | TOut引用 |
+| `operator<<(const FontStyleWrapper& style)` | 特化处理字体样式包装器 | `style`: 字体样式包装器 | TOut引用 |
+| `operator<<(std::ostream& (*manip)(std::ostream&))` | 支持标准流操作符 | `manip`: 流操作符 | TOut引用 |
+| `stream()` | 获取底层流 | 无 | 输出流引用 |
 
 ### Win32Console 类
 
 Windows平台下的控制台管理类。
 
-```cpp
-class Win32Console {
-public:
-    // 获取单例实例
-    static Win32Console& getInstance();
-    
-    // 判断是否初始化
-    bool isInitialized() const;
-    
-    // 设置颜色
-    void setColor(WORD color);
-    
-    // 推入当前颜色到栈
-    void pushColor(WORD color);
-    
-    // 弹出颜色栈并恢复
-    void popColor();
-    
-    // 重置为原始颜色
-    void resetColor();
-    
-    // 获取当前颜色
-    WORD getCurrentColor() const;
-    
-    // 移动光标
-    void moveCursor(int x, int y);
-    
-    // 清屏
-    void clearScreen();
-    
-    // 获取终端尺寸
-    std::pair<int, int> getConsoleSize() const;
-    
-    // RGB转16色近似
-    WORD rgbToWin32Color(int r, int g, int b) const;
-};
-```
+| 方法 | 描述 | 参数 | 返回值 |
+|------|------|------|--------|
+| `getInstance()` | 获取单例实例 | 无 | Win32Console引用 |
+| `isInitialized()` | 判断是否初始化 | 无 | 布尔值 |
+| `setColor(WORD color)` | 设置颜色 | `color`: 颜色值 | 无 |
+| `pushColor(WORD color)` | 推入当前颜色到栈 | `color`: 颜色值 | 无 |
+| `popColor()` | 弹出颜色栈并恢复 | 无 | 无 |
+| `resetColor()` | 重置为原始颜色 | 无 | 无 |
+| `getCurrentColor()` | 获取当前颜色 | 无 | 颜色值 |
+| `moveCursor(int x, int y)` | 移动光标 | `x`: 列坐标, `y`: 行坐标 | 无 |
+| `clearScreen()` | 清屏 | 无 | 无 |
+| `getConsoleSize()` | 获取终端尺寸 | 无 | 包含宽度和高度的对组 |
+| `rgbToWin32Color(int r, int g, int b)` | RGB转16色近似 | `r,g,b`: RGB颜色值(0-255) | 颜色值 |
 
 ## 使用示例
 
@@ -613,8 +538,12 @@ int timestamp = tc::getSystemTime();
 // 执行系统命令
 tc::systemConsole("echo Hello World");
 
+// 执行Unicode命令（Windows平台）
+tc::systemConsoleW(L"echo 你好世界");
+
 // 检测系统类型
 int os = tc::systemCheck();
+const char* osName = tc::getOSName(os);
 ```
 
 ---
