@@ -139,36 +139,35 @@ TCOLOR_RGB(r, g, b)
 
 ### Font Style Macros (TFONT_XXX)
 
-| Macro Name                 | Effect             | ANSI Code     | Compatibility Notes |
-|---------------------------|--------------------|---------------|--------------------|
-| TFONT_BOLD                | Bold               | \033[1m      | Most terminals, Windows 10+ supported |
-| TFONT_FAINT               | Faint/dim          | \033[2m      | Some terminals, limited on Windows 10+ |
-| TFONT_ITALIC              | Italic             | \033[3m      | Some terminals, limited on Windows 10+ |
-| TFONT_UNDERLINE           | Underline          | \033[4m      | Most terminals, Windows 10+ supported |
-| TFONT_BLINK_SLOW          | Slow blink         | \033[5m      | Some terminals, limited on Windows 10+ |
-| TFONT_BLINK_FAST          | Fast blink         | \033[6m      | Rarely supported, not on Windows 10+ |
-| TFONT_REVERSE             | Reverse            | \033[7m      | Most terminals, Windows 10+ supported |
-| TFONT_CONCEAL             | Conceal            | \033[8m      | Rarely supported, not on Windows 10+ |
-| TFONT_CROSSED             | Strikethrough      | \033[9m      | Some terminals, limited on Windows 10+ |
-| TFONT_DEFAULT             | Default font       | \033[10m     | Rarely supported, not on Windows 10+ |
-| TFONT_FRAKTUR             | Fraktur font       | \033[20m     | Very rare, experimental |
-| TFONT_DOUBLE_UNDERLINE    | Double underline/off bold | \033[21m | Some terminals, limited on Windows 10+ |
-| TFONT_NORMAL              | Reset bold/faint   | \033[22m     | Most terminals, Windows 10+ supported |
-| TFONT_NOT_ITALIC          | Not italic/Fraktur | \033[23m     | Some terminals, limited on Windows 10+ |
-| TFONT_NO_UNDERLINE        | Not underlined     | \033[24m     | Most terminals, Windows 10+ supported |
-| TFONT_NO_BLINK            | Not blinking       | \033[25m     | Rarely supported, not on Windows 10+ |
-| TFONT_NO_REVERSE          | Not reversed       | \033[27m     | Most terminals, Windows 10+ supported |
-| TFONT_REVEAL              | Reveal (not concealed) | \033[28m | Rarely supported, not on Windows 10+ |
-| TFONT_NOT_CROSSED         | Not strikethrough  | \033[29m     | Some terminals, limited on Windows 10+ |
-| TFONT_THICK               | Bold (alias)       | \033[1m      | Same as TFONT_BOLD |
-| TFONT_RESET               | Reset all          | \033[0m      | Most terminals, Windows 10+ supported |
+| Macro Name                 | Effect             | Compatibility Notes |
+|---------------------------|--------------------|--------------------|
+| TFONT_BOLD                | Bold               | Fully supported on all platforms |
+| TFONT_FAINT               | Faint/dim          | Fully supported on Windows, partially on other terminals |
+| TFONT_ITALIC              | Italic             | Fully supported on Windows, partially on other terminals |
+| TFONT_UNDERLINE           | Underline          | Fully supported on all platforms |
+| TFONT_BLINK_SLOW          | Slow blink         | Fully supported on Windows, partially on other terminals |
+| TFONT_BLINK_FAST          | Fast blink         | Fully supported on Windows, rarely on other terminals |
+| TFONT_REVERSE             | Reverse            | Fully supported on all platforms |
+| TFONT_CONCEAL             | Conceal            | Fully supported on Windows, rarely on other terminals |
+| TFONT_CROSSED             | Strikethrough      | Fully supported on Windows, partially on other terminals |
+| TFONT_DEFAULT             | Default font       | Fully supported on Windows, rarely on other terminals |
+| TFONT_FRAKTUR             | Fraktur font       | Fully supported on Windows, very rarely on other terminals |
+| TFONT_DOUBLE_UNDERLINE    | Double underline/off bold | Fully supported on Windows, partially on other terminals |
+| TFONT_NORMAL              | Reset bold/faint   | Fully supported on all platforms |
+| TFONT_NOT_ITALIC          | Not italic/Fraktur | Fully supported on Windows, partially on other terminals |
+| TFONT_NO_UNDERLINE        | Not underlined     | Fully supported on all platforms |
+| TFONT_NO_BLINK            | Not blinking       | Fully supported on Windows, rarely on other terminals |
+| TFONT_NO_REVERSE          | Not reversed       | Fully supported on all platforms |
+| TFONT_REVEAL              | Reveal (not concealed) | Fully supported on Windows, rarely on other terminals |
+| TFONT_NOT_CROSSED         | Not strikethrough  | Fully supported on Windows, partially on other terminals |
+| TFONT_THICK               | Bold (alias)       | Same as TFONT_BOLD |
+| TFONT_RESET               | Reset all          | Fully supported on all platforms |
 
 > ⚠️ **Compatibility Notes:**
 >
-> - Most Linux/macOS terminals (GNOME Terminal, iTerm2, Konsole, Alacritty, etc.) support common styles (bold, underline, reverse, some italic/strikethrough).
-> - Windows 10+ native terminal supports most common styles (bold, underline, reverse), but italic, strikethrough, blink are limited.
-> - Old Windows CMD/PowerShell support very few styles. Upgrade or use Windows Terminal is recommended.
-> - TFONT_FRAKTUR, TFONT_DEFAULT, TFONT_DOUBLE_UNDERLINE are experimental/rarely supported.
+> - TC.hpp uses Windows Console API (Win32 API) on Windows platforms instead of ANSI escape sequences, so all font styles are fully supported on Windows, regardless of terminal's ANSI escape sequence support.
+> - On Linux/macOS, ANSI escape sequences are used. Most terminals (GNOME Terminal, iTerm2, Konsole, Alacritty, etc.) support common styles (bold, underline, reverse, some italic/strikethrough).
+> - TFONT_FRAKTUR, TFONT_DEFAULT, TFONT_DOUBLE_UNDERLINE are experimental/rarely supported on non-Windows platforms.
 
 Example: `tc::println(TCOLOR_RED, BCOLOR_YELLOW, TFONT_BOLD, "Red text, yellow background, bold")`
 

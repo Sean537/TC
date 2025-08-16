@@ -139,36 +139,35 @@ TCOLOR_RGB(r, g, b)
 
 ### 字体样式宏（TFONT_XXX）
 
-| 宏名                      | 效果             | ANSI码        | 兼容性说明 |
-|---------------------------|------------------|---------------|------------|
-| TFONT_BOLD                | 粗体/加粗        | \033[1m      | 大多数终端支持，Windows 10+ 支持 |
-| TFONT_FAINT               | 微弱/淡色        | \033[2m      | 部分终端支持，Windows 10+ 支持有限 |
-| TFONT_ITALIC              | 斜体             | \033[3m      | 部分终端支持，Windows 10+ 支持有限 |
-| TFONT_UNDERLINE           | 下划线           | \033[4m      | 大多数终端支持，Windows 10+ 支持 |
-| TFONT_BLINK_SLOW          | 慢速闪烁         | \033[5m      | 部分终端支持，Windows 10+ 支持有限 |
-| TFONT_BLINK_FAST          | 快速闪烁         | \033[6m      | 很少终端支持，Windows 10+ 基本不支持 |
-| TFONT_REVERSE             | 反色             | \033[7m      | 大多数终端支持，Windows 10+ 支持 |
-| TFONT_CONCEAL             | 隐藏             | \033[8m      | 很少终端支持，Windows 10+ 基本不支持 |
-| TFONT_CROSSED             | 删除线           | \033[9m      | 部分终端支持，Windows 10+ 支持有限 |
-| TFONT_DEFAULT             | 默认字体         | \033[10m     | 很少终端支持，Windows 10+ 不支持 |
-| TFONT_FRAKTUR             | Fraktur字体      | \033[20m     | 极少终端支持，实验性 |
-| TFONT_DOUBLE_UNDERLINE    | 双下划线/粗体关闭| \033[21m     | 部分终端支持，Windows 10+ 支持有限 |
-| TFONT_NORMAL              | 粗体/淡色关闭    | \033[22m     | 大多数终端支持，Windows 10+ 支持 |
-| TFONT_NOT_ITALIC          | 关闭斜体/Fraktur | \033[23m     | 部分终端支持，Windows 10+ 支持有限 |
-| TFONT_NO_UNDERLINE        | 关闭下划线       | \033[24m     | 大多数终端支持，Windows 10+ 支持 |
-| TFONT_NO_BLINK            | 关闭闪烁         | \033[25m      | 很少终端支持，Windows 10+ 基本不支持 |
-| TFONT_NO_REVERSE          | 关闭反色         | \033[27m     | 大多数终端支持，Windows 10+ 支持 |
-| TFONT_REVEAL              | 关闭隐藏         | \033[28m     | 很少终端支持，Windows 10+ 基本不支持 |
-| TFONT_NOT_CROSSED         | 关闭删除线       | \033[29m     | 部分终端支持，Windows 10+ 支持有限 |
-| TFONT_THICK               | 粗体（别名）     | \033[1m      | 同TFONT_BOLD |
-| TFONT_RESET               | 全部重置         | \033[0m      | 大多数终端支持，Windows 10+ 支持 |
+| 宏名                      | 效果             | 兼容性说明 |
+|---------------------------|------------------|------------|
+| TFONT_BOLD                | 粗体/加粗        | 所有平台完全支持 |
+| TFONT_FAINT               | 微弱/淡色        | Windows完全支持，其他终端部分支持 |
+| TFONT_ITALIC              | 斜体             | Windows完全支持，其他终端部分支持 |
+| TFONT_UNDERLINE           | 下划线           | 所有平台完全支持 |
+| TFONT_BLINK_SLOW          | 慢速闪烁         | Windows完全支持，其他终端部分支持 |
+| TFONT_BLINK_FAST          | 快速闪烁         | Windows完全支持，其他终端很少支持 |
+| TFONT_REVERSE             | 反色             | 所有平台完全支持 |
+| TFONT_CONCEAL             | 隐藏             | Windows完全支持，其他终端很少支持 |
+| TFONT_CROSSED             | 删除线           | Windows完全支持，其他终端部分支持 |
+| TFONT_DEFAULT             | 默认字体         | Windows完全支持，其他终端很少支持 |
+| TFONT_FRAKTUR             | Fraktur字体      | Windows完全支持，其他终端极少支持 |
+| TFONT_DOUBLE_UNDERLINE    | 双下划线/粗体关闭| Windows完全支持，其他终端部分支持 |
+| TFONT_NORMAL              | 粗体/淡色关闭    | 所有平台完全支持 |
+| TFONT_NOT_ITALIC          | 关闭斜体/Fraktur | Windows完全支持，其他终端部分支持 |
+| TFONT_NO_UNDERLINE        | 关闭下划线       | 所有平台完全支持 |
+| TFONT_NO_BLINK            | 关闭闪烁         | Windows完全支持，其他终端很少支持 |
+| TFONT_NO_REVERSE          | 关闭反色         | 所有平台完全支持 |
+| TFONT_REVEAL              | 关闭隐藏         | Windows完全支持，其他终端很少支持 |
+| TFONT_NOT_CROSSED         | 关闭删除线       | Windows完全支持，其他终端部分支持 |
+| TFONT_THICK               | 粗体（别名）     | 同TFONT_BOLD |
+| TFONT_RESET               | 全部重置         | 所有平台完全支持 |
 
 > ⚠️ **兼容性说明**：
 >
-> - Linux/macOS 下主流终端（如 GNOME Terminal、iTerm2、Konsole、Alacritty 等）大多支持常用样式（粗体、下划线、反色、部分斜体/删除线）。
-> - Windows 10 及以上原生终端支持大部分常用样式（粗体、下划线、反色），但对斜体、删除线、闪烁等支持有限。
-> - 旧版 Windows CMD/PowerShell 仅支持极少数样式，建议升级或使用 Windows Terminal。
-> - TFONT_FRAKTUR、TFONT_DEFAULT、TFONT_DOUBLE_UNDERLINE 等为扩展/实验性样式，极少终端支持。
+> - TC.hpp 在 Windows 平台上使用 Windows Console API（Win32 API）实现终端控制功能，而不使用 ANSI 转义序列，因此所有字体样式在 Windows 平台上都能完全支持，不受终端对 ANSI 转义序列支持程度的限制。
+> - Linux/macOS 下使用 ANSI 转义序列实现，主流终端（如 GNOME Terminal、iTerm2、Konsole、Alacritty 等）大多支持常用样式（粗体、下划线、反色、部分斜体/删除线）。
+> - TFONT_FRAKTUR、TFONT_DEFAULT、TFONT_DOUBLE_UNDERLINE 等为扩展/实验性样式，在非 Windows 平台上支持度较低。
 
 用法示例：`tc::println(TCOLOR_RED, BCOLOR_YELLOW, TFONT_BOLD, "红字黄底粗体")`
 
