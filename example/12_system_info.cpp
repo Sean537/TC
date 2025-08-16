@@ -1,41 +1,10 @@
 #include "../tc.hpp"
 #include <string>
 
-std::string getOSName(int osCode) {
-    switch (osCode) {
-        case OS_WINDOWSNT11: return "Windows 11";
-        case OS_WINDOWSNT10: return "Windows 10";
-        case OS_WINDOWSNT6: return "Windows Vista/7/8/8.1";
-        case OS_WINDOWSNT5: return "Windows XP/2003";
-        case OS_WINDOWSNT4: return "Windows NT 4.0";
-        case OS_WINDOWSNT3: return "Windows NT 3.x";
-        case OS_WIN95: return "Windows 95";
-        case OS_WIN98: return "Windows 98";
-        case OS_WINME: return "Windows ME";
-        case OS_WINCE: return "Windows CE";
-        case OS_WINDOWS: return "Windows (其他版本)";
-        case OS_LINUX: return "Linux";
-        case OS_ANDROID: return "Android";
-        case OS_MACOS: return "macOS";
-        case OS_IOS: return "iOS";
-        case OS_BSD: return "BSD";
-        case OS_UNIX: return "Unix";
-        case OS_DOS: return "DOS";
-        case OS_BEOS: return "BeOS";
-        case OS_HAIKU: return "Haiku";
-        case OS_AIX: return "AIX";
-        case OS_SOLARIS: return "Solaris";
-        case OS_MINIX: return "Minix";
-        case OS_QNX: return "QNX";
-        case OS_OS2: return "OS/2";
-        default: return "未知系统";
-    }
-}
-
 int main() {
     // 获取系统信息
     int osCode = tc::systemCheck();
-    std::string osName = getOSName(osCode);
+    const char* osName = getOSName(osCode);
     
     // 获取当前时间
     int year = tc::getSystemTime(SYS_YEAR);
