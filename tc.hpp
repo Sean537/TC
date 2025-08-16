@@ -13,7 +13,31 @@ Copyright (C) 2024-2025 537 Studio. All rights reserved.
 Contributors:
 - Sean537
 - RabbitMax
+- L.U.
 
+Menu:
+- 头文件保护与包含的标准库 Header file protection with included standard libraries
+- ANCI前景色宏定义 ANCI Foreground Macro Definition (TCOLOR_XXX)
+- ANSI背景色宏定义 ANSI Background Macro Definition (BCOLOR_XXX)
+- ANSI字体样式宏定义 ANSI Font Style Macros (TFONT_XXX)
+- tc命名空间开始与print/println函数 tc namespace starts with the print/println function
+- wait/waitKey函数与按键常量定义 wait/waitKey function and key constant definition Wait/waitKey function and key constant definition
+- Printer类定义 Printer class definition
+- Windows平台相关代码 Windows platform related code
+  - win32_colors命名空间 win32_colors namespace
+  - Win32Console类 Win32Console class
+- 非Windows平台ANSI转义序列定义 Non-Windows platform ANSI escape sequence definition ANSI escape sequence definition ANSI escape sequence definition
+- 跨平台颜色控制类 ColorController
+- 颜色包装器类与RGB颜色支持 RGBColorWrapper class and RGB color support
+- 自定义输出流类与延时操作 Custom output stream class and delay operation
+- 终端控制函数与便利颜色函数 Terminal control function and convenience color function
+- 进度条类 ProgressBar
+- tc命名空间结束 tc namespace ends
+- 系统相关API与全局宏 System-related APIs and global macros
+  - getSystemTime函数
+  - systemConsole函数
+  - 系统环境宏定义
+  - systemCheck函数
 */
 
 #ifndef TC_HPP // 头文件保护，防止重复包含 Header guard, prevent multiple inclusion
@@ -209,15 +233,6 @@ public:
     }
 };
 inline Printer printer() { return Printer(); }
-
-
-
-
-
-
-
-
-
 
 #ifdef _WIN32 // Windows平台分支 Windows platform branch
 
