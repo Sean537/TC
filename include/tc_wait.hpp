@@ -61,10 +61,17 @@
 #define KEY_PAGEDOWN 0x22  // Page Down键 | Page Down key
 
 // 方向键 | Arrow keys
+#ifdef _WIN32
+#define KEY_UP       72  // 上箭头键 | Up arrow key
+#define KEY_DOWN     80  // 下箭头键 | Down arrow key
+#define KEY_LEFT     75  // 左箭头键 | Left arrow key
+#define KEY_RIGHT    77  // 右箭头键 | Right arrow key
+#else
 #define KEY_UP       0x26  // 上箭头键 | Up arrow key
 #define KEY_DOWN     0x28  // 下箭头键 | Down arrow key
 #define KEY_LEFT     0x25  // 左箭头键 | Left arrow key
 #define KEY_RIGHT    0x27  // 右箭头键 | Right arrow key
+#endif
 
 // 功能键 | Function keys
 #define KEY_F1       0x70  // F1功能键 | F1 function key
