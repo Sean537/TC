@@ -2386,6 +2386,7 @@ namespace tc {
             case OS_FUCHSIA: return "Google Fuchsia";
             case OS_REDOX: return "Redox OS";
             case OS_HARMONY: return "Harmony OS";
+            case OS_XJ380: return "XJ380";
         
             // 默认情况 | Default case
             default: return "Unknown OS";
