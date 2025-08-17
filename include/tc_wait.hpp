@@ -53,12 +53,21 @@
 #define KEY_BACKSPACE 8    // 退格键 | Backspace key
 
 // 编辑键 | Editing keys
+#ifdef _WIN32
+#define KEY_INSERT   0x52  // Insert键 | Insert key
+#define KEY_DELETE   0x53  // Delete键 | Delete key
+#define KEY_HOME     0x47  // Home键 | Home key
+#define KEY_END      0x4F  // End键 | End key
+#define KEY_PAGEUP   0x49  // Page Up键 | Page Up key
+#define KEY_PAGEDOWN 0x51  // Page Down键 | Page Down key
+#else
 #define KEY_INSERT   0x2D  // Insert键 | Insert key
 #define KEY_DELETE   0x2E  // Delete键 | Delete key
 #define KEY_HOME     0x24  // Home键 | Home key
 #define KEY_END      0x23  // End键 | End key
 #define KEY_PAGEUP   0x21  // Page Up键 | Page Up key
 #define KEY_PAGEDOWN 0x22  // Page Down键 | Page Down key
+#endif
 
 // 方向键 | Arrow keys
 #ifdef _WIN32
@@ -74,6 +83,20 @@
 #endif
 
 // 功能键 | Function keys
+#ifdef _WIN32
+#define KEY_F1       0x3B  // F1功能键 | F1 function key
+#define KEY_F2       0x3C  // F2功能键 | F2 function key
+#define KEY_F3       0x3D  // F3功能键 | F3 function key
+#define KEY_F4       0x3E  // F4功能键 | F4 function key
+#define KEY_F5       0x3F  // F5功能键 | F5 function key
+#define KEY_F6       0x40  // F6功能键 | F6 function key
+#define KEY_F7       0x41  // F7功能键 | F7 function key
+#define KEY_F8       0x42  // F8功能键 | F8 function key
+#define KEY_F9       0x43  // F9功能键 | F9 function key
+#define KEY_F10      0x44  // F10功能键 | F10 function key
+#define KEY_F11      0x85  // F11功能键 | F11 function key
+#define KEY_F12      0x86  // F12功能键 | F12 function key
+#else
 #define KEY_F1       0x70  // F1功能键 | F1 function key
 #define KEY_F2       0x71  // F2功能键 | F2 function key
 #define KEY_F3       0x72  // F3功能键 | F3 function key
@@ -86,6 +109,7 @@
 #define KEY_F10      0x79  // F10功能键 | F10 function key
 #define KEY_F11      0x7A  // F11功能键 | F11 function key
 #define KEY_F12      0x7B  // F12功能键 | F12 function key
+#endif
 
 namespace tc {
 
