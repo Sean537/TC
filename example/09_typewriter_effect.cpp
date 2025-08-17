@@ -1,4 +1,4 @@
-#include "../tc.hpp"
+#include "../include/tc.hpp"
 #include <string>
 
 void typewriter(const std::string& text, int delay_ms = 50) {

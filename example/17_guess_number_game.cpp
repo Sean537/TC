@@ -1,4 +1,4 @@
-#include "../tc.hpp"
+#include "../include/tc.hpp"
 #include <random>
 
 int main() {

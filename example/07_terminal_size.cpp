@@ -1,4 +1,4 @@
-#include "../tc.hpp"
+#include "../include/tc.hpp"
 
 int main() {
     // 获取终端尺寸

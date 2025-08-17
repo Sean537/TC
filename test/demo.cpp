@@ -1,4 +1,4 @@
-#include "../tc.hpp"
+#include "../include/tc.hpp"
 
 int main() {
     tc::tout << TCOLOR_GREEN << "Hello, world!\n" << TCOLOR_RESET;
