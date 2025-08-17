@@ -1736,6 +1736,7 @@ namespace tc {
 #define OS_FUCHSIA      950  // Google Fuchsia
 #define OS_REDOX        951  // Redox OS
 #define OS_HARMONY      952  // Harmony OS
+#define OS_XJ380        953  // XJ380
 
 // 嵌入式/实时操作系统 | Embedded/Real-time operating systems
 #define OS_VXWORKS      1000 // VxWorks
@@ -2088,6 +2089,9 @@ namespace tc {
 
 #elif defined(RIOT_VERSION)
         return OS_RIOT;
+
+#elif defined(__XJ380__)
+        return OS_XJ380;
 
 #elif defined(__linux__)
         // 检查是否为特定Linux发行版
