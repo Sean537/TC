@@ -1,4 +1,4 @@
-#include "../tc.hpp"
+#include "../include/tc.hpp"
 
 int main() {
     tc::println("按任意键继续...");

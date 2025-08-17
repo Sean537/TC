@@ -1,10 +1,14 @@
-#include "../tc.hpp"
+#include "../include/tc.hpp"
 #include <vector>
 #include <string>
 #include <random>
 #include <algorithm>
 #include <thread>
 #include <chrono>
+
+#ifdef _WIN32
+    #include <conio.h>
+#endif
 
 // 简单的贪吃蛇游戏
 class SnakeGame {
@@ -26,13 +30,14 @@ private:
     };
     
     std::vector<Point> snake_;
+    Point last_tail_{-1, -1};
     Point food_;
     std::mt19937 rng_;
     
     // 生成随机食物
     void generateFood() {
-        std::uniform_int_distribution<int> distX(1, width_ - 2);
-        std::uniform_int_distribution<int> distY(1, height_ - 2);
+        std::uniform_int_distribution<int> distX(2, width_ - 2);
+        std::uniform_int_distribution<int> distY(2, height_ - 2);
         
         food_ = {distX(rng_), distY(rng_)};
         
@@ -44,7 +49,7 @@ private:
     
     // 绘制游戏界面
     void draw() {
-        tc::printer().clear();
+        tc::printer().moveCursor(0, 0);
         
         // 绘制上边界
         for (int x = 0; x < width_; ++x) {
@@ -66,6 +71,15 @@ private:
             tc::print(TCOLOR_CYAN, "#", TCOLOR_RESET);
         }
         
+        //清除旧的尾巴
+        if(last_tail_.x != -1 && last_tail_.y != -1){
+            tc::printer().moveCursor(last_tail_.x, last_tail_.y);
+            tc::print(" ", TCOLOR_RESET);
+        }else{
+            tc::printer().moveCursor(snake_.back().x, snake_.back().y);
+            tc::print(" ", TCOLOR_RESET);
+        }
+
         // 绘制蛇
         for (const auto& p : snake_) {
             tc::printer().moveCursor(p.x, p.y);
@@ -101,10 +115,10 @@ private:
     
     // 处理输入
     void handleInput() {
-        if (tc::_kbhit()) {
-            int key = tc::_getch();
+        if (_kbhit()) {
+            int key = _getch();
             if (key == 224) { // 方向键前缀
-                key = tc::_getch();
+                key = _getch();
                 switch (key) {
                     case 72: // 上
                         if (dir_ != Direction::DOWN) dir_ = Direction::UP;
@@ -147,15 +161,15 @@ private:
         }
         
         // 检查是否撞墙
-        if (newHead.x <= 0 || newHead.x >= width_ - 1 || 
-            newHead.y <= 0 || newHead.y >= height_ - 1) {
+        if (newHead.x <= 1 || newHead.x >= width_ - 1 || 
+            newHead.y <= 1 || newHead.y >= height_ - 1) {
             gameOver_ = true;
             return;
         }
         
         // 检查是否撞到自己
-        for (size_t i = 1; i < snake_.size(); ++i) {
-            if (newHead == snake_[i]) {
+        for (const auto& segment : snake_) {
+            if (newHead == segment) {
                 gameOver_ = true;
                 return;
             }
@@ -167,8 +181,10 @@ private:
         // 检查是否吃到食物
         if (newHead == food_) {
             score_ += 10;
+            last_tail_ = {-1, -1};
             generateFood();
         } else {
+            last_tail_ = snake_.back();
             snake_.pop_back(); // 如果没吃到食物，移除尾部
         }
     }
@@ -187,6 +203,7 @@ public:
     
     void run() {
         tc::printer().hideCursor();
+        tc::printer().clear();
         
         while (!gameOver_) {
             handleInput();
