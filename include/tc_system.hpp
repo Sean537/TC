@@ -24,16 +24,16 @@
 
 // Windows系列 | Windows family
 #define OS_WINDOWS      100  // 通用Windows标识 | Generic Windows identifier
-#define OS_WINDOWSNT3   103  // Windows NT 3.x
-#define OS_WINDOWSNT4   104  // Windows NT 4.0
-#define OS_WINDOWSNT5   105  // Windows 2000/XP/2003 (NT 5.x)
-#define OS_WINDOWSNT6   106  // Windows Vista/7/8/8.1 (NT 6.x)
-#define OS_WINDOWSNT10  110  // Windows 10 (NT 10.0)
-#define OS_WINDOWSNT11  111  // Windows 11 (NT 10.0 build 22000+)
-#define OS_WIN95        195  // Windows 95
-#define OS_WIN98        198  // Windows 98
-#define OS_WINME        199  // Windows ME
-#define OS_WINCE        120  // Windows CE
+#define OS_WIN95        101  // Windows 95
+#define OS_WINCE        102  // Windows CE 1
+#define OS_WIN98        103  // Windows 98
+#define OS_WINDOWSNT3   104  // Windows NT 3.x
+#define OS_WINDOWSNT4   105  // Windows NT 4.0
+#define OS_WINME        106  // Windows ME
+#define OS_WINDOWSNT5   107  // Windows 2000/XP/2003 (NT 5.x)
+#define OS_WINDOWSNT6   108  // Windows Vista/7/8/8.1 (NT 6.x)
+#define OS_WINDOWSNT10  109  // Windows 10 (NT 10.0)
+#define OS_WINDOWSNT11  110  // Windows 11 (NT 10.0 build 22000+)
 
 // Linux发行版 | Linux distributions
 #define OS_LINUX        200  // 通用Linux标识 | Generic Linux identifier
@@ -59,42 +59,54 @@
 #define OS_CHROMEOS     220  // Chrome OS/Chromium OS
 
 // Apple操作系统 | Apple operating systems
-// 现代macOS和Mac OS X版本 | Modern macOS and Mac OS X versions
-#define OS_MACOS        300  // 通用macOS标识 | Generic macOS identifier
-#define OS_MACOS_SONOMA 301  // macOS 14 Sonoma (2023)
-#define OS_MACOS_VENTURA 302 // macOS 13 Ventura (2022)
-#define OS_MACOS_MONTEREY 303 // macOS 12 Monterey (2021)
-#define OS_MACOS_BIGSUR 304  // macOS 11 Big Sur (2020)
-#define OS_MACOS_CATALINA 305 // macOS 10.15 Catalina (2019)
-#define OS_MACOS_MOJAVE 306  // macOS 10.14 Mojave (2018)
-#define OS_MACOS_HIGHSIERRA 307 // macOS 10.13 High Sierra (2017)
-#define OS_MACOS_SIERRA 308  // macOS 10.12 Sierra (2016)
-#define OS_OSX_ELCAPITAN 309 // OS X 10.11 El Capitan (2015)
-#define OS_OSX_YOSEMITE 310  // OS X 10.10 Yosemite (2014)
-#define OS_OSX_MAVERICKS 311 // OS X 10.9 Mavericks (2013)
-#define OS_OSX_MOUNTAINLION 312 // OS X 10.8 Mountain Lion (2012)
-#define OS_OSX_LION     313  // Mac OS X 10.7 Lion (2011)
-#define OS_OSX_SNOWLEOPARD 314 // Mac OS X 10.6 Snow Leopard (2009)
-#define OS_OSX_LEOPARD  315  // Mac OS X 10.5 Leopard (2007)
-#define OS_OSX_TIGER    316  // Mac OS X 10.4 Tiger (2005)
-#define OS_OSX_PANTHER  317  // Mac OS X 10.3 Panther (2003)
-#define OS_OSX_JAGUAR   318  // Mac OS X 10.2 Jaguar (2002)
-#define OS_OSX_PUMA     319  // Mac OS X 10.1 Puma (2001)
-#define OS_OSX_CHEETAH  320  // Mac OS X 10.0 Cheetah (2001)
-#define OS_OSX_BETA     321  // Mac OS X Public Beta (2000)
+#define OS_MACOS            300  // 通用macOS标识 | Generic macOS identifier
 
 // 经典Macintosh系统 | Classic Macintosh systems
-#define OS_MACOS9       330  // Mac OS 9 (1999)
-#define OS_MACOS8       331  // Mac OS 8 (1997)
-#define OS_MACOS7       332  // System 7 (1991)
-#define OS_MACOS6       333  // System 6 (1988)
-#define OS_MACOS5       334  // System 5 (1987)
-#define OS_MACOS4       335  // System 4 (1987)
-#define OS_MACOS3       336  // System 3 (1986)
-#define OS_MACOS2       337  // System 2 (1985)
-#define OS_MACOS1       338  // System 1 (1984)
+#define OS_MACOS1           301  // System 1 (1984)
+#define OS_MACOS2           302  // System 2 (1985)
+#define OS_MACOS3           303  // System 3 (1986)
+#define OS_MACOS4           304  // System 4 (1987)
+#define OS_MACOS5           305  // System 5 (1987)
+#define OS_MACOS6           306  // System 6 (1988)
+#define OS_MACOS7           307  // System 7 (1991)
+#define OS_MACOS8           308  // Mac OS 8 (1997)
+#define OS_MACOS9           309  // Mac OS 9 (1999)
 
-// 其他Apple操作系统 | Other Apple operating systems
+// Mac OS X和现代macOS版本（XNU内核） | Mac OS X and Modern macOS versions (XNU kernel)
+#define OS_MACOSX_BETA         310  // Mac OS X Public Beta (2000)
+#define OS_MACOSX_CHEETAH      311  // Mac OS X 10.0 Cheetah (2001)
+#define OS_MACOSX_PUMA         312  // Mac OS X 10.1 Puma (2001)
+#define OS_MACOSX_JAGUAR       313  // Mac OS X 10.2 Jaguar (2002)
+#define OS_MACOSX_PANTHER      314  // Mac OS X 10.3 Panther (2003)
+#define OS_MACOSX_TIGER        315  // Mac OS X 10.4 Tiger (2005)
+#define OS_MACOSX_LEOPARD      316  // Mac OS X 10.5 Leopard (2007)
+#define OS_MACOSX_SNOWLEOPARD  317  // Mac OS X 10.6 Snow Leopard (2009)
+#define OS_MACOSX_LION         318  // Mac OS X 10.7 Lion (2011)
+#define OS_MACOSX_MOUNTAINLION 319  // Mac OS X 10.8 Mountain Lion (2012)
+#define OS_MACOSX_MAVERICKS    320  // Mac OS X 10.9 Mavericks (2013)
+#define OS_MACOSX_YOSEMITE     321  // Mac OS X 10.10 Yosemite (2014)
+#define OS_MACOSX_ELCAPITAN    322  // Mac OS X 10.11 El Capitan (2015)
+#define OS_MACOS_SIERRA     323  // macOS 10.12 Sierra (2016)
+#define OS_MACOS_HIGHSIERRA 324  // macOS 10.13 High Sierra (2017)
+#define OS_MACOS_MOJAVE     325  // macOS 10.14 Mojave (2018)
+#define OS_MACOS_CATALINA   326  // macOS 10.15 Catalina (2019)
+#define OS_MACOS_BIGSUR     327  // macOS 11 Big Sur (2020)
+#define OS_MACOS_MONTEREY   328  // macOS 12 Monterey (2021)
+#define OS_MACOS_VENTURA    329  // macOS 13 Ventura (2022)
+#define OS_MACOS_SONOMA     330  // macOS 14 Sonoma (2023)
+#define OS_MACOS_SEQUOIA    331  // macOS 15 Sequoia (2024)
+#define OS_MACOS_TAHOE      332  // macOS 26 Tahoe (2025)
+
+// Mac OS X Server (Xserve / Mac Pro)
+#define OS_MACOSX_SERVER_RHAPSODY   1300 // Mac OS X Server 1.0 (1999) (Based on NeXTSTEP)
+#define OS_MACOSX_SERVER_CHEETAH    1301 // Mac OS X Server 10.0 (2000)
+#define OS_MACOSX_SERVER_PUMA       1302 // Mac OS X Server 10.1 (2001)
+#define OS_MACOSX_SERVER_JAGUAR     1303 // Mac OS X Server 10.2 (2002)
+#define OS_MACOSX_SERVER_PANTHER    1304 // Mac OS X Server 10.3 (2003)
+#define OS_MACOSX_SERVER_TIGER      1305 // Mac OS X Server 10.4 (2005)
+#define OS_MACOSX_SERVER_LEOPARD    1306 // Mac OS X Server 10.5 (2007)
+
+// 其他Apple操作系统 | Other Apple operating systems feat. crazy 537
 #define OS_IOS          350  // iOS (iPhone/iPod touch)
 #define OS_IPADOS       351  // iPadOS (iPad)
 #define OS_WATCHOS      352  // watchOS (Apple Watch)
@@ -184,18 +196,18 @@
 
 namespace tc {
     /**
-     * 检测当前操作系统类型
-     * Detect current operating system type
+     * 检测构建操作系统类型
+     * Detect build operating system type
      * 
      * 这个函数通过各种平台特定的API和检测方法，
-     * 识别当前运行的操作系统类型和版本。
+     * 识别构建程序的操作系统类型和版本。
      * 
-     * This function identifies the current operating system type and version
+     * This function identifies the build operating system type and version
      * through various platform-specific APIs and detection methods.
      * 
      * @return 操作系统类型代码（如OS_WINDOWS, OS_LINUX等） | Operating system type code (e.g., OS_WINDOWS, OS_LINUX, etc.)
      */
-    inline int systemCheck() {
+    inline int buildSystemCheck() {
 #if defined(_WIN32) || defined(_WIN64)
         // 检测ReactOS (基于Windows NT的开源操作系统)
         char buf[256] = {0};
@@ -359,6 +371,8 @@ namespace tc {
             // 根据Darwin内核版本映射到macOS版本
             // 参考: https://en.wikipedia.org/wiki/Darwin_(operating_system)
             switch (kernel_major) {
+                case 25: return OS_MACOS_TAHOE;      // macOS 26 Tahoe (Darwin 25.x)
+                case 24: return OS_MACOS_SEQUOIA;    // macOS 15 Sequoia (Darwin 24.x)
                 case 23: return OS_MACOS_SONOMA;     // macOS 14 Sonoma (Darwin 23.x)
                 case 22: return OS_MACOS_VENTURA;    // macOS 13 Ventura (Darwin 22.x)
                 case 21: return OS_MACOS_MONTEREY;   // macOS 12 Monterey (Darwin 21.x)
@@ -379,9 +393,9 @@ namespace tc {
                 case 6:  return OS_OSX_JAGUAR;       // Mac OS X 10.2 Jaguar (Darwin 6.x)
                 case 5:  return OS_OSX_PUMA;         // Mac OS X 10.1 Puma (Darwin 5.x)
                 case 4:  return OS_OSX_CHEETAH;      // Mac OS X 10.0 Cheetah (Darwin 4.x)
-                case 1:
-                case 2:
                 case 3:  return OS_OSX_BETA;         // Mac OS X Public Beta/Server (Darwin 1.x-3.x)
+                case 2:
+                case 1:
                 default:
                     // 检查是否为经典Mac OS (非Darwin内核)
                     // 这部分在现代系统上不会执行，仅为完整性保留
