@@ -5,7 +5,7 @@
 [![Header-Only](https://img.shields.io/badge/Header--Only-Yes-green.svg)]
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> 🚀 A modern C++17 terminal control library supporting color output, font styles, delay, progress bar, terminal control, cross-platform, header-only, and zero dependencies!
+> 🚀 A modern C++17 development library what is designed to solve all kinds of problems encountered during development with the simplest syntax. The current functions include terminal color output, delay, progress bar, terminal control, system information detection, acquisition time, etc. Cross-platform, header-only, and zero dependencies!
 
 ---
 
