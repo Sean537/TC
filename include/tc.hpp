@@ -2,13 +2,13 @@
  * tc.hpp - TC库主头文件
  * TC Library Main Header File
  * 
- * 版本 Version: 1.0.1
+ * 版本 Version: 1.1.0
  * 
- * 这是TC（Terminal Color）库的主头文件，一个现代化的C++17终端控制库。
+ * 这是TC（Terminal Control）库的主头文件，一个现代化的C++17终端控制库。
  * TC库提供了跨平台的终端颜色、样式、光标控制、进度条等功能，
  * 支持Windows/Linux/macOS，零依赖，纯头文件设计。
  * 
- * This is the main header file for the TC (Terminal Color) library, a modern C++17 terminal control library.
+ * This is the main header file for the TC (Terminal Control) library, a modern C++17 terminal control library.
  * TC library provides cross-platform terminal colors, styles, cursor control, progress bars and other features,
  * supporting Windows/Linux/macOS with zero dependencies and header-only design.
  * 
@@ -43,7 +43,7 @@
  * TC库版本号
  * TC library version number
  */
-#define TC_VERSION "1.0.1"
+#define TC_VERSION "1.1.0"
 
 /**
  * 包含所需的标准库头文件

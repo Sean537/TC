@@ -1,3 +1,24 @@
+/*
+ * tc_system.hpp - TC库系统检测模块
+ * TC System Detection Module
+ * 
+ * 这个文件包含了TC库中的系统检测功能，包括：
+ * - 操作系统类型宏定义
+ * - 运行时系统检测函数
+ * - 系统版本信息获取
+ * - 跨平台系统识别支持
+ * 
+ * This file contains system detection functionality in the TC library, including:
+ * - Operating system type macro definitions
+ * - Runtime system detection functions
+ * - System version information retrieval
+ * - Cross-platform system identification support
+ * 
+ * 版本 Version: 1.1.0
+ * 作者 Author: 537 Studio
+ * 许可 License: MIT
+ */
+
 #ifndef TC_SYSTEM
 #define TC_SYSTEM
 
