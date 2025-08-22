@@ -86,35 +86,11 @@ int main() {
 
     // 🛡️ 检查系统环境
     int os = tc::systemCheck();
-    switch (os) {
-        case OS_WINDOWSNT11:
-            tc::println("当前系统: Windows 11");
-            break;
-        case OS_WINDOWSNT10:
-            tc::println("当前系统: Windows 10");
-            break;
-        case OS_WINDOWSNT6:
-            tc::println("当前系统: Windows Vista/7/8/8.1");
-            break;
-        case OS_LINUX:
-            tc::println("当前系统: Linux");
-            break;
-        case OS_MACOS:
-            tc::println("当前系统: macOS");
-            break;
-        case OS_BEOS:
-            tc::println("当前系统: BeOS");
-            break;
-        case OS_OS2:
-            tc::println("当前系统: OS/2");
-            break;
-        case OS_NEXTSTEP:
-            tc::println("当前系统: NeXTSTEP");
-            break;
-        // ...有更多系统的支持
-        default:
-            tc::println("未知或其他系统, code=", os);
-    }
+    const char* osName = tc::getOSName(os);
+    std::string osVersionInfo = tc::getOSVersionInfo();
+    
+    tc::println("当前系统: ", osName);
+    tc::println("系统版本: ", osVersionInfo);
 
     return 0;
 }
@@ -191,58 +167,91 @@ TCOLOR_RGB(r, g, b)
 
 - `tc::getSystemTime(int type = SYS_TIMESTAMP)`：获取当前时间（年、月、日、时、分、秒、Unix时间戳）
 - `tc::systemConsole(const char* 或 std::string)`：执行系统命令
-- `tc::systemCheck()`：检测当前操作系统，返回下表宏之一
+- `tc::systemConsoleW(const wchar_t*)`：执行系统命令（宽字符版本，仅Windows平台可用，支持Unicode命令）
+- `tc::systemCheck()`：检测当前操作系统，返回操作系统代码
+- `tc::getOSName(int osCode)`：根据操作系统代码返回操作系统名称
+- `tc::getOSVersionInfo()`：获取当前操作系统的详细版本信息
 
 #### 支持的系统宏
 
-| 宏名 | 说明 |
-|------|------|
-| OS_WINDOWSNT11 | Windows 11 及更高 |
-| OS_WINDOWSNT10 | Windows 10 |
-| OS_WINDOWSNT6  | Windows Vista/7/8/8.1 |
-| OS_WINDOWSNT5  | Windows 2000/XP/2003 |
-| OS_WINDOWSNT4  | Windows NT 4.x |
-| OS_WINDOWSNT3  | Windows NT 3.x |
-| OS_WIN95       | Windows 95 |
-| OS_WIN98       | Windows 98 |
-| OS_WINME       | Windows Me |
-| OS_WINCE       | Windows CE |
-| OS_WINDOWS     | 其他Windows |
-| OS_LINUX       | Linux |
-| OS_ANDROID     | Android |
-| OS_MACOS       | macOS |
-| OS_IOS         | iOS |
-| OS_BSD         | BSD |
-| OS_UNIX        | Unix-like |
-| OS_DOS         | MS-DOS |
-| OS_BEOS        | BeOS |
-| OS_HAIKU       | Haiku |
-| OS_AIX         | IBM AIX |
-| OS_SOLARIS     | Solaris |
-| OS_MINIX       | Minix |
-| OS_QNX         | QNX |
-| OS_VMS         | VMS/OpenVMS |
-| OS_AMIGAOS     | AmigaOS |
-| OS_MORPHOS     | MorphOS |
-| OS_FREEMINT    | FreeMiNT |
-| OS_HPUX        | HP-UX |
-| OS_IRIX        | SGI IRIX |
-| OS_SCO         | SCO UnixWare/OpenServer |
-| OS_OPENVMS     | OpenVMS |
-| OS_RISCOS      | RISC OS |
-| OS_OS2         | IBM OS/2 |
-| OS_NEXTSTEP    | NeXTSTEP |
-| OS_UNKNOWN     | 未知/其他 |
+| 类别 | 宏名 | 说明 |
+|------|------|------|
+| **Windows系列** | OS_WINDOWS | 通用Windows标识 |
+| | OS_WINDOWSNT6 | Windows 7/8/8.1 (NT 6.x) |
+| | OS_WINDOWSNT10 | Windows 10 (NT 10.0) |
+| | OS_WINDOWSNT11 | Windows 11 (NT 10.0 build 22000+) |
+| **Linux发行版** | OS_LINUX | 通用Linux标识 |
+| | OS_UBUNTU | Ubuntu Linux |
+| | OS_DEBIAN | Debian Linux |
+| | OS_FEDORA | Fedora Linux |
+| | OS_CENTOS | CentOS Linux |
+| | OS_REDHAT | Red Hat Enterprise Linux |
+| | OS_SUSE | SUSE/openSUSE Linux |
+| | OS_ARCH | Arch Linux |
+| | OS_GENTOO | Gentoo Linux |
+| | OS_SLACKWARE | Slackware Linux |
+| | OS_ANDROID | Android (基于Linux) |
+| | OS_KALI | Kali Linux |
+| | OS_MINT | Linux Mint |
+| | OS_MANJARO | Manjaro Linux |
+| | OS_ALPINE | Alpine Linux |
+| | OS_RASPBIAN | Raspbian |
+| | OS_DEEPIN | Deepin Linux |
+| | OS_ELEMENTARY | Elementary OS |
+| | OS_ZORIN | Zorin OS |
+| | OS_POPOS | Pop!_OS |
+| | OS_CHROMEOS | Chrome OS/Chromium OS |
+| **Apple操作系统** | OS_MACOS | 通用macOS标识 |
+| | OS_MACOS_HIGHSIERRA | macOS 10.13 High Sierra (2017) |
+| | OS_MACOS_MOJAVE | macOS 10.14 Mojave (2018) |
+| | OS_MACOS_CATALINA | macOS 10.15 Catalina (2019) |
+| | OS_MACOS_BIGSUR | macOS 11 Big Sur (2020) |
+| | OS_MACOS_MONTEREY | macOS 12 Monterey (2021) |
+| | OS_MACOS_VENTURA | macOS 13 Ventura (2022) |
+| | OS_MACOS_SONOMA | macOS 14 Sonoma (2023) |
+| | OS_MACOS_SEQUOIA | macOS 15 Sequoia (2024) |
+| | OS_MACOS_TAHOE | macOS 26 Tahoe (2025) |
+| **其他Apple操作系统** | OS_IOS | iOS (iPhone/iPod touch) |
+| | OS_IPADOS | iPadOS (iPad) |
+| | OS_WATCHOS | watchOS (Apple Watch) |
+| | OS_TVOS | tvOS (Apple TV) |
+| | OS_VISIONOS | visionOS (Apple Vision Pro) |
+| | OS_BRIDGEOS | bridgeOS (Apple T2芯片) |
+| | OS_AUDIOOS | audioOS (HomePod) |
+| **BSD系列** | OS_BSD | 通用BSD标识 |
+| | OS_FREEBSD | FreeBSD |
+| **Unix系列** | OS_UNIX | 通用Unix标识 |
+| **新兴操作系统** | OS_FUCHSIA | Google Fuchsia |
+| | OS_HARMONYOS | Harmony OS |
+| **其它操作系统** | OS_REACTOS | ReactOS |
+| **未知操作系统** | OS_UNKNOWN | 无法识别的操作系统 |
 
 #### 用法示例
 
 ```cpp
-int os = tc::systemCheck();
-switch (os) {
-    case OS_WINDOWSNT11: tc::println("Windows 11"); break;
-    case OS_LINUX: tc::println("Linux"); break;
+// 获取系统信息
+int osCode = tc::systemCheck();
+const char* osName = tc::getOSName(osCode);
+std::string osVersionInfo = tc::getOSVersionInfo();
+
+// 显示系统信息
+tc::println("操作系统: ", osName);
+tc::println("系统版本: ", osVersionInfo);
+
+// 根据系统类型执行不同操作
+switch (osCode) {
+    case OS_WINDOWSNT11:
+        tc::println("Windows 11系统特定操作");
+        break;
+    case OS_UBUNTU:
+        tc::println("Ubuntu系统特定操作");
+        break;
+    case OS_MACOS:
+        tc::println("macOS系统特定操作");
+        break;
     // ... 其他系统 ...
-    default: tc::println("未知系统, code=", os);
+    default:
+        tc::println("未知系统操作");
 }
 ```
 

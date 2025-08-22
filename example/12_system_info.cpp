@@ -4,8 +4,9 @@
 int main() {
     // 获取系统信息
     int osCode = tc::systemCheck();
-    const char* osName = getOSName(osCode);
-    
+    const char* osName = tc::getOSName(osCode);
+    std::string osVersionInfo = tc::getOSVersionInfo();
+
     // 获取当前时间
     int year = tc::getSystemTime(SYS_YEAR);
     int month = tc::getSystemTime(SYS_MONTH);
@@ -22,7 +23,7 @@ int main() {
     tc::println(TCOLOR_CYAN, TFONT_BOLD, "系统信息", TCOLOR_RESET);
     tc::println(TCOLOR_CYAN, "=========", TCOLOR_RESET);
     
-    tc::println(TCOLOR_YELLOW, "操作系统: ", TCOLOR_RESET, osName, " (代码: ", osCode, ")");
+    tc::println(TCOLOR_YELLOW, "操作系统: ", TCOLOR_RESET, osName, " (代码: ", osCode, "版本信息：", osVersionInfo, ")");
     tc::println(TCOLOR_YELLOW, "当前时间: ", TCOLOR_RESET, 
                 year, "-", month < 10 ? "0" : "", month, "-", day < 10 ? "0" : "", day, " ",
                 hour < 10 ? "0" : "", hour, ":", minute < 10 ? "0" : "", minute, ":", second < 10 ? "0" : "", second);
@@ -37,7 +38,7 @@ int main() {
     tc::systemConsoleW(L"echo 当前目录内容:");
     tc::systemConsole("dir");
 #else
-    tc::systemConsoleW("echo 当前目录内容:");
+    tc::systemConsole("echo 当前目录内容:");
     tc::systemConsole("ls -la");
 #endif
     

@@ -132,16 +132,9 @@
 | 宏名称 | 值 | 描述 |
 |--------|-----|------|
 | `OS_WINDOWS` | 100 | 通用Windows标识 |
-| `OS_WINDOWSNT3` | 103 | Windows NT 3.x |
-| `OS_WINDOWSNT4` | 104 | Windows NT 4.0 |
-| `OS_WINDOWSNT5` | 105 | Windows 2000/XP/2003 (NT 5.x) |
-| `OS_WINDOWSNT6` | 106 | Windows Vista/7/8/8.1 (NT 6.x) |
-| `OS_WINDOWSNT10` | 110 | Windows 10 (NT 10.0) |
-| `OS_WINDOWSNT11` | 111 | Windows 11 (NT 10.0 build 22000+) |
-| `OS_WIN95` | 195 | Windows 95 |
-| `OS_WIN98` | 198 | Windows 98 |
-| `OS_WINME` | 199 | Windows ME |
-| `OS_WINCE` | 120 | Windows CE |
+| `OS_WINDOWSNT6` | 108 | Windows 7/8/8.1 (NT 6.x) |
+| `OS_WINDOWSNT10` | 109 | Windows 10 (NT 10.0) |
+| `OS_WINDOWSNT11` | 110 | Windows 11 (NT 10.0 build 22000+) |
 
 ##### Linux发行版
 
@@ -174,31 +167,20 @@
 | 宏名称 | 值 | 描述 |
 |--------|-----|------|
 | `OS_MACOS` | 300 | 通用macOS标识 |
-| `OS_MACOS_SONOMA` | 301 | macOS 14 Sonoma (2023) |
-| `OS_MACOS_VENTURA` | 302 | macOS 13 Ventura (2022) |
-| `OS_MACOS_MONTEREY` | 303 | macOS 12 Monterey (2021) |
-| `OS_MACOS_BIGSUR` | 304 | macOS 11 Big Sur (2020) |
-| `OS_MACOS_CATALINA` | 305 | macOS 10.15 Catalina (2019) |
-| `OS_MACOS_MOJAVE` | 306 | macOS 10.14 Mojave (2018) |
-| `OS_MACOS_HIGHSIERRA` | 307 | macOS 10.13 High Sierra (2017) |
-| `OS_MACOS_SIERRA` | 308 | macOS 10.12 Sierra (2016) |
-| `OS_OSX_ELCAPITAN` | 309 | OS X 10.11 El Capitan (2015) |
-| `OS_OSX_YOSEMITE` | 310 | OS X 10.10 Yosemite (2014) |
-| `OS_OSX_MAVERICKS` | 311 | OS X 10.9 Mavericks (2013) |
-| `OS_OSX_MOUNTAINLION` | 312 | OS X 10.8 Mountain Lion (2012) |
-| `OS_OSX_LION` | 313 | Mac OS X 10.7 Lion (2011) |
-| `OS_OSX_SNOWLEOPARD` | 314 | Mac OS X 10.6 Snow Leopard (2009) |
-| `OS_OSX_LEOPARD` | 315 | Mac OS X 10.5 Leopard (2007) |
-| `OS_OSX_TIGER` | 316 | Mac OS X 10.4 Tiger (2005) |
-| `OS_OSX_PANTHER` | 317 | Mac OS X 10.3 Panther (2003) |
-| `OS_OSX_JAGUAR` | 318 | Mac OS X 10.2 Jaguar (2002) |
-| `OS_OSX_PUMA` | 319 | Mac OS X 10.1 Puma (2001) |
-| `OS_OSX_CHEETAH` | 320 | Mac OS X 10.0 Cheetah (2001) |
-| `OS_OSX_BETA` | 321 | Mac OS X Public Beta (2000) |
-| `OS_MACOS9` | 330 | Mac OS 9 (1999) |
-| `OS_MACOS8` | 331 | Mac OS 8 (1997) |
-| `OS_MACOS7` | 332 | System 7 (1991) |
-| `OS_MACOS6` - `OS_MACOS1` | 333 - 338 | System 6 - System 1 (1988-1984) |
+| `OS_MACOS_HIGHSIERRA` | 324 | macOS 10.13 High Sierra (2017) |
+| `OS_MACOS_MOJAVE` | 325 | macOS 10.14 Mojave (2018) |
+| `OS_MACOS_CATALINA` | 326 | macOS 10.15 Catalina (2019) |
+| `OS_MACOS_BIGSUR` | 327 | macOS 11 Big Sur (2020) |
+| `OS_MACOS_MONTEREY` | 328 | macOS 12 Monterey (2021) |
+| `OS_MACOS_VENTURA` | 329 | macOS 13 Ventura (2022) |
+| `OS_MACOS_SONOMA` | 330 | macOS 14 Sonoma (2023) |
+| `OS_MACOS_SEQUOIA` | 331 | macOS 15 Sequoia (2024) |
+| `OS_MACOS_TAHOE` | 332 | macOS 26 Tahoe (2025) |
+
+##### 其他Apple操作系统
+
+| 宏名称 | 值 | 描述 |
+|--------|-----|------|
 | `OS_IOS` | 350 | iOS (iPhone/iPod touch) |
 | `OS_IPADOS` | 351 | iPadOS (iPad) |
 | `OS_WATCHOS` | 352 | watchOS (Apple Watch) |
@@ -207,62 +189,36 @@
 | `OS_BRIDGEOS` | 355 | bridgeOS (Apple T2芯片) |
 | `OS_AUDIOOS` | 356 | audioOS (HomePod) |
 
-##### 其他操作系统
+##### BSD系列
 
 | 宏名称 | 值 | 描述 |
 |--------|-----|------|
 | `OS_BSD` | 400 | 通用BSD标识 |
-| `OS_DRAGONFLY` | 401 | DragonFly BSD |
-| `OS_NETBSD` | 402 | NetBSD |
-| `OS_OPENBSD` | 403 | OpenBSD |
 | `OS_FREEBSD` | 404 | FreeBSD |
+
+##### Unix系列
+
+| 宏名称 | 值 | 描述 |
+|--------|-----|------|
 | `OS_UNIX` | 500 | 通用Unix标识 |
-| `OS_HURD` | 501 | GNU Hurd |
-| `OS_XENIX` | 502 | Xenix |
-| `OS_DOS` | 600 | DOS |
-| `OS_PLAN9` | 601 | Plan 9 |
-| `OS_INFERNO` | 602 | Inferno |
-| `OS_BEOS` | 700 | BeOS |
-| `OS_HAIKU` | 701 | Haiku |
-| `OS_SYLLABLE` | 702 | Syllable |
-| `OS_MENUETOS` | 703 | MenuetOS |
-| `OS_REACTOS` | 704 | ReactOS |
-| `OS_KOLIBRIOS` | 705 | KolibriOS |
-| `OS_AIX` | 800 | IBM AIX |
-| `OS_SOLARIS` | 810 | Oracle Solaris |
-| `OS_MINIX` | 820 | MINIX |
-| `OS_QNX` | 830 | QNX |
-| `OS_VMS` | 840 | VMS |
-| `OS_ZOS` | 841 | IBM z/OS |
-| `OS_OS400` | 842 | IBM OS/400 |
-| `OS_TPF` | 843 | IBM TPF |
-| `OS_AMIGAOS` | 850 | AmigaOS |
-| `OS_MORPHOS` | 851 | MorphOS |
-| `OS_FREEMINT` | 852 | FreeMiNT |
-| `OS_HPUX` | 860 | HP-UX |
-| `OS_IRIX` | 861 | IRIX |
-| `OS_SCO` | 862 | SCO |
-| `OS_OPENVMS` | 863 | OpenVMS |
-| `OS_RISCOS` | 870 | RISC OS |
-| `OS_OS2` | 900 | OS/2 |
-| `OS_NEXTSTEP` | 910 | NeXTSTEP |
-| `OS_NUTTX` | 920 | NuttX |
-| `OS_ZEPHYR` | 921 | Zephyr |
-| `OS_CONTIKI` | 922 | Contiki |
-| `OS_RIOT` | 923 | RIOT |
+
+##### 新兴操作系统
+
+| 宏名称 | 值 | 描述 |
+|--------|-----|------|
 | `OS_FUCHSIA` | 950 | Google Fuchsia |
-| `OS_REDOX` | 951 | Redox OS |
 | `OS_HARMONY` | 952 | Harmony OS |
-| `OS_VXWORKS` | 1000 | VxWorks |
-| `OS_RTEMS` | 1001 | RTEMS |
-| `OS_FREERTOS` | 1002 | FreeRTOS |
-| `OS_THREADX` | 1003 | ThreadX |
-| `OS_INTEGRITY` | 1004 | INTEGRITY |
-| `OS_NUCLEUS` | 1005 | Nucleus RTOS |
-| `OS_UCOSII` | 1006 | μC/OS-II |
-| `OS_UCOSIII` | 1007 | μC/OS-III |
-| `OS_PSOS` | 1008 | pSOS |
-| `OS_ECOS` | 1009 | eCos |
+
+##### 其他操作系统
+
+| 宏名称 | 值 | 描述 |
+|--------|-----|------|
+| `OS_REACTOS` | 704 | ReactOS |
+
+##### 未知操作系统
+
+| 宏名称 | 值 | 描述 |
+|--------|-----|------|
 | `OS_UNKNOWN` | 0 | 无法识别的操作系统 |
 
 ## 命名空间 tc
@@ -312,9 +268,10 @@
 | `getSystemTime(int type = SYS_TIMESTAMP)` | 获取系统时间 | `type`: 时间类型常量 | 请求的时间值 |
 | `systemConsole(const char* cmd)` | 执行系统命令(C字符串版本) | `cmd`: 要执行的命令 | 命令的退出状态 |
 | `systemConsole(const std::string& cmd)` | 执行系统命令(C++字符串版本) | `cmd`: 要执行的命令 | 命令的退出状态 |
-| `systemConsoleW(const wchar_t* cmd)` | 执行系统命令(宽字符版本) | `cmd`: 要执行的宽字符命令 | 命令的退出状态 |
+| `systemConsoleW(const wchar_t* cmd)` | 执行系统命令(宽字符版本，仅Windows平台可用) | `cmd`: 要执行的宽字符命令 | 命令的退出状态 |
 | `systemCheck()` | 检测当前操作系统类型 | 无 | 操作系统类型代码 |
 | `getOSName(int osCode)` | 获取操作系统名称 | `osCode`: 操作系统代码 | 操作系统名称字符串 |
+| `getOSVersionInfo()` | 获取当前操作系统的详细版本信息 | 无 | 操作系统版本信息字符串 |
 
 ### 终端控制函数
 
@@ -539,11 +496,18 @@ int timestamp = tc::getSystemTime();
 tc::systemConsole("echo Hello World");
 
 // 执行Unicode命令（Windows平台）
+#ifdef _WIN32
 tc::systemConsoleW(L"echo 你好世界");
+#endif
 
 // 检测系统类型
 int os = tc::systemCheck();
 const char* osName = tc::getOSName(os);
+std::string osVersionInfo = tc::getOSVersionInfo();
+
+// 显示系统信息
+tc::println("当前系统: ", osName);
+tc::println("系统版本: ", osVersionInfo);
 ```
 
 ---

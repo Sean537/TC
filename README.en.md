@@ -5,7 +5,7 @@
 ![Header-Only](https://img.shields.io/badge/Header--Only-Yes-green.svg)
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> 🚀 A modern C++17 teminal contral library what is designed to solve all kinds of problems encountered during development with the simplest syntax. The current functions include terminal color output, delay, progress bar, terminal control, system information detection, acquisition time, etc. Cross-platform, header-only, and zero dependencies!
+> 🚀 A modern C++17 terminal control library designed to solve various problems encountered during development with the simplest syntax. Current features include terminal color output, delay, progress bar, terminal control, system information detection, time acquisition, etc. Cross-platform, header-only, and zero dependencies!
 
 ---
 
@@ -86,35 +86,11 @@ int main() {
 
     // 🛡️ Detect system environment
     int os = tc::systemCheck();
-    switch (os) {
-        case OS_WINDOWSNT11:
-            tc::println("System: Windows 11");
-            break;
-        case OS_WINDOWSNT10:
-            tc::println("System: Windows 10");
-            break;
-        case OS_WINDOWSNT6:
-            tc::println("System: Windows Vista/7/8/8.1");
-            break;
-        case OS_LINUX:
-            tc::println("System: Linux");
-            break;
-        case OS_MACOS:
-            tc::println("System: macOS");
-            break;
-        case OS_BEOS:
-            tc::println("System: BeOS");
-            break;
-        case OS_OS2:
-            tc::println("System: OS/2");
-            break;
-        case OS_NEXTSTEP:
-            tc::println("System: NeXTSTEP");
-            break;
-        // ...more systems supported
-        default:
-            tc::println("Unknown or other system, code=", os);
-    }
+    const char* osName = tc::getOSName(os);
+    std::string osVersionInfo = tc::getOSVersionInfo();
+    
+    tc::println("Current system: ", osName);
+    tc::println("System version: ", osVersionInfo);
 
     return 0;
 }
@@ -191,58 +167,91 @@ Example: `tc::println(TCOLOR_RED, BCOLOR_YELLOW, TFONT_BOLD, "Red text, yellow b
 
 - `tc::getSystemTime(int type = SYS_TIMESTAMP)`: Get current time (year, month, day, hour, minute, second, Unix timestamp)
 - `tc::systemConsole(const char* or std::string)`: Run system command
-- `tc::systemCheck()`: Detect current OS, returns one of the macros below
+- `tc::systemConsoleW(const wchar_t*)`: Run system command (wide character version, Windows platform only, supports Unicode commands)
+- `tc::systemCheck()`: Detect current operating system, returns an OS code
+- `tc::getOSName(int osCode)`: Returns the operating system name based on the OS code
+- `tc::getOSVersionInfo()`: Get detailed version information of the current operating system
 
 #### Supported System Macros
 
-| Macro | Description |
-|------|------|
-| OS_WINDOWSNT11 | Windows 11 and above |
-| OS_WINDOWSNT10 | Windows 10 |
-| OS_WINDOWSNT6  | Windows Vista/7/8/8.1 |
-| OS_WINDOWSNT5  | Windows 2000/XP/2003 |
-| OS_WINDOWSNT4  | Windows NT 4.x |
-| OS_WINDOWSNT3  | Windows NT 3.x |
-| OS_WIN95       | Windows 95 |
-| OS_WIN98       | Windows 98 |
-| OS_WINME       | Windows Me |
-| OS_WINCE       | Windows CE |
-| OS_WINDOWS     | Other Windows |
-| OS_LINUX       | Linux |
-| OS_ANDROID     | Android |
-| OS_MACOS       | macOS |
-| OS_IOS         | iOS |
-| OS_BSD         | BSD |
-| OS_UNIX        | Unix-like |
-| OS_DOS         | MS-DOS |
-| OS_BEOS        | BeOS |
-| OS_HAIKU       | Haiku |
-| OS_AIX         | IBM AIX |
-| OS_SOLARIS     | Solaris |
-| OS_MINIX       | Minix |
-| OS_QNX         | QNX |
-| OS_VMS         | VMS/OpenVMS |
-| OS_AMIGAOS     | AmigaOS |
-| OS_MORPHOS     | MorphOS |
-| OS_FREEMINT    | FreeMiNT |
-| OS_HPUX        | HP-UX |
-| OS_IRIX        | SGI IRIX |
-| OS_SCO         | SCO UnixWare/OpenServer |
-| OS_OPENVMS     | OpenVMS |
-| OS_RISCOS      | RISC OS |
-| OS_OS2         | IBM OS/2 |
-| OS_NEXTSTEP    | NeXTSTEP |
-| OS_UNKNOWN     | Unknown/Other |
+| Category | Macro | Description |
+|------|------|------|
+| **Windows Family** | OS_WINDOWS | Generic Windows identifier |
+| | OS_WINDOWSNT6 | Windows 7/8/8.1 (NT 6.x) |
+| | OS_WINDOWSNT10 | Windows 10 (NT 10.0) |
+| | OS_WINDOWSNT11 | Windows 11 (NT 10.0 build 22000+) |
+| **Linux Distributions** | OS_LINUX | Generic Linux identifier |
+| | OS_UBUNTU | Ubuntu Linux |
+| | OS_DEBIAN | Debian Linux |
+| | OS_FEDORA | Fedora Linux |
+| | OS_CENTOS | CentOS Linux |
+| | OS_REDHAT | Red Hat Enterprise Linux |
+| | OS_SUSE | SUSE/openSUSE Linux |
+| | OS_ARCH | Arch Linux |
+| | OS_GENTOO | Gentoo Linux |
+| | OS_SLACKWARE | Slackware Linux |
+| | OS_ANDROID | Android (Linux-based) |
+| | OS_KALI | Kali Linux |
+| | OS_MINT | Linux Mint |
+| | OS_MANJARO | Manjaro Linux |
+| | OS_ALPINE | Alpine Linux |
+| | OS_RASPBIAN | Raspbian |
+| | OS_DEEPIN | Deepin Linux |
+| | OS_ELEMENTARY | Elementary OS |
+| | OS_ZORIN | Zorin OS |
+| | OS_POPOS | Pop!_OS |
+| | OS_CHROMEOS | Chrome OS/Chromium OS |
+| **Apple Operating Systems** | OS_MACOS | Generic macOS identifier |
+| | OS_MACOS_HIGHSIERRA | macOS 10.13 High Sierra (2017) |
+| | OS_MACOS_MOJAVE | macOS 10.14 Mojave (2018) |
+| | OS_MACOS_CATALINA | macOS 10.15 Catalina (2019) |
+| | OS_MACOS_BIGSUR | macOS 11 Big Sur (2020) |
+| | OS_MACOS_MONTEREY | macOS 12 Monterey (2021) |
+| | OS_MACOS_VENTURA | macOS 13 Ventura (2022) |
+| | OS_MACOS_SONOMA | macOS 14 Sonoma (2023) |
+| | OS_MACOS_SEQUOIA | macOS 15 Sequoia (2024) |
+| | OS_MACOS_TAHOE | macOS 26 Tahoe (2025) |
+| **Other Apple Operating Systems** | OS_IOS | iOS (iPhone/iPod touch) |
+| | OS_IPADOS | iPadOS (iPad) |
+| | OS_WATCHOS | watchOS (Apple Watch) |
+| | OS_TVOS | tvOS (Apple TV) |
+| | OS_VISIONOS | visionOS (Apple Vision Pro) |
+| | OS_BRIDGEOS | bridgeOS (Apple T2 chip) |
+| | OS_AUDIOOS | audioOS (HomePod) |
+| **BSD Family** | OS_BSD | Generic BSD identifier |
+| | OS_FREEBSD | FreeBSD |
+| **Unix Family** | OS_UNIX | Generic Unix identifier |
+| **Emerging Operating Systems** | OS_FUCHSIA | Google Fuchsia |
+| | OS_HARMONYOS | Harmony OS |
+| **Other Operating Systems** | OS_REACTOS | ReactOS |
+| **Unknown Operating System** | OS_UNKNOWN | Unrecognized operating system |
 
-#### Example
+#### Example Usage
 
 ```cpp
-int os = tc::systemCheck();
-switch (os) {
-    case OS_WINDOWSNT11: tc::println("Windows 11"); break;
-    case OS_LINUX: tc::println("Linux"); break;
+// Get system information
+int osCode = tc::systemCheck();
+const char* osName = tc::getOSName(osCode);
+std::string osVersionInfo = tc::getOSVersionInfo();
+
+// Display system information
+tc::println("Operating System: ", osName);
+tc::println("System Version: ", osVersionInfo);
+
+// Perform different operations based on system type
+switch (osCode) {
+    case OS_WINDOWSNT11:
+        tc::println("Windows 11 specific operations");
+        break;
+    case OS_UBUNTU:
+        tc::println("Ubuntu specific operations");
+        break;
+    case OS_MACOS:
+        tc::println("macOS specific operations");
+        break;
     // ... other systems ...
-    default: tc::println("Unknown system, code=", os);
+    default:
+        tc::println("Unknown system operations");
 }
 ```
 
