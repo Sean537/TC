@@ -1,11 +1,11 @@
 # TC.hpp - ✨ Cross-Platform Terminal Control Header Library
 
 [![C++17](https://img.shields.io/badge/C%2B%2B-17%2B-blue.svg)](https://en.cppreference.com/w/cpp/compiler_support)
-[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)]
-[![Header-Only](https://img.shields.io/badge/Header--Only-Yes-green.svg)]
+![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)
+![Header-Only](https://img.shields.io/badge/Header--Only-Yes-green.svg)
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> 🚀 A modern C++17 development library what is designed to solve all kinds of problems encountered during development with the simplest syntax. The current functions include terminal color output, delay, progress bar, terminal control, system information detection, acquisition time, etc. Cross-platform, header-only, and zero dependencies!
+> 🚀 A modern C++17 teminal contral library what is designed to solve all kinds of problems encountered during development with the simplest syntax. The current functions include terminal color output, delay, progress bar, terminal control, system information detection, acquisition time, etc. Cross-platform, header-only, and zero dependencies!
 
 ---
 

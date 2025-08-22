@@ -1,11 +1,11 @@
-# TC.hpp - ✨ 跨平台开发库
+# TC.hpp - ✨ 跨平台终端控制头文件库
 
 [![C++17](https://img.shields.io/badge/C%2B%2B-17%2B-blue.svg)](https://en.cppreference.com/w/cpp/compiler_support)
-[![平台](https://img.shields.io/badge/平台-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)]
-[![Header-Only](https://img.shields.io/badge/Header--Only-Yes-green.svg)]
+![平台](https://img.shields.io/badge/平台-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)
+![Header-Only](https://img.shields.io/badge/Header--Only-Yes-green.svg)
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> 🚀 一个现代化的 C++17 开发库，旨在用最简单的语法解决开发过程中会遇到的各种问题。目前功能包括终端彩色输出、延时、进度条、终端控制、系统信息检测、获取时间等，跨平台、零依赖、纯头文件！
+> 🚀 一个现代化的 C++17 终端控制库，旨在用最简单的语法解决开发过程中会遇到的各种问题。目前功能包括终端彩色输出、延时、进度条、基础控制、系统信息检测、获取时间等，跨平台、零依赖、纯头文件！
 
 ---
 
