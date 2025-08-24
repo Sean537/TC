@@ -14,7 +14,7 @@
  * - Chainable PrintProxy class
  * - Multi-parameter one-time print support
  * 
- * 版本 Version: 1.1.0
+ * 版本 Version: 1.1.1 Beta
  * 作者 Author: 537 Studio
  * 许可 License: MIT
  */

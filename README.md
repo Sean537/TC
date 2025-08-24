@@ -38,7 +38,8 @@ int main() {
     tc::tout << TCOLOR_GREEN << "Hello world!" << TCOLOR_RESET << std::endl;
     tc::tout << TFONT_BOLD << "粗体文本" << TFONT_RESET << std::endl;
     tc::tout << TCOLOR_RGB(255,0,0) << "RGB红" << TCOLOR_RESET << std::endl;
-
+    std::cout << tc::red("红色文本") << std::endl;
+    
     // ⏱️ 延时输出
     tc::tout << "Wait..." << std::endl;
     tc::tsleep(1000);
@@ -47,17 +48,20 @@ int main() {
     // 🖨️ Python风格打印
     tc::print("Hello ", "world!\n");
     tc::println("年龄: ", 25, ", 分数: ", 95.5);
-
-    // 🌈 彩色打印（支持多参数宏）
     tc::println(TCOLOR_RED, "红色文本");
     tc::println(TCOLOR_GREEN, BCOLOR_YELLOW, "绿色文字，黄色背景");
     tc::println(TCOLOR_BLUE, BCOLOR_WHITE, TFONT_BOLD, "蓝色粗体，白色背景");
 
     // 🖋️ Printer链式API
     tc::printer()
+        .clear()    // 清屏
         .moveCursor(10,5)
         .print("移动光标到(10,5)")
-        .println();
+        .hideCursor()   // 隐藏光标
+        .moveCursor(tc::Printer::Direction::Down, 2) // 相对移动（向下2行）
+        .println("在(10,7)")
+        .println() // 换行
+        .showCursor();  // 显示光标
 
     // 📏 终端尺寸
     auto size = tc::printer().getSize();
@@ -71,7 +75,7 @@ int main() {
     }
     bar.finish();
 
-    // 🖥️ 执行系统命令（如清屏）
+    // 🖥️ 执行系统命令
     tc::systemConsole("echo TC systemConsole test");
 
     // 🕒 获取系统时间
@@ -100,7 +104,9 @@ int main() {
 
 ## 🧩 主要API与宏
 
-### 🎨 颜色与样式（全局宏，直接用）
+### 🎨 颜色与样式
+
+#### 全局颜色宏（直接用）
 
 ```cpp
 // 前景色
@@ -111,6 +117,39 @@ BCOLOR_RED, BCOLOR_GREEN, BCOLOR_YELLOW, BCOLOR_BLUE, BCOLOR_MAGENTA, BCOLOR_CYA
 TFONT_BOLD, TFONT_FAINT, TFONT_ITALIC, TFONT_UNDERLINE, TFONT_BLINK_SLOW, TFONT_BLINK_FAST, TFONT_REVERSE, TFONT_CONCEAL, TFONT_CROSSED, TFONT_DEFAULT, TFONT_FRAKTUR, TFONT_DOUBLE_UNDERLINE, TFONT_NORMAL, TFONT_NOT_ITALIC, TFONT_NO_UNDERLINE, TFONT_NO_BLINK, TFONT_NO_REVERSE, TFONT_REVEAL, TFONT_NOT_CROSSED, TFONT_THICK, TFONT_RESET
 // RGB
 TCOLOR_RGB(r, g, b)
+```
+
+#### 颜色控制类（ColorController）
+
+```cpp
+// 设置颜色
+tc::ColorController::setColor(tc::ColorController::Color::RED);
+std::cout << "红色文本" << std::endl;
+
+// 设置RGB颜色
+tc::ColorController::setRGBColor(255, 128, 0);
+std::cout << "橙色文本" << std::endl;
+
+// 设置粗体
+tc::ColorController::setBold(true);
+std::cout << "粗体文本" << std::endl;
+
+// 重置颜色
+tc::ColorController::setColor(tc::ColorController::Color::RESET);
+```
+
+#### 便捷颜色函数
+
+```cpp
+// 使用colorize函数
+std::string coloredText = tc::colorize("彩色文本", tc::ColorController::Color::CYAN);
+std::cout << coloredText << std::endl;
+
+// 使用便捷颜色函数
+std::cout << tc::red("红色文本") << std::endl;
+std::cout << tc::green("绿色文本") << std::endl;
+std::cout << tc::blue("蓝色文本") << std::endl;
+std::cout << tc::yellow("黄色文本") << std::endl;
 ```
 
 ### 字体样式宏（TFONT_XXX）
@@ -147,9 +186,45 @@ TCOLOR_RGB(r, g, b)
 
 用法示例：`tc::println(TCOLOR_RED, BCOLOR_YELLOW, TFONT_BOLD, "红字黄底粗体")`
 
+### 🖥️ 终端控制
+
+#### tc::terminal命名空间
+
+```cpp
+// 清空屏幕
+tc::terminal::clear();
+
+// 移动光标到指定位置
+tc::terminal::moveCursor(10, 5);
+std::cout << "这是位置(10,5)" << std::endl;
+
+// 获取终端大小
+auto [width, height] = tc::terminal::getSize();
+std::cout << "终端大小: " << width << "x" << height << std::endl;
+```
+
+#### tc::Printer链式类
+
+```cpp
+// 创建Printer对象并执行一系列操作
+tc::printer()
+    .clear()                                  // 清屏
+    .hideCursor()                             // 隐藏光标
+    .moveCursor(10, 5)                        // 移动到绝对位置
+    .println("这是位置(10,5)")                 // 打印并换行
+    .moveCursor(tc::Printer::Direction::Down, 2) // 相对移动（向下2行）
+    .println("向下移动了2行")
+    .moveCursor(1, 10)                        // 移动到第10行开头
+    .print("在第10行: ")                       // 打印不换行
+    .print("继续在同一行打印")
+    .println()                                // 换行
+    .showCursor();                            // 显示光标
+```
+
+### 🔤 输出与打印
+
 - `tc::tout`：流式输出（支持颜色/样式/延时）
 - `tc::print(...)` / `tc::println(...)`：多参数打印，支持颜色/样式宏
-- `tc::printer()`：链式终端控制
 
 ### ⏱️ 延时与等待
 
@@ -272,10 +347,41 @@ int year = tc::getSystemTime(SYS_YEAR);
 int timestamp = tc::getSystemTime(); // Unix时间戳
 ```
 
-### ⌨️ waitKey
+### ⌨️ 按键处理
+
+#### waitKey - 等待按键
 
 - `tc::waitKey()`：等待任意按键
 - `tc::waitKey(char key)` / `tc::waitKey(int key)`：等待特定按键（如 tc::waitKey('A')、tc::waitKey(KEY_ESC)）
+
+```cpp
+tc::waitKey(); // 等待任意键
+// 等待按下A键
+tc::waitKey('A');
+// 等待ESC键
+tc::waitKey(KEY_ESC);
+```
+
+#### isKeyPressed - 检测按键状态
+
+- `tc::isKeyPressed(char key)` / `tc::isKeyPressed(int key)`：检测指定按键是否被按下
+
+```cpp
+// 检测ESC键是否被按下
+if (tc::isKeyPressed(KEY_ESC)) {
+    std::cout << "ESC键被按下" << std::endl;
+}
+
+// 检测方向键
+if (tc::isKeyPressed(KEY_UP)) {
+    std::cout << "上方向键被按下" << std::endl;
+}
+
+// 检测字母键
+if (tc::isKeyPressed('A') || tc::isKeyPressed('a')) {
+    std::cout << "A键被按下" << std::endl;
+}
+```
 
 #### 常用特殊按键宏
 
@@ -297,14 +403,6 @@ int timestamp = tc::getSystemTime(); // Unix时间戳
 | KEY_LEFT     | 左方向键 |
 | KEY_RIGHT    | 右方向键 |
 | KEY_F1 ~ KEY_F12 | F1~F12 功能键 |
-
-```cpp
-tc::waitKey(); // 等待任意键
-// 等待按下A键
-tc::waitKey('A');
-// 等待ESC键
-tc::waitKey(KEY_ESC);
-```
 
 ---
 
