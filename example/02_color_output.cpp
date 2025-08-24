@@ -109,7 +109,7 @@ void demoColorFunctions() {
     std::cout << TCOLOR_CYAN << "=== 便捷颜色函数演示 ===" << TCOLOR_RESET << std::endl;
     
     // 使用colorize函数
-    std::string coloredText = tc::colorize("彩色文本", tc::ColorController::Color::CYAN);
+    std::string coloredText = tc::colorize("青色文本", tc::ColorController::Color::CYAN);
     std::cout << coloredText << std::endl;
     
     // 使用便捷颜色函数

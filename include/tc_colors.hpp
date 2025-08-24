@@ -564,8 +564,32 @@ public:
      * @return 输出流引用，用于链式调用 | Output stream reference for chaining
      */
     friend std::ostream& operator<<(std::ostream& os, const ColorWrapper& wrapper) {
-        ColorController::setColor(wrapper.color_); // 应用颜色设置 | Apply color setting
-        return os;
+        // 统一使用ANSI转义序列，忽略平台差异
+        const char* ansiColor;
+        
+        switch (wrapper.color_) {
+            case ColorController::Color::BLACK: ansiColor = "\033[30m"; break;
+            case ColorController::Color::RED: ansiColor = "\033[31m"; break;
+            case ColorController::Color::GREEN: ansiColor = "\033[32m"; break;
+            case ColorController::Color::YELLOW: ansiColor = "\033[33m"; break;
+            case ColorController::Color::BLUE: ansiColor = "\033[34m"; break;
+            case ColorController::Color::MAGENTA: ansiColor = "\033[35m"; break;
+            case ColorController::Color::CYAN: ansiColor = "\033[36m"; break;
+            case ColorController::Color::WHITE: ansiColor = "\033[37m"; break;
+            case ColorController::Color::BRIGHT_BLACK: ansiColor = "\033[90m"; break;
+            case ColorController::Color::BRIGHT_RED: ansiColor = "\033[91m"; break;
+            case ColorController::Color::BRIGHT_GREEN: ansiColor = "\033[92m"; break;
+            case ColorController::Color::BRIGHT_YELLOW: ansiColor = "\033[93m"; break;
+            case ColorController::Color::BRIGHT_BLUE: ansiColor = "\033[94m"; break;
+            case ColorController::Color::BRIGHT_MAGENTA: ansiColor = "\033[95m"; break;
+            case ColorController::Color::BRIGHT_CYAN: ansiColor = "\033[96m"; break;
+            case ColorController::Color::BRIGHT_WHITE: ansiColor = "\033[97m"; break;
+            case ColorController::Color::RESET: 
+            default: 
+                ansiColor = "\033[0m";
+                break;
+        }
+        return os << ansiColor;
     }
 };
 
@@ -603,8 +627,10 @@ public:
      * @return 输出流引用，用于链式调用 | Output stream reference for chaining
      */
     friend std::ostream& operator<<(std::ostream& os, const RGBColorWrapper& wrapper) {
-        ColorController::setRGBColor(wrapper.r_, wrapper.g_, wrapper.b_); // 应用RGB颜色设置 | Apply RGB color setting
-        return os;
+        // 统一使用ANSI转义序列，忽略平台差异
+        std::ostringstream ansiCode;
+        ansiCode << "\033[38;2;" << wrapper.r_ << ";" << wrapper.g_ << ";" << wrapper.b_ << "m";
+        return os << ansiCode.str();
     }
 };
 
@@ -640,8 +666,8 @@ public:
      * @return 输出流引用，用于链式调用 | Output stream reference for chaining
      */
     friend std::ostream& operator<<(std::ostream& os, const FontStyleWrapper& wrapper) {
-        ColorController::setBold(wrapper.enable_); // 应用粗体样式设置 | Apply bold style setting
-        return os;
+        // 统一使用ANSI转义序列，忽略平台差异
+        return os << (wrapper.enable_ ? "\033[1m" : "\033[22m");
     }
 };
 
@@ -668,6 +694,23 @@ inline std::string colorize(const std::string& text, ColorController::Color colo
     std::ostringstream oss;
     // 添加颜色代码，文本，然后重置颜色 | Add color code, text, then reset color
     oss << ColorWrapper(color) << text << ColorWrapper(ColorController::Color::RESET);
+    return oss.str();
+}
+
+/**
+ * 为文本添加RGB颜色
+ * Add RGB color to text
+ * 
+ * @param text 要着色的文本 | Text to colorize
+ * @param r 红色分量(0-255) | Red component (0-255)
+ * @param g 绿色分量(0-255) | Green component (0-255)
+ * @param b 蓝色分量(0-255) | Blue component (0-255)
+ * @return 带有RGB颜色代码的字符串 | String with RGB color codes
+ */
+inline std::string colorizeRGB(const std::string& text, int r, int g, int b) {
+    std::ostringstream oss;
+    // 添加RGB颜色代码，文本，然后重置颜色 | Add RGB color code, text, then reset color
+    oss << RGBColorWrapper(r, g, b) << text << ColorWrapper(ColorController::Color::RESET);
     return oss.str();
 }
 
@@ -713,6 +756,83 @@ inline std::string blue(const std::string& text) {
  */
 inline std::string yellow(const std::string& text) {
     return colorize(text, ColorController::Color::YELLOW);
+}
+
+/**
+ * 为文本添加青色
+ * Add cyan color to text
+ * 
+ * @param text 要着色的文本 | Text to colorize
+ * @return 青色文本字符串 | Cyan text string
+ */
+inline std::string cyan(const std::string& text) {
+    return colorize(text, ColorController::Color::CYAN);
+}
+
+/**
+ * 为文本添加洋红色
+ * Add magenta color to text
+ * 
+ * @param text 要着色的文本 | Text to colorize
+ * @return 洋红色文本字符串 | Magenta text string
+ */
+inline std::string magenta(const std::string& text) {
+    return colorize(text, ColorController::Color::MAGENTA);
+}
+
+/**
+ * 为文本添加白色
+ * Add white color to text
+ * 
+ * @param text 要着色的文本 | Text to colorize
+ * @return 白色文本字符串 | White text string
+ */
+inline std::string white(const std::string& text) {
+    return colorize(text, ColorController::Color::WHITE);
+}
+
+/**
+ * 为文本添加亮红色
+ * Add bright red color to text
+ * 
+ * @param text 要着色的文本 | Text to colorize
+ * @return 亮红色文本字符串 | Bright red text string
+ */
+inline std::string brightRed(const std::string& text) {
+    return colorize(text, ColorController::Color::BRIGHT_RED);
+}
+
+/**
+ * 为文本添加亮绿色
+ * Add bright green color to text
+ * 
+ * @param text 要着色的文本 | Text to colorize
+ * @return 亮绿色文本字符串 | Bright green text string
+ */
+inline std::string brightGreen(const std::string& text) {
+    return colorize(text, ColorController::Color::BRIGHT_GREEN);
+}
+
+/**
+ * 为文本添加亮蓝色
+ * Add bright blue color to text
+ * 
+ * @param text 要着色的文本 | Text to colorize
+ * @return 亮蓝色文本字符串 | Bright blue text string
+ */
+inline std::string brightBlue(const std::string& text) {
+    return colorize(text, ColorController::Color::BRIGHT_BLUE);
+}
+
+/**
+ * 为文本添加亮黄色
+ * Add bright yellow color to text
+ * 
+ * @param text 要着色的文本 | Text to colorize
+ * @return 亮黄色文本字符串 | Bright yellow text string
+ */
+inline std::string brightYellow(const std::string& text) {
+    return colorize(text, ColorController::Color::BRIGHT_YELLOW);
 }
 
 } // namespace tc
