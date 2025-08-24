@@ -38,7 +38,8 @@ int main() {
     tc::tout << TCOLOR_GREEN << "Hello world!" << TCOLOR_RESET << std::endl;
     tc::tout << TFONT_BOLD << "Bold text" << TFONT_RESET << std::endl;
     tc::tout << TCOLOR_RGB(255,0,0) << "RGB Red" << TCOLOR_RESET << std::endl;
-
+    std::cout << tc::red("Red text") << std::endl;
+    
     // ⏱️ Delayed output
     tc::tout << "Wait..." << std::endl;
     tc::tsleep(1000);
@@ -47,17 +48,20 @@ int main() {
     // 🖨️ Python-style print
     tc::print("Hello ", "world!\n");
     tc::println("Age: ", 25, ", Score: ", 95.5);
-
-    // 🌈 Color print (multi-macro supported)
     tc::println(TCOLOR_RED, "Red text");
     tc::println(TCOLOR_GREEN, BCOLOR_YELLOW, "Green text, yellow background");
     tc::println(TCOLOR_BLUE, BCOLOR_WHITE, TFONT_BOLD, "Blue bold, white background");
 
     // 🖋️ Printer chainable API
     tc::printer()
+        .clear()    // Clear screen
         .moveCursor(10,5)
         .print("Move cursor to (10,5)")
-        .println();
+        .hideCursor()   // Hide cursor
+        .moveCursor(tc::Printer::Direction::Down, 2) // Relative move (down 2 lines)
+        .println("At (10,7)")
+        .println() // New line
+        .showCursor();  // Show cursor
 
     // 📏 Terminal size
     auto size = tc::printer().getSize();
@@ -71,7 +75,7 @@ int main() {
     }
     bar.finish();
 
-    // 🖥️ Run system command (e.g. clear screen)
+    // 🖥️ Run system command
     tc::systemConsole("echo TC systemConsole test");
 
     // 🕒 Get system time
@@ -100,7 +104,9 @@ int main() {
 
 ## 🧩 Main APIs & Macros
 
-### 🎨 Color & Style (Global Macros)
+### 🎨 Color & Style
+
+#### Global Color Macros (Direct Use)
 
 ```cpp
 // Foreground colors
@@ -113,143 +119,50 @@ TFONT_BOLD, TFONT_FAINT, TFONT_ITALIC, TFONT_UNDERLINE, TFONT_BLINK_SLOW, TFONT_
 TCOLOR_RGB(r, g, b)
 ```
 
-### 🖥️ Terminal Control (tc::terminal namespace)
-
-The `tc::terminal` namespace provides direct terminal control functions:
+#### Color Controller Class (ColorController)
 
 ```cpp
-// Clear screen
-tc::terminal::clear();
-
-// Move cursor to position (x, y)
-tc::terminal::moveCursor(10, 5);
-
-// Hide cursor
-tc::terminal::hideCursor();
-
-// Show cursor
-tc::terminal::showCursor();
-
-// Get terminal size (columns, rows)
-auto [width, height] = tc::terminal::getSize();
-
-// Save cursor position
-tc::terminal::saveCursorPosition();
-
-// Restore cursor position
-tc::terminal::restoreCursorPosition();
-
-// Clear line
-tc::terminal::clearLine();
-
-// Clear from cursor to end of line
-tc::terminal::clearLineFromCursor();
-
-// Clear from cursor to start of line
-tc::terminal::clearLineBeforeCursor();
-```
-
-### 🖨️ Printer Chainable API
-
-The `tc::Printer` class provides a chainable API for terminal control:
-
-```cpp
-// Basic usage
-tc::printer()
-    .moveCursor(10, 5)
-    .print("Text at position (10, 5)")
-    .moveUp(1)
-    .print("One line up")
-    .moveDown(2)
-    .print("Two lines down")
-    .moveLeft(5)
-    .print("5 characters left")
-    .moveRight(10)
-    .println("10 characters right");
-
-// Combining with colors
-tc::printer()
-    .moveCursor(5, 10)
-    .print(TCOLOR_RED, "Red text ")
-    .print(TCOLOR_GREEN, "Green text ")
-    .print(TCOLOR_BLUE, "Blue text")
-    .println(TCOLOR_RESET);
-
-// Creating complex layouts
-tc::printer()
-    .clear()
-    .moveCursor(0, 0)
-    .print(TFONT_BOLD, "HEADER")
-    .moveCursor(0, 2)
-    .print("Content starts here")
-    .moveCursor(0, 10)
-    .print(TCOLOR_CYAN, "Footer information")
-    .moveUp(5);
-```
-
-### 🎨 Advanced Color Functions
-
-TC library provides multiple ways to work with colors:
-
-```cpp
-// 1. Using ColorController class
+// Set color
 tc::ColorController::setColor(tc::ColorController::Color::RED);
 std::cout << "Red text" << std::endl;
+
+// Set RGB color
+tc::ColorController::setRGBColor(255, 128, 0);
+std::cout << "Orange text" << std::endl;
+
+// Set bold
+tc::ColorController::setBold(true);
+std::cout << "Bold text" << std::endl;
+
+// Reset color
 tc::ColorController::setColor(tc::ColorController::Color::RESET);
+```
 
-// 2. Using color wrapper classes
-std::cout << tc::ColorWrapper(tc::ColorController::Color::RED) << "Red text" 
-          << tc::ColorWrapper(tc::ColorController::Color::RESET) << std::endl;
+#### Convenient Color Functions
 
-// 3. Using RGB colors
-std::cout << tc::RGBColorWrapper(255, 128, 0) << "Orange text" 
-          << tc::ColorWrapper(tc::ColorController::Color::RESET) << std::endl;
+```cpp
+// Basic color functions
+std::string coloredText = tc::colorize("Colored text", tc::ColorController::Color::CYAN);
+std::cout << coloredText << std::endl;
 
-// 4. Using convenient color functions
+// RGB color functions
+std::string rgbText = tc::colorizeRGB("RGB colored text", 255, 128, 0);
+std::cout << rgbText << std::endl;
+
+// Standard color functions
 std::cout << tc::red("Red text") << std::endl;
 std::cout << tc::green("Green text") << std::endl;
 std::cout << tc::blue("Blue text") << std::endl;
 std::cout << tc::yellow("Yellow text") << std::endl;
+std::cout << tc::cyan("Cyan text") << std::endl;
+std::cout << tc::magenta("Magenta text") << std::endl;
+std::cout << tc::white("White text") << std::endl;
 
-// 5. Using colorize function
-std::string coloredText = tc::colorize("Colored text", tc::ColorController::Color::CYAN);
-std::cout << coloredText << std::endl;
-```
-
-### ⌨️ Key Detection
-
-TC library provides two ways to handle keyboard input:
-
-```cpp
-// 1. Wait for a key (blocking)
-int key = tc::waitKey();  // Wait for any key
-tc::waitKey('A');         // Wait for 'A' key
-tc::waitKey(KEY_ESC);     // Wait for ESC key
-
-// 2. Check if a key is pressed (non-blocking)
-if (tc::isKeyPressed(KEY_UP)) {
-    // Up arrow is pressed
-}
-
-if (tc::isKeyPressed('A')) {
-    // 'A' key is pressed
-}
-
-// Common usage in a game loop
-bool running = true;
-while (running) {
-    if (tc::isKeyPressed(KEY_ESC)) {
-        running = false;  // Exit on ESC
-    }
-    
-    if (tc::isKeyPressed(KEY_UP)) {
-        // Move up
-    }
-    
-    // Game logic and rendering
-    
-    tc::wait(0.016);  // ~60 FPS
-}
+// Bright color functions
+std::cout << tc::brightRed("Bright red text") << std::endl;
+std::cout << tc::brightGreen("Bright green text") << std::endl;
+std::cout << tc::brightBlue("Bright blue text") << std::endl;
+std::cout << tc::brightYellow("Bright yellow text") << std::endl;
 ```
 
 ### Font Style Macros (TFONT_XXX)
@@ -286,9 +199,45 @@ while (running) {
 
 Example: `tc::println(TCOLOR_RED, BCOLOR_YELLOW, TFONT_BOLD, "Red text, yellow background, bold")`
 
+### 🖥️ Terminal Control
+
+#### tc::terminal namespace
+
+```cpp
+// Clear screen
+tc::terminal::clear();
+
+// Move cursor to specified position
+tc::terminal::moveCursor(10, 5);
+std::cout << "This is position (10,5)" << std::endl;
+
+// Get terminal size
+auto [width, height] = tc::terminal::getSize();
+std::cout << "Terminal size: " << width << "x" << height << std::endl;
+```
+
+#### tc::Printer Chainable Class
+
+```cpp
+// Create Printer object and perform a series of operations
+tc::printer()
+    .clear()                                  // Clear screen
+    .hideCursor()                             // Hide cursor
+    .moveCursor(10, 5)                        // Move to absolute position
+    .println("This is position (10,5)")       // Print and new line
+    .moveCursor(tc::Printer::Direction::Down, 2) // Relative move (down 2 lines)
+    .println("Moved down 2 lines")
+    .moveCursor(1, 10)                        // Move to beginning of line 10
+    .print("At line 10: ")                    // Print without new line
+    .print("Continue printing on same line")
+    .println()                                // New line
+    .showCursor();                            // Show cursor
+```
+
+### 🔤 Output & Print
+
 - `tc::tout`: Stream output (supports color/style/delay)
 - `tc::print(...)` / `tc::println(...)`: Multi-argument print, supports color/style macros
-- `tc::printer()`: Chainable terminal control
 
 ### ⏱️ Delay & Wait
 
@@ -411,10 +360,41 @@ int year = tc::getSystemTime(SYS_YEAR);
 int timestamp = tc::getSystemTime(); // Unix timestamp
 ```
 
-### ⌨️ waitKey
+### ⌨️ Key Handling
+
+#### waitKey - Wait for Key
 
 - `tc::waitKey()`: Wait for any key
 - `tc::waitKey(char key)` / `tc::waitKey(int key)`: Wait for specific key (e.g. tc::waitKey('A'), tc::waitKey(KEY_ESC))
+
+```cpp
+tc::waitKey(); // Wait for any key
+// Wait for 'A' key
+tc::waitKey('A');
+// Wait for ESC key
+tc::waitKey(KEY_ESC);
+```
+
+#### isKeyPressed - Check Key State
+
+- `tc::isKeyPressed(char key)` / `tc::isKeyPressed(int key)`: Check if specified key is pressed
+
+```cpp
+// Check if ESC key is pressed
+if (tc::isKeyPressed(KEY_ESC)) {
+    std::cout << "ESC key is pressed" << std::endl;
+}
+
+// Check direction keys
+if (tc::isKeyPressed(KEY_UP)) {
+    std::cout << "Up arrow key is pressed" << std::endl;
+}
+
+// Check letter keys
+if (tc::isKeyPressed('A') || tc::isKeyPressed('a')) {
+    std::cout << "A key is pressed" << std::endl;
+}
+```
 
 #### Common Special Key Macros
 
@@ -436,14 +416,6 @@ int timestamp = tc::getSystemTime(); // Unix timestamp
 | KEY_LEFT     | Left arrow |
 | KEY_RIGHT    | Right arrow |
 | KEY_F1 ~ KEY_F12 | F1~F12 function keys |
-
-```cpp
-tc::waitKey(); // Wait for any key
-// Wait for 'A' key
-tc::waitKey('A');
-// Wait for ESC key
-tc::waitKey(KEY_ESC);
-```
 
 ---
 

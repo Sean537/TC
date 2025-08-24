@@ -141,15 +141,28 @@ tc::ColorController::setColor(tc::ColorController::Color::RESET);
 #### 便捷颜色函数
 
 ```cpp
-// 使用colorize函数
+// 基本颜色函数
 std::string coloredText = tc::colorize("彩色文本", tc::ColorController::Color::CYAN);
 std::cout << coloredText << std::endl;
 
-// 使用便捷颜色函数
+// RGB颜色函数
+std::string rgbText = tc::colorizeRGB("RGB颜色文本", 255, 128, 0);
+std::cout << rgbText << std::endl;
+
+// 标准颜色函数
 std::cout << tc::red("红色文本") << std::endl;
 std::cout << tc::green("绿色文本") << std::endl;
 std::cout << tc::blue("蓝色文本") << std::endl;
 std::cout << tc::yellow("黄色文本") << std::endl;
+std::cout << tc::cyan("青色文本") << std::endl;
+std::cout << tc::magenta("洋红色文本") << std::endl;
+std::cout << tc::white("白色文本") << std::endl;
+
+// 亮色函数
+std::cout << tc::brightRed("亮红色文本") << std::endl;
+std::cout << tc::brightGreen("亮绿色文本") << std::endl;
+std::cout << tc::brightBlue("亮蓝色文本") << std::endl;
+std::cout << tc::brightYellow("亮黄色文本") << std::endl;
 ```
 
 ### 字体样式宏（TFONT_XXX）

@@ -177,13 +177,38 @@ std::cout << tc::FontStyleWrapper(true) << "粗体文本"
 
 TC库提供了一系列便捷函数，用于为文本添加颜色，返回已着色的字符串。
 
+### 基本颜色函数
+
 | 函数名 | 描述 | 参数 | 返回值 |
 |--------|------|------|--------|
 | `colorize(text, color)` | 为文本添加指定颜色 | `text`: 要着色的文本<br>`color`: 要应用的颜色 | 带有颜色代码的字符串 |
+| `colorizeRGB(text, r, g, b)` | 为文本添加RGB颜色 | `text`: 要着色的文本<br>`r`, `g`, `b`: RGB分量(0-255) | 带有RGB颜色代码的字符串 |
+
+### 标准颜色函数
+
+| 函数名 | 描述 | 参数 | 返回值 |
+|--------|------|------|--------|
 | `red(text)` | 为文本添加红色 | `text`: 要着色的文本 | 红色文本字符串 |
 | `green(text)` | 为文本添加绿色 | `text`: 要着色的文本 | 绿色文本字符串 |
 | `blue(text)` | 为文本添加蓝色 | `text`: 要着色的文本 | 蓝色文本字符串 |
 | `yellow(text)` | 为文本添加黄色 | `text`: 要着色的文本 | 黄色文本字符串 |
+| `cyan(text)` | 为文本添加青色 | `text`: 要着色的文本 | 青色文本字符串 |
+| `magenta(text)` | 为文本添加洋红色 | `text`: 要着色的文本 | 洋红色文本字符串 |
+| `white(text)` | 为文本添加白色 | `text`: 要着色的文本 | 白色文本字符串 |
+
+### 亮色函数
+
+| 函数名 | 描述 | 参数 | 返回值 |
+|--------|------|------|--------|
+| `brightRed(text)` | 为文本添加亮红色 | `text`: 要着色的文本 | 亮红色文本字符串 |
+| `brightGreen(text)` | 为文本添加亮绿色 | `text`: 要着色的文本 | 亮绿色文本字符串 |
+| `brightBlue(text)` | 为文本添加亮蓝色 | `text`: 要着色的文本 | 亮蓝色文本字符串 |
+| `brightYellow(text)` | 为文本添加亮黄色 | `text`: 要着色的文本 | 亮黄色文本字符串 |
+| `brightCyan(text)` | 为文本添加亮青色 | `text`: 要着色的文本 | 亮青色文本字符串 |
+| `brightMagenta(text)` | 为文本添加亮洋红色 | `text`: 要着色的文本 | 亮洋红色文本字符串 |
+| `brightWhite(text)` | 为文本添加亮白色 | `text`: 要着色的文本 | 亮白色文本字符串 |
+
+> ⚠ 注意：便捷颜色函数实际上是为文本添加ANSI转义序列，因此仅适用于支持ANSI转义序列的终端显示。如果你有在低于 Windows 10 的命令提示符等终端上的显示需求，请不用使用这些函数。
 
 ### 使用示例
 
@@ -192,11 +217,24 @@ TC库提供了一系列便捷函数，用于为文本添加颜色，返回已着
 std::string coloredText = tc::colorize("彩色文本", tc::ColorController::Color::CYAN);
 std::cout << coloredText << std::endl;
 
-// 使用便捷颜色函数
+// 使用colorizeRGB函数
+std::string rgbText = tc::colorizeRGB("RGB颜色文本", 255, 128, 0);
+std::cout << rgbText << std::endl;
+
+// 使用标准颜色函数
 std::cout << tc::red("红色文本") << std::endl;
 std::cout << tc::green("绿色文本") << std::endl;
 std::cout << tc::blue("蓝色文本") << std::endl;
 std::cout << tc::yellow("黄色文本") << std::endl;
+std::cout << tc::cyan("青色文本") << std::endl;
+std::cout << tc::magenta("洋红色文本") << std::endl;
+std::cout << tc::white("白色文本") << std::endl;
+
+// 使用亮色函数
+std::cout << tc::brightRed("亮红色文本") << std::endl;
+std::cout << tc::brightGreen("亮绿色文本") << std::endl;
+std::cout << tc::brightBlue("亮蓝色文本") << std::endl;
+std::cout << tc::brightYellow("亮黄色文本") << std::endl;
 ```
 
 ## Windows平台特定功能
