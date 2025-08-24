@@ -6,13 +6,11 @@
  * - 时间延迟函数
  * - 跨平台按键等待功能
  * - 特定按键等待支持
- * - 常用按键常量定义
  * 
  * This file contains all wait and key handling related functionality in the TC library, including:
  * - Time delay functions
  * - Cross-platform key waiting functionality
  * - Specific key waiting support
- * - Common key constant definitions
  * 
  * 版本 Version: 1.1.0
  * 作者 Author: 537 Studio
@@ -26,89 +24,15 @@
 #include <thread>  // 线程库，用于延时操作 | Thread library for delay operations
 #include <chrono>  // 时间相关功能 | Time-related functionality
 
+// 引入系统工具模块，获取按键码定义 | Include system utils module for key code definitions
+#include "tc_system_utils.hpp"
+
 // 平台特定包含 | Platform-specific includes
 #ifdef _WIN32
     #include <conio.h>    // Windows控制台输入输出函数 | Windows console I/O functions
 #else
     #include <termios.h>  // 终端IO设置 | Terminal I/O settings
     #include <unistd.h>   // POSIX API | POSIX API
-#endif
-
-/**
- * 按键常量定义，用于waitKey函数
- * Key constants for waitKey function
- * 
- * 这些常量定义了常用的特殊按键的键码值，可以用于waitKey函数
- * 来等待特定的按键输入。这些值在不同平台上可能有所不同。
- * 
- * These constants define key code values for common special keys, which can be used
- * with the waitKey function to wait for specific key input. These values may vary
- * across different platforms.
- */
-// 基本控制键 | Basic control keys
-#define KEY_ESC      27    // Escape键 | Escape key
-#define KEY_SPACE    32    // 空格键 | Space key
-#define KEY_ENTER    13    // 回车键 | Enter key
-#define KEY_TAB       9    // Tab键 | Tab key
-#define KEY_BACKSPACE 8    // 退格键 | Backspace key
-
-// 编辑键 | Editing keys
-#ifdef _WIN32
-#define KEY_INSERT   0x52  // Insert键 | Insert key
-#define KEY_DELETE   0x53  // Delete键 | Delete key
-#define KEY_HOME     0x47  // Home键 | Home key
-#define KEY_END      0x4F  // End键 | End key
-#define KEY_PAGEUP   0x49  // Page Up键 | Page Up key
-#define KEY_PAGEDOWN 0x51  // Page Down键 | Page Down key
-#else
-#define KEY_INSERT   0x2D  // Insert键 | Insert key
-#define KEY_DELETE   0x2E  // Delete键 | Delete key
-#define KEY_HOME     0x24  // Home键 | Home key
-#define KEY_END      0x23  // End键 | End key
-#define KEY_PAGEUP   0x21  // Page Up键 | Page Up key
-#define KEY_PAGEDOWN 0x22  // Page Down键 | Page Down key
-#endif
-
-// 方向键 | Arrow keys
-#ifdef _WIN32
-#define KEY_UP       72  // 上箭头键 | Up arrow key
-#define KEY_DOWN     80  // 下箭头键 | Down arrow key
-#define KEY_LEFT     75  // 左箭头键 | Left arrow key
-#define KEY_RIGHT    77  // 右箭头键 | Right arrow key
-#else
-#define KEY_UP       0x26  // 上箭头键 | Up arrow key
-#define KEY_DOWN     0x28  // 下箭头键 | Down arrow key
-#define KEY_LEFT     0x25  // 左箭头键 | Left arrow key
-#define KEY_RIGHT    0x27  // 右箭头键 | Right arrow key
-#endif
-
-// 功能键 | Function keys
-#ifdef _WIN32
-#define KEY_F1       0x3B  // F1功能键 | F1 function key
-#define KEY_F2       0x3C  // F2功能键 | F2 function key
-#define KEY_F3       0x3D  // F3功能键 | F3 function key
-#define KEY_F4       0x3E  // F4功能键 | F4 function key
-#define KEY_F5       0x3F  // F5功能键 | F5 function key
-#define KEY_F6       0x40  // F6功能键 | F6 function key
-#define KEY_F7       0x41  // F7功能键 | F7 function key
-#define KEY_F8       0x42  // F8功能键 | F8 function key
-#define KEY_F9       0x43  // F9功能键 | F9 function key
-#define KEY_F10      0x44  // F10功能键 | F10 function key
-#define KEY_F11      0x85  // F11功能键 | F11 function key
-#define KEY_F12      0x86  // F12功能键 | F12 function key
-#else
-#define KEY_F1       0x70  // F1功能键 | F1 function key
-#define KEY_F2       0x71  // F2功能键 | F2 function key
-#define KEY_F3       0x72  // F3功能键 | F3 function key
-#define KEY_F4       0x73  // F4功能键 | F4 function key
-#define KEY_F5       0x74  // F5功能键 | F5 function key
-#define KEY_F6       0x75  // F6功能键 | F6 function key
-#define KEY_F7       0x76  // F7功能键 | F7 function key
-#define KEY_F8       0x77  // F8功能键 | F8 function key
-#define KEY_F9       0x78  // F9功能键 | F9 function key
-#define KEY_F10      0x79  // F10功能键 | F10 function key
-#define KEY_F11      0x7A  // F11功能键 | F11 function key
-#define KEY_F12      0x7B  // F12功能键 | F12 function key
 #endif
 
 namespace tc {
