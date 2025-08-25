@@ -81,11 +81,21 @@ void initDrawingInterface() {
 
 // 更新画布上的特定位置 | Update specific position on canvas
 void updateCanvasPosition(const DrawingState& state, int x, int y) {
+    // 检查坐标是否在有效范围内
+    if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) {
+        return; // 如果坐标超出范围，直接返回，不进行任何操作
+    }
+    
     // 计算实际屏幕坐标（考虑边框和标题） | Calculate actual screen coordinates (considering borders and title)
     int screenX = x + 2; // +1 for border, +1 for 1-based indexing
     int screenY = y + 5; // +4 for title and header, +1 for 1-based indexing
     
     auto p = tc::printer();
+    
+    // 调试输出当前坐标
+    p.moveCursor(1, HEIGHT + 8);
+    p.print("Debug - Canvas: (").print(x).print(", ").print(y).print(") Screen: (").print(screenX).print(", ").print(screenY).print(")");
+    
     p.moveCursor(screenX, screenY);
     
     if (x == state.x && y == state.y) {
@@ -138,6 +148,7 @@ int main() {
             running = false;
         }
         
+        // 确保画笔不接触上边界
         if (tc::isKeyPressed(KEY_UP) && state.y > 1) {
             state.prevX = state.x;
             state.prevY = state.y;
@@ -151,7 +162,8 @@ int main() {
             tc::wait(0.1); // 防止移动过快 | Prevent too fast movement
         }
         
-        if (tc::isKeyPressed(KEY_DOWN) && state.y < HEIGHT) {
+        // 确保画笔可以到达第20行（索引为19）
+        if (tc::isKeyPressed(KEY_DOWN) && state.y < HEIGHT - 1) {
             state.prevX = state.x;
             state.prevY = state.y;
             state.y++;
@@ -164,7 +176,8 @@ int main() {
             tc::wait(0.1);
         }
         
-        if (tc::isKeyPressed(KEY_LEFT) && state.x > 0) {
+        // 确保画笔不接触左边界
+        if (tc::isKeyPressed(KEY_LEFT) && state.x > 1) {
             state.prevX = state.x;
             state.prevY = state.y;
             state.x--;
@@ -177,7 +190,8 @@ int main() {
             tc::wait(0.1);
         }
         
-        if (tc::isKeyPressed(KEY_RIGHT) && state.x < WIDTH - 1) {
+        // 确保画笔不接触右边界
+        if (tc::isKeyPressed(KEY_RIGHT) && state.x < WIDTH - 2) {
             state.prevX = state.x;
             state.prevY = state.y;
             state.x++;
@@ -212,7 +226,10 @@ int main() {
         }
         
         // 如果处于绘制模式，自动在当前位置绘制 | If in drawing mode, automatically draw at current position
-        if (state.drawing && state.canvas[state.y][state.x] == EMPTY) {
+        if (state.drawing && 
+            state.y >= 0 && state.y < HEIGHT && 
+            state.x >= 0 && state.x < WIDTH && 
+            state.canvas[state.y][state.x] == EMPTY) {
             state.canvas[state.y][state.x] = DRAWN;
             updateCanvasPosition(state, state.x, state.y);
         }

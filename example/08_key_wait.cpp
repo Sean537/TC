@@ -91,17 +91,23 @@ int main() {
     tc::waitKey(KEY_F2);
     std::cout << "检测到F2键\n\n";
     
+    // 可能会触发控制台搜索功能
+    /*
     std::cout << "按F3键继续...\n";
     tc::waitKey(KEY_F3);
     std::cout << "检测到F3键\n\n";
-    
+    */
+
     std::cout << "按F4键继续...\n";
     tc::waitKey(KEY_F4);
     std::cout << "检测到F4键\n\n";
     
+    // 可能会触发VS Code的调试窗口
+    /*
     std::cout << "按F5键继续...\n";
     tc::waitKey(KEY_F5);
     std::cout << "检测到F5键\n\n";
+    */
     
     std::cout << "按F6键继续...\n";
     tc::waitKey(KEY_F6);

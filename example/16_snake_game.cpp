@@ -5,9 +5,14 @@
 #include <algorithm>
 #include <thread>
 #include <chrono>
+
+#ifdef _WIN32
+#include <conio.h>
+#else
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
+#endif
 
 // 跨平台按键检测
 inline int kbhit() {
