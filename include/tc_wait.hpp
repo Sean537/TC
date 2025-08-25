@@ -26,6 +26,8 @@
 
 // 引入系统工具模块，获取按键码定义 | Include system utils module for key code definitions
 #include "tc_system_utils.hpp"
+#include <vector>
+#include <string>
 
 // 平台特定包含 | Platform-specific includes
 #ifdef _WIN32
@@ -100,7 +102,7 @@ inline void waitKey() {
     termios oldt, newt; // 终端设置结构体 | Terminal settings structures
     tcgetattr(0, &oldt); // 获取当前终端设置 | Get current terminal settings
     newt = oldt;
-    newt.c_lflag &= ~ICANON; // 禁用规范模式，允许立即读取按键 | Disable canonical mode for immediate key reading
+    newt.c_lflag &= ~(ICANON | ECHO); // 禁用规范模式和回显，允许立即读取按键且不回显 | Disable canonical mode and echo
     tcsetattr(0, TCSANOW, &newt); // 应用新设置 | Apply new settings
     getchar(); // 读取一个字符 | Read one character
     tcsetattr(0, TCSANOW, &oldt); // 恢复原始设置 | Restore original settings
@@ -116,7 +118,7 @@ inline void waitKey(char key) {
     termios oldt, newt; // 终端设置结构体 | Terminal settings structures
     tcgetattr(0, &oldt); // 获取当前终端设置 | Get current terminal settings
     newt = oldt;
-    newt.c_lflag &= ~ICANON; // 禁用规范模式，允许立即读取按键 | Disable canonical mode for immediate key reading
+    newt.c_lflag &= ~(ICANON | ECHO); // 禁用规范模式和回显，允许立即读取按键且不回显 | Disable canonical mode and echo
     tcsetattr(0, TCSANOW, &newt); // 应用新设置 | Apply new settings
     int ch;
     do { ch = getchar(); } while (ch != key); // 循环直到按下指定键 | Loop until specified key is pressed
@@ -130,8 +132,82 @@ inline void waitKey(char key) {
  * @param key 等待的键码 | Key code to wait for
  */
 inline void waitKey(int key) { 
-    waitKey((char)key); // 转换为字符并调用字符版本 | Convert to char and call char version
+    termios oldt, newt;
+    tcgetattr(0, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(0, TCSANOW, &newt);
+    std::vector<int> seq;
+    while (true) {
+        int ch = getchar();
+        if (ch == 27) {
+            if (key == 27) break; // 直接检测 ESC 键
+            // ESC 序列
+            seq.clear();
+            seq.push_back(ch);
+            ch = getchar();
+            if (ch == '[') {
+                seq.push_back(ch);
+                ch = getchar();
+                seq.push_back(ch);
+                // 收集完整的ESC序列
+                std::string fullSeq;
+                fullSeq = "\x1b[";  // ESC [
+                fullSeq += (char)seq[2];  // 第三个字符
+
+                // 继续读取直到遇到结束符号（如 '~'）或字母
+                while (true) {
+                    ch = getchar();
+                    fullSeq += (char)ch;
+                    if (ch == '~' || (ch >= 'A' && ch <= 'Z')) {
+                        break;
+                    }
+                }
+
+                // 方向键 (ESC [ A/B/C/D)
+                if (fullSeq == "\x1b[A" && key == 'A') break;  // 上
+                if (fullSeq == "\x1b[B" && key == 'B') break;  // 下
+                if (fullSeq == "\x1b[C" && key == 'C') break;  // 右
+                if (fullSeq == "\x1b[D" && key == 'D') break;  // 左
+
+                // Home/End (ESC [ H/F)
+                if (fullSeq == "\x1b[H" && key == KEY_HOME) break;
+                if (fullSeq == "\x1b[F" && key == KEY_END) break;
+
+                // 功能键 F5-F8 (ESC [ 1 5/6/7/8 ~)
+                if (fullSeq == "\x1b[15~" && key == 15) break;  // F5
+                if (fullSeq == "\x1b[17~" && key == 17) break;  // F6
+                if (fullSeq == "\x1b[18~" && key == 18) break;  // F7
+                if (fullSeq == "\x1b[19~" && key == 19) break;  // F8
+
+                // 功能键 F9-F12 (ESC [ 2 0/1/3/4 ~)
+                if (fullSeq == "\x1b[20~" && key == 20) break;  // F9
+                if (fullSeq == "\x1b[21~" && key == 21) break;  // F10
+                if (fullSeq == "\x1b[23~" && key == 23) break;  // F11
+                if (fullSeq == "\x1b[24~" && key == 24) break;  // F12
+
+                // Insert/Delete/PageUp/PageDown
+                if (fullSeq == "\x1b[2~" && key == KEY_INSERT) break;
+                if (fullSeq == "\x1b[3~" && key == KEY_DELETE) break;
+                if (fullSeq == "\x1b[5~" && key == KEY_PAGEUP) break;
+                if (fullSeq == "\x1b[6~" && key == KEY_PAGEDOWN) break;
+
+                // Home/End 另一种序列
+                if (fullSeq == "\x1b[1~" && key == KEY_HOME) break;
+                if (fullSeq == "\x1b[4~" && key == KEY_END) break;
+            } else if (ch == 'O') {  // ESC O P-S 序列（F1-F4）或 ESC O H/F（Home/End）
+                ch = getchar();
+                if ((ch >= 'P' && ch <= 'S') && ch == key) break;  // F1-F4
+                if (key == KEY_HOME && ch == 'H') break;  // Home
+                if (key == KEY_END && ch == 'F') break;   // End
+            }
+        } else if (ch == key) {
+            break;
+        }
+    }
+    tcsetattr(0, TCSANOW, &oldt);
 }
+
 
 #endif
 

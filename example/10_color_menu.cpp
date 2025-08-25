@@ -1,6 +1,12 @@
 #include "../include/tc.hpp"
 #include <vector>
 #include <string>
+#include <iostream>
+
+#ifndef _WIN32
+#include <termios.h>
+#include <unistd.h>
+#endif
 
 int showMenu(const std::vector<std::string>& options, const std::string& title = "菜单") {
     tc::printer().clear();
@@ -21,13 +27,24 @@ int showMenu(const std::vector<std::string>& options, const std::string& title =
     
     // 获取用户输入
     int choice = -1;
-    while (choice < 0 || choice > static_cast<int>(options.size())) {
+    std::string input;
+    
+    while (true) {
         tc::print(TCOLOR_GREEN, "请选择 (0-", options.size(), "): ", TCOLOR_RESET);
-        std::cin >> choice;
+        std::cout.flush();  // 确保提示立即显示
         
-        if (std::cin.fail()) {
-            std::cin.clear();
-            std::cin.ignore(10000, '\n');
+        std::getline(std::cin, input);
+        
+        // 转换输入为数字
+        try {
+            if (input.empty()) {
+                continue;
+            }
+            choice = std::stoi(input);
+            if (choice >= 0 && choice <= static_cast<int>(options.size())) {
+                break;
+            }
+        } catch (...) {
             choice = -1;
         }
     }
@@ -36,6 +53,15 @@ int showMenu(const std::vector<std::string>& options, const std::string& title =
 }
 
 int main() {
+    // 设置输入模式
+#ifndef _WIN32
+    termios oldt, newt;
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~ICANON;
+    newt.c_lflag &= ~ECHO;
+#endif
+
     std::vector<std::string> mainOptions = {
         "选项一",
         "选项二",
@@ -72,5 +98,10 @@ int main() {
         }
     } while (choice != 0);
     
+#ifndef _WIN32
+    // 恢复终端设置
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+#endif
+
     return 0;
 }

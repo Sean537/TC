@@ -1,20 +1,32 @@
 #include "../include/tc.hpp"
 #include <vector>
 #include <string>
+#include <iostream>
+#include <chrono>
+#include <thread>
+
+#ifndef _WIN32
+#include <termios.h>
+#include <unistd.h>
+#endif
 
 void showSpinner(int seconds) {
     std::vector<std::string> frames = {"|", "/", "-", "\\"};
     int totalFrames = seconds * 10;
     
-    tc::printer().hideCursor();
+    auto& printer = tc::printer().hideCursor();
+    tc::terminal::flush();  // 确保光标隐藏立即生效
     
     for (int i = 0; i < totalFrames; ++i) {
-        tc::print("\r", TCOLOR_CYAN, "加载中 ", frames[i % frames.size()], TCOLOR_RESET);
-        tc::tsleep(100).execute();
+        printer.print("\r", TCOLOR_CYAN, "加载中 ", frames[i % frames.size()], TCOLOR_RESET);
+        tc::terminal::flush();
+        tc::wait(0.1);
     }
     
-    tc::println("\r", TCOLOR_GREEN, "加载完成!    ", TCOLOR_RESET);
-    tc::printer().showCursor();
+    printer.print("\r", TCOLOR_GREEN, "加载完成!    ", TCOLOR_RESET)
+           .println()
+           .showCursor()
+           .flush();
 }
 
 void showBounce(int seconds) {
@@ -25,29 +37,33 @@ void showBounce(int seconds) {
     int pos = 0;
     int dir = 1;
     
-    tc::printer().hideCursor();
+    auto& printer = tc::printer().hideCursor();
+    tc::terminal::flush();  // 确保光标隐藏立即生效
     
     for (int i = 0; i < totalFrames; ++i) {
-        tc::print("\r[");
+        printer.print("\r[");
         for (int j = 0; j < width; ++j) {
             if (j == pos) {
-                tc::print(TCOLOR_RED, ball, TCOLOR_RESET);
+                printer.print(TCOLOR_RED, ball, TCOLOR_RESET);
             } else {
-                tc::print(empty);
+                printer.print(empty);
             }
         }
-        tc::print("]");
+        printer.print("]");
+        tc::terminal::flush();  // 使用新的全局刷新函数
         
         pos += dir;
         if (pos == width - 1 || pos == 0) {
             dir = -dir;
         }
         
-        tc::tsleep(50).execute();
+        tc::wait(0.05);
     }
     
-    tc::println("\n", TCOLOR_GREEN, "动画结束!", TCOLOR_RESET);
-    tc::printer().showCursor();
+    printer.println()
+           .println(TCOLOR_GREEN, "动画结束!", TCOLOR_RESET)
+           .showCursor();
+    tc::terminal::flush();  // 确保所有更改立即生效
 }
 
 int main() {

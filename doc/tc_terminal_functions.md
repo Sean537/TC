@@ -1,15 +1,16 @@
 # TC库终端控制功能详解
 
-本文档详细说明了TC库中与终端控制相关的两种主要接口：`tc::terminal`命名空间和`tc::Printer`链式函数类。这两种接口提供了不同的使用方式，但实现了类似的终端控制功能。
+本文档详细说明了TC库中与终端控制相关的功能，包括基本终端控制、缓冲区管理和链式操作接口。TC库提供了多种方式来控制终端输出和显示，使开发者能够创建更加丰富和响应迅速的终端应用程序。
 
 ## 目录
 
 1. [概述](#概述)
 2. [tc::terminal命名空间](#tcterminal命名空间)
 3. [tc::Printer链式函数类](#tcprinter链式函数类)
-4. [功能对比](#功能对比)
-5. [使用建议](#使用建议)
-6. [示例代码](#示例代码)
+4. [缓冲区控制](#缓冲区控制)
+5. [功能对比](#功能对比)
+6. [使用建议](#使用建议)
+7. [示例代码](#示例代码)
 
 ## 概述
 
@@ -30,20 +31,100 @@ TC库提供了两种不同风格的终端控制接口：
 | `clear()` | 清空终端屏幕并将光标移动到左上角 | 无 | 无 |
 | `moveCursor(int x, int y)` | 将光标移动到指定坐标 | `x`: 列坐标(从1开始)<br>`y`: 行坐标(从1开始) | 无 |
 | `getSize()` | 获取终端窗口大小 | 无 | `std::pair<int, int>`: 包含宽度和高度的对组 |
+| `flush()` | 刷新终端输出缓冲区 | 无 | 无 |
 
 ### 使用示例
 
 ```cpp
-// 清空屏幕
+// 基本终端控制
 tc::terminal::clear();
-
-// 移动光标到第5列第3行
 tc::terminal::moveCursor(5, 3);
 
 // 获取终端大小
 auto [width, height] = tc::terminal::getSize();
-std::cout << "终端宽度: " << width << ", 高度: " << height << std::endl;
+tc::println("终端宽度: ", width, ", 高度: ", height);
+
+// 使用刷新功能
+tc::print("\r加载中...");
+tc::terminal::flush();  // 确保立即显示
 ```
+
+## 缓冲区控制
+
+TC库提供了两种方式来控制终端输出的缓冲，使开发者能够精确控制内容何时显示在屏幕上。这在创建动画效果、实时更新界面或需要即时反馈的交互式应用程序中特别有用。
+
+### 全局刷新函数
+
+`tc::terminal::flush()` 函数会立即刷新终端的输出缓冲区，确保所有待显示的内容立即出现在屏幕上。
+
+```cpp
+// 使用全局刷新函数
+tc::print("\r处理中...");
+tc::terminal::flush();  // 立即显示
+tc::wait(1.0);
+```
+
+### Printer类的刷新方法
+
+`tc::Printer` 类提供了 `flush()` 方法，支持链式调用：
+
+```cpp
+// 使用Printer的刷新方法
+tc::printer()
+    .print("\r第一步...")
+    .flush()
+    .print("\r第二步...")
+    .flush();
+```
+
+### 自动刷新场景
+
+某些操作会自动触发刷新：
+
+1. 使用 `\r` 进行回车时
+2. 使用 `println` 函数时
+3. 某些终端控制操作（如移动光标）后
+
+```cpp
+// 自动刷新示例
+tc::print("\r自动刷新");     // 含\r会自动刷新
+tc::println("自动刷新");    // println自动刷新
+tc::printer().moveCursor(0, 0).print("位置更新");  // 移动光标后自动刷新
+```
+
+### 应用场景
+
+缓冲区控制在以下场景特别有用：
+
+1. **动画效果**
+   ```cpp
+   tc::printer().hideCursor().flush();
+   for (int i = 0; i < 100; i++) {
+       tc::print("\r进度: ", i, "%");
+       tc::terminal::flush();
+       tc::wait(0.05);
+   }
+   tc::printer().showCursor().flush();
+   ```
+
+2. **实时更新界面**
+   ```cpp
+   // 更新状态显示
+   void updateStatus(const std::string& status) {
+       tc::print("\r当前状态: ", status);
+       tc::terminal::flush();
+   }
+   ```
+
+3. **交互式应用**
+   ```cpp
+   // 即时响应的命令提示符
+   tc::printer()
+       .print("> ")
+       .flush();  // 确保提示符立即显示
+   std::string command;
+   std::getline(std::cin, command);
+   ```
 
 ## tc::Printer链式函数类
 

@@ -119,10 +119,13 @@ int main() {
     tc::waitKey(KEY_F9);
     std::cout << "检测到F9键\n\n";
     
+    // 可能会触发窗口焦点
+    /*
     std::cout << "按F10键继续...\n";
     tc::waitKey(KEY_F10);
     std::cout << "检测到F10键\n\n";
-    
+    */
+
     // 可能会触发控制台窗口全屏
     /*
     std::cout << "按F11键继续...\n";

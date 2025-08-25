@@ -25,6 +25,9 @@
 // 标准库包含 | Standard library includes
 #include <iostream>  // 输入输出流 | Input/output streams
 #include <utility>   // 实用工具，如std::pair | Utility tools like std::pair
+#include <type_traits>  // 类型特征 | Type traits
+#include <cstring>      // C字符串操作 | C string operations
+#include <string>       // C++字符串 | C++ string
 
 // 平台特定包含 | Platform-specific includes
 #ifdef _WIN32
@@ -50,6 +53,16 @@ namespace tc {
  */
 class Printer {
 public:
+    /**
+     * flush函数 - 刷新终端输出缓冲区
+     * flush function - Flushes the terminal output buffer
+     * 
+     * @return Printer对象的引用，支持链式调用 | Reference to Printer object for chaining
+     */
+    Printer& flush() {
+        std::cout.flush();
+        return *this;
+    }
     /**
      * 清屏并将光标移动到左上角
      * Clear screen and move cursor to top-left corner
@@ -91,7 +104,23 @@ public:
      */
     template<typename... Args>
     Printer& print(Args&&... args) { 
+        bool needsFlush = false;
+        auto check = [&needsFlush](const auto& arg) {
+            using T = std::decay_t<decltype(arg)>;
+            if constexpr (std::is_same_v<T, const char*> || std::is_same_v<T, char*>) {
+                needsFlush |= (std::strchr(arg, '\r') != nullptr);
+            } else if constexpr (std::is_same_v<T, std::string>) {
+                needsFlush |= (arg.find('\r') != std::string::npos);
+            } else if constexpr (std::is_same_v<T, char>) {
+                needsFlush |= (arg == '\r');
+            }
+        };
+        (check(std::forward<Args>(args)), ...);
+        
         (void)std::initializer_list<int>{(std::cout << std::forward<Args>(args), 0)...}; 
+        if (needsFlush) {
+            flush();
+        }
         return *this; 
     }
     
@@ -105,7 +134,7 @@ public:
     template<typename... Args>
     Printer& println(Args&&... args) { 
         (void)std::initializer_list<int>{(std::cout << std::forward<Args>(args), 0)...}; 
-        std::cout << std::endl; 
+        std::cout << std::endl;  // endl 自带 flush
         return *this; 
     }
     
@@ -117,6 +146,7 @@ public:
      */
     Printer& hideCursor() { 
         std::cout << "\033[?25l"; // ANSI隐藏光标序列 | ANSI hide cursor sequence
+        flush();  // 立即刷新以确保光标状态更新
         return *this; 
     }
     
@@ -128,6 +158,7 @@ public:
      */
     Printer& showCursor() { 
         std::cout << "\033[?25h"; // ANSI显示光标序列 | ANSI show cursor sequence
+        flush();  // 立即刷新以确保光标状态更新
         return *this; 
     }
     
@@ -200,14 +231,25 @@ inline Printer printer() { return Printer(); }
  * 终端控制函数命名空间
  * Terminal control functions namespace
  * 
- * 这个命名空间提供了一组用于控制终端的函数，如清屏、移动光标和获取终端尺寸。
+ * 这个命名空间提供了一组用于控制终端的函数，如清屏、移动光标、获取终端尺寸和刷新输出缓冲区。
  * 这些函数在不同平台上使用相应的实现，提供统一的接口。
  * 
  * This namespace provides a set of functions for terminal control, such as clearing the screen,
- * moving the cursor, and getting terminal size. These functions use the appropriate implementation
- * on different platforms, providing a unified interface.
+ * moving the cursor, getting terminal size, and flushing output buffer. These functions use
+ * the appropriate implementation on different platforms, providing a unified interface.
  */
 namespace terminal {
+    /**
+     * 刷新终端输出缓冲区
+     * Flush terminal output buffer
+     * 
+     * 确保所有待输出的内容立即显示在终端上。在动画效果、实时更新或需要立即显示的场景下特别有用。
+     * Ensures all pending output is immediately displayed on the terminal.
+     * Particularly useful for animations, real-time updates, or when immediate display is required.
+     */
+    inline void flush() {
+        std::cout.flush();
+    }
     /**
      * 清空终端屏幕
      * Clear terminal screen

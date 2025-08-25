@@ -56,9 +56,14 @@
 // 基本控制键 | Basic control keys
 #define KEY_ESC      27    // Escape键 | Escape key
 #define KEY_SPACE    32    // 空格键 | Space key
-#define KEY_ENTER    13    // 回车键 | Enter key
 #define KEY_TAB       9    // Tab键 | Tab key
-#define KEY_BACKSPACE 8    // 退格键 | Backspace key
+#ifdef _WIN32
+#define KEY_ENTER    13    // 回车键 | Enter key (Windows uses '\r')
+#define KEY_BACKSPACE 8    // 退格键 | Backspace key (Windows uses Ctrl+H)
+#else
+#define KEY_ENTER    10    // 回车键 | Enter key (Unix/Linux uses '\n')
+#define KEY_BACKSPACE 127  // 退格键 | Backspace key (Unix/Linux uses DEL)
+#endif
 
 // 编辑键 | Editing keys
 #ifdef _WIN32
@@ -69,12 +74,13 @@
 #define KEY_PAGEUP   0x49  // Page Up键 | Page Up key
 #define KEY_PAGEDOWN 0x51  // Page Down键 | Page Down key
 #else
-#define KEY_INSERT   0x2D  // Insert键 | Insert key
-#define KEY_DELETE   0x2E  // Delete键 | Delete key
-#define KEY_HOME     0x24  // Home键 | Home key
-#define KEY_END      0x23  // End键 | End key
-#define KEY_PAGEUP   0x21  // Page Up键 | Page Up key
-#define KEY_PAGEDOWN 0x22  // Page Down键 | Page Down key
+// Unix/Linux 下特殊键需用转义序列解析，以下宏用于 ESC 序列检测
+#define KEY_INSERT    '2'  // ESC [ 2~
+#define KEY_DELETE    '3'  // ESC [ 3~
+#define KEY_HOME      'H'  // ESC [ H
+#define KEY_END       'F'  // ESC [ F
+#define KEY_PAGEUP    '5'  // ESC [ 5~
+#define KEY_PAGEDOWN  '6'  // ESC [ 6~
 #endif
 
 // 方向键 | Arrow keys
@@ -84,10 +90,10 @@
 #define KEY_LEFT     75  // 左箭头键 | Left arrow key
 #define KEY_RIGHT    77  // 右箭头键 | Right arrow key
 #else
-#define KEY_UP       0x26  // 上箭头键 | Up arrow key
-#define KEY_DOWN     0x28  // 下箭头键 | Down arrow key
-#define KEY_LEFT     0x25  // 左箭头键 | Left arrow key
-#define KEY_RIGHT    0x27  // 右箭头键 | Right arrow key
+#define KEY_UP        'A'
+#define KEY_DOWN      'B'
+#define KEY_RIGHT     'C'
+#define KEY_LEFT      'D'
 #endif
 
 // 功能键 | Function keys
@@ -105,18 +111,18 @@
 #define KEY_F11      0x85  // F11功能键 | F11 function key
 #define KEY_F12      0x86  // F12功能键 | F12 function key
 #else
-#define KEY_F1       0x70  // F1功能键 | F1 function key
-#define KEY_F2       0x71  // F2功能键 | F2 function key
-#define KEY_F3       0x72  // F3功能键 | F3 function key
-#define KEY_F4       0x73  // F4功能键 | F4 function key
-#define KEY_F5       0x74  // F5功能键 | F5 function key
-#define KEY_F6       0x75  // F6功能键 | F6 function key
-#define KEY_F7       0x76  // F7功能键 | F7 function key
-#define KEY_F8       0x77  // F8功能键 | F8 function key
-#define KEY_F9       0x78  // F9功能键 | F9 function key
-#define KEY_F10      0x79  // F10功能键 | F10 function key
-#define KEY_F11      0x7A  // F11功能键 | F11 function key
-#define KEY_F12      0x7B  // F12功能键 | F12 function key
+#define KEY_F1        'P'  // ESC O P
+#define KEY_F2        'Q'  // ESC O Q
+#define KEY_F3        'R'  // ESC O R
+#define KEY_F4        'S'  // ESC O S
+#define KEY_F5        15   // ESC [ 1 5 ~
+#define KEY_F6        17   // ESC [ 1 7 ~
+#define KEY_F7        18   // ESC [ 1 8 ~
+#define KEY_F8        19   // ESC [ 1 9 ~
+#define KEY_F9        20   // ESC [ 2 0 ~
+#define KEY_F10       21   // ESC [ 2 1 ~
+#define KEY_F11       23   // ESC [ 2 3 ~
+#define KEY_F12       24   // ESC [ 2 4 ~
 #endif
 
 /**
@@ -284,24 +290,36 @@ inline bool isKeyPressed(int key) {
     struct termios oldt, newt;
     int ch;
     int oldf;
-    
     tcgetattr(STDIN_FILENO, &oldt);
     newt = oldt;
     newt.c_lflag &= ~(ICANON | ECHO);
     tcsetattr(STDIN_FILENO, TCSANOW, &newt);
     oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
     fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
-    
     ch = getchar();
-    
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
     fcntl(STDIN_FILENO, F_SETFL, oldf);
-    
-    if(ch != EOF) {
+    if (ch == 27) { // ESC 序列
+        ch = getchar();
+        if (ch == '[') {
+            ch = getchar();
+            // 方向键
+            if (key == 'A' && ch == 'A') return true;
+            if (key == 'B' && ch == 'B') return true;
+            if (key == 'C' && ch == 'C') return true;
+            if (key == 'D' && ch == 'D') return true;
+            // Insert/Delete/Home/End/PageUp/PageDown
+            if (key == KEY_INSERT && ch == '2') { getchar(); return true; }
+            if (key == KEY_DELETE && ch == '3') { getchar(); return true; }
+            if (key == KEY_HOME && ch == '1') { getchar(); return true; }
+            if (key == KEY_END && ch == '4') { getchar(); return true; }
+            if (key == KEY_PAGEUP && ch == '5') { getchar(); return true; }
+            if (key == KEY_PAGEDOWN && ch == '6') { getchar(); return true; }
+        }
+    } else if (ch != EOF) {
         ungetc(ch, stdin);
         return (ch == key);
     }
-    
     return false;
 }
 
