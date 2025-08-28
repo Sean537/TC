@@ -79,25 +79,35 @@ int main() {
     std::cout << "检测到右方向键\n\n";
     
     // 功能键测试
+    
+    // 可能会触发开发环境的帮助窗口
+    /*
     std::cout << "按F1键继续...\n";
     tc::waitKey(KEY_F1);
     std::cout << "检测到F1键\n\n";
-    
+    */
+
     std::cout << "按F2键继续...\n";
     tc::waitKey(KEY_F2);
     std::cout << "检测到F2键\n\n";
     
+    // 可能会触发控制台搜索功能
+    /*
     std::cout << "按F3键继续...\n";
     tc::waitKey(KEY_F3);
     std::cout << "检测到F3键\n\n";
-    
+    */
+
     std::cout << "按F4键继续...\n";
     tc::waitKey(KEY_F4);
     std::cout << "检测到F4键\n\n";
     
+    // 可能会触发VS Code的调试窗口
+    /*
     std::cout << "按F5键继续...\n";
     tc::waitKey(KEY_F5);
     std::cout << "检测到F5键\n\n";
+    */
     
     std::cout << "按F6键继续...\n";
     tc::waitKey(KEY_F6);
@@ -115,11 +125,14 @@ int main() {
     tc::waitKey(KEY_F9);
     std::cout << "检测到F9键\n\n";
     
+    // 可能会触发窗口焦点
+    /*
     std::cout << "按F10键继续...\n";
     tc::waitKey(KEY_F10);
     std::cout << "检测到F10键\n\n";
-    
-    // 会触发控制台窗口全屏
+    */
+
+    // 可能会触发控制台窗口全屏
     /*
     std::cout << "按F11键继续...\n";
     tc::waitKey(KEY_F11);

@@ -14,7 +14,7 @@
  * - System version information retrieval
  * - Cross-platform system identification support
  * 
- * 版本 Version: 1.1.0
+ * 版本 Version: 1.1.1 Beta
  * 作者 Author: 537 Studio
  * 许可 License: MIT
  */
@@ -23,8 +23,13 @@
 #define TC_SYSTEM
 
 // 平台特定头文件包含 | Platform-specific header includes
-#ifdef _WIN32 // Windows平台特定代码 | Windows platform specific code
-    #include <windows.h> // Windows API函数和数据类型 | Windows API functions and data types
+// Windows平台特定代码 | Windows platform specific code
+#ifdef _WIN32
+    #include <windows.h>
+#else
+// Linux/Unix 平台相关头文件
+#include <sys/utsname.h>
+#include <unistd.h>
 #endif
 
 // --- 系统环境宏定义 | System environment macro definitions ---
@@ -133,7 +138,8 @@ namespace tc {
      */
     inline std::string executeCommand(const char* cmd) {
         std::string result;
-        std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+        using pipe_ptr = std::unique_ptr<FILE, int(*)(FILE*)>;
+        pipe_ptr pipe(popen(cmd, "r"), pclose);
         
         if (!pipe) {
             return "";
@@ -367,8 +373,7 @@ namespace tc {
                 return OS_ANDROID;
             #else
                 // 运行时检测Linux发行版
-                #include <unistd.h>
-                #include <sys/utsname.h>
+                // ...existing code...
                 
                 // 首先尝试使用lsb_release命令获取发行版信息
                 std::string lsbRelease = executeCommand("lsb_release -i -s 2>/dev/null");

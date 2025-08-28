@@ -4,9 +4,11 @@
 void typewriter(const std::string& text, int delay_ms = 50) {
     for (char c : text) {
         tc::print(c);
-        tc::tsleep(delay_ms).execute();
+        std::cout.flush();  // 立即刷新输出
+        tc::wait(delay_ms / 1000.0);  // 将毫秒转换为秒
     }
     tc::println();
+    std::cout.flush();
 }
 
 int main() {
@@ -28,10 +30,13 @@ int main() {
     std::string text = "这是变速的打字机效果...";
     for (char c : text) {
         tc::print(c);
+        std::cout.flush();  // 立即刷新输出
         int delay = (c == ' ' || c == '.') ? 200 : 40;
-        tc::tsleep(delay).execute();
+        tc::wait(delay / 1000.0);  // 将毫秒转换为秒
     }
-    tc::println(TCOLOR_RESET);
+    tc::println();
+    tc::print(TCOLOR_RESET);
+    std::cout.flush();
     
     return 0;
 }

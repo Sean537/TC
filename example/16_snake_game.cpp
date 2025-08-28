@@ -7,8 +7,60 @@
 #include <chrono>
 
 #ifdef _WIN32
-    #include <conio.h>
+#include <conio.h>
+#else
+#include <termios.h>
+#include <unistd.h>
+#include <fcntl.h>
 #endif
+
+// 跨平台按键检测
+inline int kbhit() {
+#ifdef _WIN32
+    return _kbhit();
+#else
+    struct termios oldt, newt;
+    int ch;
+    int oldf;
+    
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
+    fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
+    
+    ch = getchar();
+    
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    fcntl(STDIN_FILENO, F_SETFL, oldf);
+    
+    if(ch != EOF) {
+        ungetc(ch, stdin);
+        return 1;
+    }
+    return 0;
+#endif
+}
+
+inline int getch() {
+#ifdef _WIN32
+    return _getch();
+#else
+    int ch;
+    struct termios oldt, newt;
+    
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    
+    ch = getchar();
+    
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    return ch;
+#endif
+}
 
 // 简单的贪吃蛇游戏
 class SnakeGame {
@@ -115,10 +167,11 @@ private:
     
     // 处理输入
     void handleInput() {
-        if (_kbhit()) {
-            int key = _getch();
+        if (kbhit()) {
+            int key = getch();
+#ifdef _WIN32
             if (key == 224) { // 方向键前缀
-                key = _getch();
+                key = getch();
                 switch (key) {
                     case 72: // 上
                         if (dir_ != Direction::DOWN) dir_ = Direction::UP;
@@ -133,7 +186,29 @@ private:
                         if (dir_ != Direction::LEFT) dir_ = Direction::RIGHT;
                         break;
                 }
-            } else if (key == 27) { // ESC
+            }
+#else
+            if (key == 27) {  // ESC 序列开始
+                if (getch() == '[') {
+                    key = getch();
+                    switch (key) {
+                        case 'A': // 上
+                            if (dir_ != Direction::DOWN) dir_ = Direction::UP;
+                            break;
+                        case 'B': // 下
+                            if (dir_ != Direction::UP) dir_ = Direction::DOWN;
+                            break;
+                        case 'D': // 左
+                            if (dir_ != Direction::RIGHT) dir_ = Direction::LEFT;
+                            break;
+                        case 'C': // 右
+                            if (dir_ != Direction::LEFT) dir_ = Direction::RIGHT;
+                            break;
+                    }
+                }
+            }
+#endif
+            if (key == 27) { // ESC 键
                 gameOver_ = true;
             }
         }
@@ -230,5 +305,6 @@ int main() {
     SnakeGame game;
     game.run();
     
+    tc::terminal::clear();
     return 0;
 }
