@@ -14,7 +14,7 @@
  * - Stream-style delay operation class (TSleepStream)
  * - Stream output with color and style support
  * 
- * 版本 Version: 1.1.1 Beta
+ * 版本 Version: 1.1.1
  * 作者 Author: 537 Studio
  * 许可 License: MIT
  */

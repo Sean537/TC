@@ -16,7 +16,7 @@
  * - RGB color support
  * - Convenient color functions
  * 
- * 版本 Version: 1.1.1 Beta
+ * 版本 Version: 1.1.1
  * 作者 Author: 537 Studio
  * 许可 License: MIT
  */
