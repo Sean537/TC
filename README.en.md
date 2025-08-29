@@ -140,6 +140,8 @@ tc::ColorController::setColor(tc::ColorController::Color::RESET);
 
 #### Convenient Color Functions
 
+> ⚠ Note: Convenient color functions essentially add ANSI escape sequences to the beginning and end of strings. It's best not to overuse them in outputs, and some terminals do not support ANSI escape sequences. If you want to output colored text, it's recommended to use other methods instead.
+
 ```cpp
 // Basic color functions
 std::string coloredText = tc::colorize("Colored text", tc::ColorController::Color::CYAN);

@@ -140,6 +140,8 @@ tc::ColorController::setColor(tc::ColorController::Color::RESET);
 
 #### 便捷颜色函数
 
+> ⚠ 注意：便捷颜色函数本质上是在字符串头尾添加 ANSI 转义序列，最好不要在输出上滥用，并且部分终端不支持 ANSI 转移序列。想要做文本带颜色输出，推荐移步其它方法。
+
 ```cpp
 // 基本颜色函数
 std::string coloredText = tc::colorize("彩色文本", tc::ColorController::Color::CYAN);
