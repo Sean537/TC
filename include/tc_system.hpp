@@ -14,7 +14,7 @@
  * - System version information retrieval
  * - Cross-platform system identification support
  * 
- * 版本 Version: 1.1.1
+ * 版本 Version: 1.1.2 Beta
  * 作者 Author: 537 Studio
  * 许可 License: MIT
  */
