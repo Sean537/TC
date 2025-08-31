@@ -34,3 +34,9 @@
 # Temp folders
 ./test
 ./codebuddy
+
+# Build
+.xmake
+Build
+bin
+.cache

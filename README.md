@@ -39,7 +39,7 @@ int main() {
     tc::tout << TFONT_BOLD << "粗体文本" << TFONT_RESET << std::endl;
     tc::tout << TCOLOR_RGB(255,0,0) << "RGB红" << TCOLOR_RESET << std::endl;
     std::cout << tc::red("红色文本") << std::endl;
-    
+
     // ⏱️ 延时输出
     tc::tout << "Wait..." << std::endl;
     tc::tsleep(1000);
@@ -92,7 +92,7 @@ int main() {
     int os = tc::systemCheck();
     const char* osName = tc::getOSName(os);
     std::string osVersionInfo = tc::getOSVersionInfo();
-    
+
     tc::println("当前系统: ", osName);
     tc::println("系统版本: ", osVersionInfo);
 
@@ -425,6 +425,8 @@ if (tc::isKeyPressed('A') || tc::isKeyPressed('a')) {
 
 - Windows: `g++ -std=c++17 test.cpp -o test.exe`
 - Linux/macOS: `g++ -std=c++17 -pthread test.cpp -o test`
+
+如果安装了构建工具 [xmake](https://xmake.io/)，可以使用命令 `xmake -a` 一键构建所有 example，输出的可执行文件位于 `bin/examples` 下。
 
 ---
 
