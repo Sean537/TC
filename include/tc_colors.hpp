@@ -34,7 +34,31 @@
     #include <windows.h>  // Windows API
 #endif
 
-// ===== ANSI前景色宏定义（全局作用域） | ANSI foreground color macros (global scope) =====
+// ===== 颜色宏定义（全局作用域） | Color macros (global scope) =====
+#if defined(_WIN32) && defined(TC_ENABLE_WIN32_CONSOLE_API)
+// 启用Win32 Console API时：使用包装器对象
+#define TCOLOR_BLACK   tc::ColorWrapper(tc::ColorController::Color::BLACK)
+#define TCOLOR_RED     tc::ColorWrapper(tc::ColorController::Color::RED)
+#define TCOLOR_GREEN   tc::ColorWrapper(tc::ColorController::Color::GREEN)
+#define TCOLOR_YELLOW  tc::ColorWrapper(tc::ColorController::Color::YELLOW)
+#define TCOLOR_BLUE    tc::ColorWrapper(tc::ColorController::Color::BLUE)
+#define TCOLOR_MAGENTA tc::ColorWrapper(tc::ColorController::Color::MAGENTA)
+#define TCOLOR_CYAN    tc::ColorWrapper(tc::ColorController::Color::CYAN)
+#define TCOLOR_WHITE   tc::ColorWrapper(tc::ColorController::Color::WHITE)
+#define TCOLOR_DEFAULT tc::ColorWrapper(tc::ColorController::Color::RESET)
+#define TCOLOR_RESET   tc::ColorWrapper(tc::ColorController::Color::RESET)
+
+#define BCOLOR_BLACK   tc::ColorWrapper(tc::ColorController::Color::BLACK, true)
+#define BCOLOR_RED     tc::ColorWrapper(tc::ColorController::Color::RED, true)
+#define BCOLOR_GREEN   tc::ColorWrapper(tc::ColorController::Color::GREEN, true)
+#define BCOLOR_YELLOW  tc::ColorWrapper(tc::ColorController::Color::YELLOW, true)
+#define BCOLOR_BLUE    tc::ColorWrapper(tc::ColorController::Color::BLUE, true)
+#define BCOLOR_MAGENTA tc::ColorWrapper(tc::ColorController::Color::MAGENTA, true)
+#define BCOLOR_CYAN    tc::ColorWrapper(tc::ColorController::Color::CYAN, true)
+#define BCOLOR_WHITE   tc::ColorWrapper(tc::ColorController::Color::WHITE, true)
+#define BCOLOR_DEFAULT tc::ColorWrapper(tc::ColorController::Color::RESET, true)
+#else
+// 默认使用ANSI转义序列
 #define TCOLOR_BLACK   "\033[30m"  // 黑色文本 | Black text
 #define TCOLOR_RED     "\033[31m"  // 红色文本 | Red text
 #define TCOLOR_GREEN   "\033[32m"  // 绿色文本 | Green text
@@ -46,7 +70,6 @@
 #define TCOLOR_DEFAULT "\033[39m"  // 默认前景色 | Default foreground color
 #define TCOLOR_RESET   "\033[0m"   // 重置所有属性 | Reset all attributes
 
-// ===== ANSI背景色宏定义（全局作用域） | ANSI background color macros (global scope) =====
 #define BCOLOR_BLACK   "\033[40m"  // 黑色背景 | Black background
 #define BCOLOR_RED     "\033[41m"  // 红色背景 | Red background
 #define BCOLOR_GREEN   "\033[42m"  // 绿色背景 | Green background
@@ -56,8 +79,34 @@
 #define BCOLOR_CYAN    "\033[46m"  // 青色背景 | Cyan background
 #define BCOLOR_WHITE   "\033[47m"  // 白色背景 | White background
 #define BCOLOR_DEFAULT "\033[49m"  // 默认背景色 | Default background color
+#endif
 
-// ===== ANSI字体样式宏（全局作用域） | ANSI font style macros (global scope) =====
+// ===== 字体样式宏（全局作用域） | Font style macros (global scope) =====
+#if defined(_WIN32) && defined(TC_ENABLE_WIN32_CONSOLE_API)
+// 启用Win32 Console API时：使用包装器对象
+#define TFONT_BOLD        tc::FontStyleWrapper(tc::FontStyleWrapper::BOLD)
+#define TFONT_FAINT       tc::FontStyleWrapper(tc::FontStyleWrapper::FAINT)
+#define TFONT_ITALIC      tc::FontStyleWrapper(tc::FontStyleWrapper::ITALIC)
+#define TFONT_UNDERLINE   tc::FontStyleWrapper(tc::FontStyleWrapper::UNDERLINE)
+#define TFONT_BLINK_SLOW  tc::FontStyleWrapper(tc::FontStyleWrapper::BLINK_SLOW)
+#define TFONT_BLINK_FAST  tc::FontStyleWrapper(tc::FontStyleWrapper::BLINK_FAST)
+#define TFONT_REVERSE     tc::FontStyleWrapper(tc::FontStyleWrapper::REVERSE)
+#define TFONT_CONCEAL     tc::FontStyleWrapper(tc::FontStyleWrapper::CONCEAL)
+#define TFONT_CROSSED     tc::FontStyleWrapper(tc::FontStyleWrapper::CROSSED)
+#define TFONT_DEFAULT     tc::FontStyleWrapper(tc::FontStyleWrapper::DEFAULT)
+#define TFONT_FRAKTUR     tc::FontStyleWrapper(tc::FontStyleWrapper::FRAKTUR)
+#define TFONT_DOUBLE_UNDERLINE tc::FontStyleWrapper(tc::FontStyleWrapper::DOUBLE_UNDERLINE)
+#define TFONT_NORMAL      tc::FontStyleWrapper(tc::FontStyleWrapper::NORMAL)
+#define TFONT_NOT_ITALIC  tc::FontStyleWrapper(tc::FontStyleWrapper::NOT_ITALIC)
+#define TFONT_NO_UNDERLINE tc::FontStyleWrapper(tc::FontStyleWrapper::NO_UNDERLINE)
+#define TFONT_NO_BLINK    tc::FontStyleWrapper(tc::FontStyleWrapper::NO_BLINK)
+#define TFONT_NO_REVERSE  tc::FontStyleWrapper(tc::FontStyleWrapper::NO_REVERSE)
+#define TFONT_REVEAL      tc::FontStyleWrapper(tc::FontStyleWrapper::REVEAL)
+#define TFONT_NOT_CROSSED tc::FontStyleWrapper(tc::FontStyleWrapper::NOT_CROSSED)
+#define TFONT_THICK       TFONT_BOLD
+#define TFONT_RESET       tc::FontStyleWrapper(tc::FontStyleWrapper::RESET)
+#else
+// 默认使用ANSI转义序列
 #define TFONT_BOLD        "\033[1m"   // 粗体/加粗文本 | Bold text
 #define TFONT_FAINT       "\033[2m"   // 微弱/淡色文本 | Faint/dim text
 #define TFONT_ITALIC      "\033[3m"   // 斜体文本 | Italic text
@@ -79,6 +128,7 @@
 #define TFONT_NOT_CROSSED "\033[29m"  // 关闭删除线 | Crossed-out off
 #define TFONT_THICK       TFONT_BOLD  // 兼容别名（粗体） | Compatible alias for bold
 #define TFONT_RESET       "\033[0m"   // 全部重置（所有属性） | Reset all attributes
+#endif
 
 namespace tc {
 
@@ -154,10 +204,16 @@ private:
             SetConsoleOutputCP(CP_UTF8);  // 输出编码 | Output encoding
             SetConsoleCP(CP_UTF8);        // 输入编码 | Input encoding
             
-            // 尝试启用ANSI转义序列处理 | Try to enable ANSI escape sequence processing
+            // 根据宏切换 ANSI 虚拟终端处理 | Toggle ANSI virtual terminal processing by macro
             DWORD dwMode = 0;
             if (GetConsoleMode(hConsole_, &dwMode)) {
+#if defined(TC_ENABLE_WIN32_CONSOLE_API)
+                // 禁用 ANSI，强制使用 Win32 API
+                SetConsoleMode(hConsole_, dwMode & ~ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+#else
+                // 默认启用 ANSI 虚拟终端处理（Win10 1809+ 支持）
                 SetConsoleMode(hConsole_, dwMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+#endif
             }
         }
     }
@@ -490,6 +546,73 @@ public:
     }
 
     /**
+     * 设置背景颜色
+     * Set background color
+     * 
+     * @param color 要设置的背景色 | Background color to set
+     */
+    static void setBackground(Color color) {
+#ifdef _WIN32
+        auto& console = Win32Console::getInstance();
+        WORD bgColor = 0;
+        
+        switch (color) {
+            case Color::BLACK: bgColor = 0; break;  // Windows中没有BACKGROUND_BLACK，使用0
+            case Color::RED: bgColor = BACKGROUND_RED; break;
+            case Color::GREEN: bgColor = BACKGROUND_GREEN; break;
+            case Color::YELLOW: bgColor = BACKGROUND_RED | BACKGROUND_GREEN; break;
+            case Color::BLUE: bgColor = BACKGROUND_BLUE; break;
+            case Color::MAGENTA: bgColor = BACKGROUND_RED | BACKGROUND_BLUE; break;
+            case Color::CYAN: bgColor = BACKGROUND_GREEN | BACKGROUND_BLUE; break;
+            case Color::WHITE: bgColor = BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE; break;
+            case Color::BRIGHT_BLACK: bgColor = BACKGROUND_INTENSITY; break;
+            case Color::BRIGHT_RED: bgColor = BACKGROUND_RED | BACKGROUND_INTENSITY; break;
+            case Color::BRIGHT_GREEN: bgColor = BACKGROUND_GREEN | BACKGROUND_INTENSITY; break;
+            case Color::BRIGHT_YELLOW: bgColor = BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_INTENSITY; break;
+            case Color::BRIGHT_BLUE: bgColor = BACKGROUND_BLUE | BACKGROUND_INTENSITY; break;
+            case Color::BRIGHT_MAGENTA: bgColor = BACKGROUND_RED | BACKGROUND_BLUE | BACKGROUND_INTENSITY; break;
+            case Color::BRIGHT_CYAN: bgColor = BACKGROUND_GREEN | BACKGROUND_BLUE | BACKGROUND_INTENSITY; break;
+            case Color::BRIGHT_WHITE: bgColor = BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE | BACKGROUND_INTENSITY; break;
+            case Color::RESET:
+            default:
+                console.resetColor();
+                return;
+        }
+        
+        // 获取当前前景色并组合背景色
+        WORD currentColor = console.getCurrentColor();
+        WORD newColor = (currentColor & 0x0F) | bgColor;  // 保留前景色，设置背景色
+        console.setColor(newColor);
+#else
+        const char* ansiBgColor;
+        
+        switch (color) {
+            case Color::BLACK: ansiBgColor = "\033[40m"; break;
+            case Color::RED: ansiBgColor = "\033[41m"; break;
+            case Color::GREEN: ansiBgColor = "\033[42m"; break;
+            case Color::YELLOW: ansiBgColor = "\033[43m"; break;
+            case Color::BLUE: ansiBgColor = "\033[44m"; break;
+            case Color::MAGENTA: ansiBgColor = "\033[45m"; break;
+            case Color::CYAN: ansiBgColor = "\033[46m"; break;
+            case Color::WHITE: ansiBgColor = "\033[47m"; break;
+            case Color::BRIGHT_BLACK: ansiBgColor = "\033[100m"; break;
+            case Color::BRIGHT_RED: ansiBgColor = "\033[101m"; break;
+            case Color::BRIGHT_GREEN: ansiBgColor = "\033[102m"; break;
+            case Color::BRIGHT_YELLOW: ansiBgColor = "\033[103m"; break;
+            case Color::BRIGHT_BLUE: ansiBgColor = "\033[104m"; break;
+            case Color::BRIGHT_MAGENTA: ansiBgColor = "\033[105m"; break;
+            case Color::BRIGHT_CYAN: ansiBgColor = "\033[106m"; break;
+            case Color::BRIGHT_WHITE: ansiBgColor = "\033[107m"; break;
+            case Color::RESET:
+            default:
+                ansiBgColor = "\033[49m";
+                break;
+        }
+        std::cout << ansiBgColor;
+#endif
+    }
+
+    /**
      * 设置RGB颜色
      * Set RGB color
      * 
@@ -545,6 +668,7 @@ public:
 class ColorWrapper {
 private:
     ColorController::Color color_; // 存储的颜色枚举值 | Stored color enumeration value
+    bool isBackground_;            // 是否为背景色 | Whether this is a background color
     
 public:
     /**
@@ -552,9 +676,70 @@ public:
      * Constructor
      * 
      * @param color 要使用的颜色 | Color to use
+     * @param isBackground 是否为背景色 | Whether this is a background color
      */
-    explicit ColorWrapper(ColorController::Color color) : color_(color) {}
+    explicit ColorWrapper(ColorController::Color color, bool isBackground = false) : color_(color), isBackground_(isBackground) {}
     
+    /**
+     * 转换为字符串操作符，使对象可以用于字符串连接
+     * Conversion to string operator, allowing the object to be used in string concatenation
+     * 
+     * @return 对应的ANSI转义序列字符串 | Corresponding ANSI escape sequence string
+     */
+    operator std::string() const {
+#if defined(_WIN32) && defined(TC_ENABLE_WIN32_CONSOLE_API)
+        // Windows 且启用宏：返回空字符串，因为使用Win32 API
+        return "";
+#else
+        // 非 Windows：返回ANSI转义序列
+        const char* ansiCode;
+        if (isBackground_) {
+            switch (color_) {
+                case ColorController::Color::BLACK: ansiCode = "\033[40m"; break;
+                case ColorController::Color::RED: ansiCode = "\033[41m"; break;
+                case ColorController::Color::GREEN: ansiCode = "\033[42m"; break;
+                case ColorController::Color::YELLOW: ansiCode = "\033[43m"; break;
+                case ColorController::Color::BLUE: ansiCode = "\033[44m"; break;
+                case ColorController::Color::MAGENTA: ansiCode = "\033[45m"; break;
+                case ColorController::Color::CYAN: ansiCode = "\033[46m"; break;
+                case ColorController::Color::WHITE: ansiCode = "\033[47m"; break;
+                case ColorController::Color::BRIGHT_BLACK: ansiCode = "\033[100m"; break;
+                case ColorController::Color::BRIGHT_RED: ansiCode = "\033[101m"; break;
+                case ColorController::Color::BRIGHT_GREEN: ansiCode = "\033[102m"; break;
+                case ColorController::Color::BRIGHT_YELLOW: ansiCode = "\033[103m"; break;
+                case ColorController::Color::BRIGHT_BLUE: ansiCode = "\033[104m"; break;
+                case ColorController::Color::BRIGHT_MAGENTA: ansiCode = "\033[105m"; break;
+                case ColorController::Color::BRIGHT_CYAN: ansiCode = "\033[106m"; break;
+                case ColorController::Color::BRIGHT_WHITE: ansiCode = "\033[107m"; break;
+                case ColorController::Color::RESET: ansiCode = "\033[49m"; break;
+                default: ansiCode = "\033[49m"; break;
+            }
+        } else {
+            switch (color_) {
+                case ColorController::Color::BLACK: ansiCode = "\033[30m"; break;
+                case ColorController::Color::RED: ansiCode = "\033[31m"; break;
+                case ColorController::Color::GREEN: ansiCode = "\033[32m"; break;
+                case ColorController::Color::YELLOW: ansiCode = "\033[33m"; break;
+                case ColorController::Color::BLUE: ansiCode = "\033[34m"; break;
+                case ColorController::Color::MAGENTA: ansiCode = "\033[35m"; break;
+                case ColorController::Color::CYAN: ansiCode = "\033[36m"; break;
+                case ColorController::Color::WHITE: ansiCode = "\033[37m"; break;
+                case ColorController::Color::BRIGHT_BLACK: ansiCode = "\033[90m"; break;
+                case ColorController::Color::BRIGHT_RED: ansiCode = "\033[91m"; break;
+                case ColorController::Color::BRIGHT_GREEN: ansiCode = "\033[92m"; break;
+                case ColorController::Color::BRIGHT_YELLOW: ansiCode = "\033[93m"; break;
+                case ColorController::Color::BRIGHT_BLUE: ansiCode = "\033[94m"; break;
+                case ColorController::Color::BRIGHT_MAGENTA: ansiCode = "\033[95m"; break;
+                case ColorController::Color::BRIGHT_CYAN: ansiCode = "\033[96m"; break;
+                case ColorController::Color::BRIGHT_WHITE: ansiCode = "\033[97m"; break;
+                case ColorController::Color::RESET: ansiCode = "\033[0m"; break;
+                default: ansiCode = "\033[0m"; break;
+            }
+        }
+        return std::string(ansiCode);
+#endif
+    }
+
     /**
      * 输出流操作符重载，使对象可以直接用于流式输出
      * Output stream operator overload, allowing the object to be used directly in stream output
@@ -564,32 +749,66 @@ public:
      * @return 输出流引用，用于链式调用 | Output stream reference for chaining
      */
     friend std::ostream& operator<<(std::ostream& os, const ColorWrapper& wrapper) {
-        // 统一使用ANSI转义序列，忽略平台差异
-        const char* ansiColor;
-        
-        switch (wrapper.color_) {
-            case ColorController::Color::BLACK: ansiColor = "\033[30m"; break;
-            case ColorController::Color::RED: ansiColor = "\033[31m"; break;
-            case ColorController::Color::GREEN: ansiColor = "\033[32m"; break;
-            case ColorController::Color::YELLOW: ansiColor = "\033[33m"; break;
-            case ColorController::Color::BLUE: ansiColor = "\033[34m"; break;
-            case ColorController::Color::MAGENTA: ansiColor = "\033[35m"; break;
-            case ColorController::Color::CYAN: ansiColor = "\033[36m"; break;
-            case ColorController::Color::WHITE: ansiColor = "\033[37m"; break;
-            case ColorController::Color::BRIGHT_BLACK: ansiColor = "\033[90m"; break;
-            case ColorController::Color::BRIGHT_RED: ansiColor = "\033[91m"; break;
-            case ColorController::Color::BRIGHT_GREEN: ansiColor = "\033[92m"; break;
-            case ColorController::Color::BRIGHT_YELLOW: ansiColor = "\033[93m"; break;
-            case ColorController::Color::BRIGHT_BLUE: ansiColor = "\033[94m"; break;
-            case ColorController::Color::BRIGHT_MAGENTA: ansiColor = "\033[95m"; break;
-            case ColorController::Color::BRIGHT_CYAN: ansiColor = "\033[96m"; break;
-            case ColorController::Color::BRIGHT_WHITE: ansiColor = "\033[97m"; break;
-            case ColorController::Color::RESET: 
-            default: 
-                ansiColor = "\033[0m";
-                break;
+#if defined(_WIN32) && defined(TC_ENABLE_WIN32_CONSOLE_API)
+        // Windows 且启用宏：调用 Win32 API，不输出 ANSI
+        if (wrapper.isBackground_) {
+            ColorController::setBackground(wrapper.color_);
+        } else {
+            ColorController::setColor(wrapper.color_);
         }
-        return os << ansiColor;
+        return os;
+#else
+        // 非 Windows：使用 ANSI 转义序列
+        const char* ansiCode;
+        if (wrapper.isBackground_) {
+            switch (wrapper.color_) {
+                case ColorController::Color::BLACK: ansiCode = "\033[40m"; break;
+                case ColorController::Color::RED: ansiCode = "\033[41m"; break;
+                case ColorController::Color::GREEN: ansiCode = "\033[42m"; break;
+                case ColorController::Color::YELLOW: ansiCode = "\033[43m"; break;
+                case ColorController::Color::BLUE: ansiCode = "\033[44m"; break;
+                case ColorController::Color::MAGENTA: ansiCode = "\033[45m"; break;
+                case ColorController::Color::CYAN: ansiCode = "\033[46m"; break;
+                case ColorController::Color::WHITE: ansiCode = "\033[47m"; break;
+                case ColorController::Color::BRIGHT_BLACK: ansiCode = "\033[100m"; break;
+                case ColorController::Color::BRIGHT_RED: ansiCode = "\033[101m"; break;
+                case ColorController::Color::BRIGHT_GREEN: ansiCode = "\033[102m"; break;
+                case ColorController::Color::BRIGHT_YELLOW: ansiCode = "\033[103m"; break;
+                case ColorController::Color::BRIGHT_BLUE: ansiCode = "\033[104m"; break;
+                case ColorController::Color::BRIGHT_MAGENTA: ansiCode = "\033[105m"; break;
+                case ColorController::Color::BRIGHT_CYAN: ansiCode = "\033[106m"; break;
+                case ColorController::Color::BRIGHT_WHITE: ansiCode = "\033[107m"; break;
+                case ColorController::Color::RESET:
+                default:
+                    ansiCode = "\033[49m";
+                    break;
+            }
+        } else {
+            switch (wrapper.color_) {
+                case ColorController::Color::BLACK: ansiCode = "\033[30m"; break;
+                case ColorController::Color::RED: ansiCode = "\033[31m"; break;
+                case ColorController::Color::GREEN: ansiCode = "\033[32m"; break;
+                case ColorController::Color::YELLOW: ansiCode = "\033[33m"; break;
+                case ColorController::Color::BLUE: ansiCode = "\033[34m"; break;
+                case ColorController::Color::MAGENTA: ansiCode = "\033[35m"; break;
+                case ColorController::Color::CYAN: ansiCode = "\033[36m"; break;
+                case ColorController::Color::WHITE: ansiCode = "\033[37m"; break;
+                case ColorController::Color::BRIGHT_BLACK: ansiCode = "\033[90m"; break;
+                case ColorController::Color::BRIGHT_RED: ansiCode = "\033[91m"; break;
+                case ColorController::Color::BRIGHT_GREEN: ansiCode = "\033[92m"; break;
+                case ColorController::Color::BRIGHT_YELLOW: ansiCode = "\033[93m"; break;
+                case ColorController::Color::BRIGHT_BLUE: ansiCode = "\033[94m"; break;
+                case ColorController::Color::BRIGHT_MAGENTA: ansiCode = "\033[95m"; break;
+                case ColorController::Color::BRIGHT_CYAN: ansiCode = "\033[96m"; break;
+                case ColorController::Color::BRIGHT_WHITE: ansiCode = "\033[97m"; break;
+                case ColorController::Color::RESET:
+                default:
+                    ansiCode = "\033[0m";
+                    break;
+            }
+        }
+        return os << ansiCode;
+#endif
     }
 };
 
@@ -627,10 +846,15 @@ public:
      * @return 输出流引用，用于链式调用 | Output stream reference for chaining
      */
     friend std::ostream& operator<<(std::ostream& os, const RGBColorWrapper& wrapper) {
-        // 统一使用ANSI转义序列，忽略平台差异
+#if defined(_WIN32) && defined(TC_ENABLE_WIN32_CONSOLE_API)
+        // Windows 且启用宏：调用 Win32 API，不输出 ANSI
+        ColorController::setRGBColor(wrapper.r_, wrapper.g_, wrapper.b_);
+        return os;
+#else
         std::ostringstream ansiCode;
         ansiCode << "\033[38;2;" << wrapper.r_ << ";" << wrapper.g_ << ";" << wrapper.b_ << "m";
         return os << ansiCode.str();
+#endif
     }
 };
 
@@ -638,24 +862,52 @@ public:
  * 字体样式包装器类
  * Font style wrapper class
  * 
- * 这个类封装了字体样式设置（目前支持粗体），便于在流式输出中使用。
- * 例如：std::cout << FontStyleWrapper(true) << "粗体文本" << FontStyleWrapper(false);
+ * 这个类封装了字体样式设置，便于在流式输出中使用。
+ * 例如：std::cout << FontStyleWrapper(FontStyleWrapper::BOLD) << "粗体文本" << FontStyleWrapper(FontStyleWrapper::RESET);
  * 
- * This class encapsulates font style settings (currently supports bold) for easy use in stream output.
- * Example: std::cout << FontStyleWrapper(true) << "Bold text" << FontStyleWrapper(false);
+ * This class encapsulates font style settings for easy use in stream output.
+ * Example: std::cout << FontStyleWrapper(FontStyleWrapper::BOLD) << "Bold text" << FontStyleWrapper(FontStyleWrapper::RESET);
  */
 class FontStyleWrapper {
+public:
+    /**
+     * 字体样式枚举
+     * Font style enumeration
+     */
+    enum Style {
+        BOLD = 1,        // 粗体 | Bold
+        FAINT = 2,       // 淡色 | Faint
+        ITALIC = 3,      // 斜体 | Italic
+        UNDERLINE = 4,   // 下划线 | Underline
+        BLINK_SLOW = 5,  // 慢速闪烁 | Slow blink
+        BLINK_FAST = 6,  // 快速闪烁 | Fast blink
+        REVERSE = 7,     // 反色 | Reverse
+        CONCEAL = 8,     // 隐藏 | Conceal
+        CROSSED = 9,     // 删除线 | Crossed out
+        DEFAULT = 10,    // 默认字体 | Default font
+        FRAKTUR = 20,    // Fraktur字体 | Fraktur font
+        DOUBLE_UNDERLINE = 21, // 双下划线 | Double underline
+        NORMAL = 22,     // 正常强度 | Normal intensity
+        NOT_ITALIC = 23, // 非斜体 | Not italic
+        NO_UNDERLINE = 24, // 无下划线 | No underline
+        NO_BLINK = 25,   // 无闪烁 | No blink
+        NO_REVERSE = 27, // 无反色 | No reverse
+        REVEAL = 28,     // 显示 | Reveal
+        NOT_CROSSED = 29, // 无删除线 | Not crossed
+        RESET = 0        // 重置 | Reset
+    };
+    
 private:
-    bool enable_; // 是否启用样式 | Whether to enable the style
+    Style style_; // 字体样式 | Font style
     
 public:
     /**
      * 构造函数
      * Constructor
      * 
-     * @param enable 是否启用样式 | Whether to enable the style
+     * @param style 字体样式 | Font style
      */
-    explicit FontStyleWrapper(bool enable) : enable_(enable) {}
+    explicit FontStyleWrapper(Style style) : style_(style) {}
     
     /**
      * 输出流操作符重载，使对象可以直接用于流式输出
@@ -666,8 +918,31 @@ public:
      * @return 输出流引用，用于链式调用 | Output stream reference for chaining
      */
     friend std::ostream& operator<<(std::ostream& os, const FontStyleWrapper& wrapper) {
-        // 统一使用ANSI转义序列，忽略平台差异
-        return os << (wrapper.enable_ ? "\033[1m" : "\033[22m");
+#if defined(_WIN32) && defined(TC_ENABLE_WIN32_CONSOLE_API)
+        // Windows 且启用宏：调用 Win32 API
+        switch (wrapper.style_) {
+            case BOLD: ColorController::setBold(true); break;
+            case RESET: ColorController::setColor(ColorController::Color::RESET); break;
+            // Windows控制台API不支持其他字体样式，直接输出ANSI序列
+            case ITALIC: os << "\033[3m"; break;
+            case UNDERLINE: os << "\033[4m"; break;
+            case REVERSE: os << "\033[7m"; break;
+            case CROSSED: os << "\033[9m"; break;
+            default: break;
+        }
+        return os;
+#else
+        // 默认使用ANSI序列
+        switch (wrapper.style_) {
+            case BOLD: return os << "\033[1m";
+            case ITALIC: return os << "\033[3m";
+            case UNDERLINE: return os << "\033[4m";
+            case REVERSE: return os << "\033[7m";
+            case CROSSED: return os << "\033[9m";
+            case RESET: return os << "\033[0m";
+            default: return os << "\033[0m";
+        }
+#endif
     }
 };
 

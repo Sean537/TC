@@ -1,4 +1,7 @@
-# TC.hpp - ✨ 跨平台终端控制头文件库
+# TC
+
+> 新增：ANSI 默认启用 + Windows 宏开关  
+本库默认使用 ANSI 转义序列；如需在 Windows 上禁用 ANSI 转而使用 Win32 Console API，请启用宏 `TC_ENABLE_WIN32_CONSOLE_API`。详见 `doc/ansi_usage.md`。.hpp - ✨ 跨平台终端控制头文件库
 
 [![C++17](https://img.shields.io/badge/C%2B%2B-17%2B-blue.svg)](https://en.cppreference.com/w/cpp/compiler_support)
 ![平台](https://img.shields.io/badge/平台-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)

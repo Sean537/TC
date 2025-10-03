@@ -69,9 +69,15 @@ public:
      * 
      * @return 对象自身引用，支持链式调用 | Self reference for chaining
      */
-    Printer& clear() { 
+    Printer& clear() {
+#ifdef _WIN32
+        // Windows：使用 Win32 API 清屏
+        Win32Console::getInstance().clearScreen();
+        return *this;
+#else
         std::cout << "\033[2J\033[H"; // ANSI清屏和光标定位序列 | ANSI clear screen and cursor positioning sequence
-        return *this; 
+        return *this;
+#endif
     }
     
     /**
@@ -82,9 +88,15 @@ public:
      * @param y 行坐标（从1开始） | Row coordinate (1-based)
      * @return 对象自身引用，支持链式调用 | Self reference for chaining
      */
-    Printer& moveCursor(int x, int y) { 
+    Printer& moveCursor(int x, int y) {
+#ifdef _WIN32
+        // Windows：使用 Win32 API，注意 0 基坐标
+        Win32Console::getInstance().moveCursor(x - 1, y - 1);
+        return *this;
+#else
         std::cout << "\033[" << y << ";" << x << "H"; // ANSI光标定位序列 | ANSI cursor positioning sequence
-        return *this; 
+        return *this;
+#endif
     }
     
     /**
@@ -144,10 +156,22 @@ public:
      * 
      * @return 对象自身引用，支持链式调用 | Self reference for chaining
      */
-    Printer& hideCursor() { 
+    Printer& hideCursor() {
+#ifdef _WIN32
+        // Windows：隐藏光标
+        HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+        CONSOLE_CURSOR_INFO info;
+        if (GetConsoleCursorInfo(h, &info)) {
+            info.bVisible = FALSE;
+            SetConsoleCursorInfo(h, &info);
+        }
+        flush();  // 立即刷新以确保光标状态更新
+        return *this;
+#else
         std::cout << "\033[?25l"; // ANSI隐藏光标序列 | ANSI hide cursor sequence
         flush();  // 立即刷新以确保光标状态更新
-        return *this; 
+        return *this;
+#endif
     }
     
     /**
@@ -156,10 +180,22 @@ public:
      * 
      * @return 对象自身引用，支持链式调用 | Self reference for chaining
      */
-    Printer& showCursor() { 
+    Printer& showCursor() {
+#ifdef _WIN32
+        // Windows：显示光标
+        HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+        CONSOLE_CURSOR_INFO info;
+        if (GetConsoleCursorInfo(h, &info)) {
+            info.bVisible = TRUE;
+            SetConsoleCursorInfo(h, &info);
+        }
+        flush();  // 立即刷新以确保光标状态更新
+        return *this;
+#else
         std::cout << "\033[?25h"; // ANSI显示光标序列 | ANSI show cursor sequence
         flush();  // 立即刷新以确保光标状态更新
-        return *this; 
+        return *this;
+#endif
     }
     
     /**
@@ -182,6 +218,24 @@ public:
      * @return 对象自身引用，支持链式调用 | Self reference for chaining
      */
     Printer& moveCursor(Direction dir, int n) {
+#ifdef _WIN32
+        // Windows：相对移动光标
+        HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+        CONSOLE_SCREEN_BUFFER_INFO csbi;
+        if (GetConsoleScreenBufferInfo(h, &csbi)) {
+            SHORT x = csbi.dwCursorPosition.X;
+            SHORT y = csbi.dwCursorPosition.Y;
+            switch(dir) {
+                case Direction::Up:    y = (y - n) < 0 ? 0 : y - n; break;
+                case Direction::Down:  y = y + n; break;
+                case Direction::Right: x = x + n; break;
+                case Direction::Left:  x = (x - n) < 0 ? 0 : x - n; break;
+            }
+            COORD coord = {x, y};
+            SetConsoleCursorPosition(h, coord);
+        }
+        return *this;
+#else
         switch(dir) {
             case Direction::Up: std::cout << "\033[" << n << "A"; break;     // 向上移动 | Move up
             case Direction::Down: std::cout << "\033[" << n << "B"; break;   // 向下移动 | Move down
@@ -189,6 +243,7 @@ public:
             case Direction::Left: std::cout << "\033[" << n << "D"; break;   // 向左移动 | Move left
         }
         return *this;
+#endif
     }
     
     /**

@@ -1,4 +1,7 @@
-# TC.hpp - ✨ Cross-Platform Terminal Control Header Library
+# TC
+
+> Update: ANSI by default + Windows macro switch  
+By default the library uses ANSI escapes. To force Windows to disable ANSI and use Win32 Console API, enable `TC_ENABLE_WIN32_CONSOLE_API`. See `doc/ansi_usage.md`..hpp - ✨ Cross-Platform Terminal Control Header Library
 
 [![C++17](https://img.shields.io/badge/C%2B%2B-17%2B-blue.svg)](https://en.cppreference.com/w/cpp/compiler_support)
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)

@@ -109,10 +109,10 @@
  * for easy maintenance and understanding. Each module has specific responsibilities and functions.
  */
 #include "tc_colors.hpp"       // 颜色和样式相关功能 | Color and style related functionality
+#include "tc_stream.hpp"       // 流式输出和延时 | Stream output and delay
 #include "tc_print.hpp"        // 打印功能 | Print functionality
 #include "tc_wait.hpp"         // 等待和按键处理 | Wait and key handling
 #include "tc_terminal.hpp"     // 终端控制 | Terminal control
-#include "tc_stream.hpp"       // 流式输出和延时 | Stream output and delay
 #include "tc_progress.hpp"     // 进度条 | Progress bar
 #include "tc_system.hpp"       // 系统检测 | System detection
 #include "tc_system_utils.hpp" // 系统工具 | System utilities
