@@ -208,7 +208,7 @@ private:
             DWORD dwMode = 0;
             if (GetConsoleMode(hConsole_, &dwMode)) {
 #if defined(TC_ENABLE_WIN32_CONSOLE_API)
-                // 禁用 ANSI，强制使用 Win32 API
+                // 禁用 ANSI 虚拟终端处理，但保持其他模式不变以避免字体渲染问题
                 SetConsoleMode(hConsole_, dwMode & ~ENABLE_VIRTUAL_TERMINAL_PROCESSING);
 #else
                 // 默认启用 ANSI 虚拟终端处理（Win10 1809+ 支持）
@@ -923,11 +923,11 @@ public:
         switch (wrapper.style_) {
             case BOLD: ColorController::setBold(true); break;
             case RESET: ColorController::setColor(ColorController::Color::RESET); break;
-            // Windows控制台API不支持其他字体样式，直接输出ANSI序列
-            case ITALIC: os << "\033[3m"; break;
-            case UNDERLINE: os << "\033[4m"; break;
-            case REVERSE: os << "\033[7m"; break;
-            case CROSSED: os << "\033[9m"; break;
+            // Windows控制台API不支持斜体、下划线、反色、删除线等字体样式，直接忽略
+            case ITALIC: break;  // 斜体 - 不支持，忽略
+            case UNDERLINE: break;  // 下划线 - 不支持，忽略
+            case REVERSE: break;  // 反色 - 不支持，忽略
+            case CROSSED: break;  // 删除线 - 不支持，忽略
             default: break;
         }
         return os;

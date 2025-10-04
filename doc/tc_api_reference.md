@@ -1,138 +1,129 @@
-# TC.hpp API 参考手册
+# TC库API参考手册
 
-本文档提供TC库的核心API参考，包含主要类、函数和宏定义。
+本文档提供TC库的完整API参考，采用灵活的表格格式，便于快速查阅和使用。
 
-## 核心命名空间：tc
+## 快速导航
 
-### 输出函数
-- `print(Args... args)` - 多参数打印
-- `println(Args... args)` - 多参数打印并换行
-- `tout` - 全局输出流对象
+- [输出函数](#输出函数)
+- [延时函数](#延时函数)
+- [按键处理](#按键处理)
+- [系统功能](#系统功能)
+- [Printer类](#printer类)
+- [ProgressBar类](#progressbar类)
+- [宏定义参考](#宏定义参考)
 
-### 延时函数
-- `wait(double seconds)` - 等待指定秒数
-- `tsleep(int milliseconds)` - 等待指定毫秒
-- `tsleep_stream` - 延时流对象
+## 输出函数
 
-### 按键等待
-- `waitKey()` - 等待任意按键
-- `waitKey(char key)` - 等待特定字符
-- `waitKey(int key)` - 等待特定键码
+| 函数 | 原定义 | 功能 | 返回值 | 示例 |
+|------|--------|------|--------|------|
+| `tc::print(Args... args)` | `template<typename... Args> void print(Args&&... args)` | 多参数打印，不换行 | `void` | `tc::print("Hello", " ", "World");` |
+| `tc::println(Args... args)` | `template<typename... Args> void println(Args&&... args)` | 多参数打印并换行 | `void` | `tc::println("Hello World");` |
+| `tc::tout` | `extern std::ostream tout;` | 全局输出流对象，支持颜色/样式/延时 | `std::ostream&` | `tc::tout << TCOLOR_RED << "红色文本";` |
 
-### 系统功能
-- `getSystemTime(int type)` - 获取系统时间
-- `systemConsole(const string& cmd)` - 执行系统命令
-- `systemCheck()` - 检测操作系统
-- `getOSName(int osCode)` - 获取系统名称
+## 延时函数
 
-## Printer 类
+| 函数 | 原定义 | 功能 | 返回值 | 示例 |
+|------|--------|------|--------|------|
+| `tc::wait(double seconds)` | `void wait(double seconds)` | 等待指定秒数 | `void` | `tc::wait(1.5);` |
+| `tc::tsleep(int milliseconds)` | `SleepStream tsleep(int milliseconds)` | 等待指定毫秒数，返回延时流对象 | `SleepStream` | `tc::tsleep(1000);` |
+| `tc::tsleep_stream` | `extern SleepStream tsleep_stream;` | 延时流对象，用于流式延时操作 | `SleepStream&` | `tc::tsleep_stream << 500;` |
 
-链式终端控制接口：
+## 按键处理
 
-```cpp
-tc::printer()
-    .clear()                    // 清屏
-    .moveCursor(x, y)           // 移动光标
-    .hideCursor()               // 隐藏光标
-    .print("文本")              // 打印
-    .flush();                   // 刷新缓冲区
-```
+| 函数 | 原定义 | 功能 | 返回值 | 示例 |
+|------|--------|------|--------|------|
+| `tc::waitKey()` | `void waitKey()` | 等待任意按键 | `void` | `tc::waitKey();` |
+| `tc::waitKey(char key)` | `void waitKey(char key)` | 等待特定字符按键 | `void` | `tc::waitKey('A');` |
+| `tc::waitKey(int key)` | `void waitKey(int key)` | 等待特定键码 | `void` | `tc::waitKey(KEY_ESC);` |
+| `tc::isKeyPressed(char key)` | `bool isKeyPressed(char key)` | 检测指定字符按键是否被按下 | `bool` | `tc::isKeyPressed('A');` |
+| `tc::isKeyPressed(int key)` | `bool isKeyPressed(int key)` | 检测指定键码是否被按下 | `bool` | `tc::isKeyPressed(KEY_UP);` |
+
+## 系统功能
+
+| 函数 | 原定义 | 功能 | 返回值 | 示例 |
+|------|--------|------|--------|------|
+| `tc::getSystemTime(int type)` | `int getSystemTime(int type = SYS_TIMESTAMP)` | 获取系统时间 | `int` | `tc::getSystemTime(SYS_YEAR);` |
+| `tc::systemConsole(const std::string& cmd)` | `void systemConsole(const std::string& cmd)` | 执行系统命令 | `void` | `tc::systemConsole("echo Hello");` |
+| `tc::systemConsoleW(const wchar_t* cmd)` | `void systemConsoleW(const wchar_t* cmd)` | 执行系统命令（宽字符版本） | `void` | `tc::systemConsoleW(L"echo");` |
+| `tc::systemCheck()` | `int systemCheck()` | 检测当前操作系统 | `int` | `tc::systemCheck();` |
+| `tc::getOSName(int osCode)` | `const char* getOSName(int osCode)` | 根据操作系统代码返回操作系统名称 | `const char*` | `tc::getOSName(tc::systemCheck());` |
+| `tc::getOSVersionInfo()` | `std::string getOSVersionInfo()` | 获取当前操作系统的详细版本信息 | `std::string` | `tc::getOSVersionInfo();` |
+
+## Printer类
+
+### 构造函数
+- **原定义**: `Printer()`
+- **功能**: 创建Printer对象
+- **返回值**: `Printer`对象
 
 ### 主要方法
-- `clear()` - 清屏
-- `moveCursor(int x, int y)` - 绝对移动
-- `moveCursor(Direction, int)` - 相对移动
-- `hideCursor()/showCursor()` - 光标控制
-- `print()/println()` - 打印
-- `getSize()` - 获取终端尺寸
-- `flush()` - 刷新缓冲区
 
-## ProgressBar 类
+| 方法 | 原定义 | 功能 | 返回值 | 示例 |
+|------|--------|------|--------|------|
+| `Printer::clear()` | `Printer& clear()` | 清屏 | `Printer&` | `tc::printer().clear();` |
+| `Printer::moveCursor(int x, int y)` | `Printer& moveCursor(int x, int y)` | 移动光标到绝对位置 | `Printer&` | `tc::printer().moveCursor(10, 5);` |
+| `Printer::moveCursor(Direction dir, int n)` | `Printer& moveCursor(Direction dir, int n)` | 相对移动光标 | `Printer&` | `tc::printer().moveCursor(Direction::Down, 2);` |
+| `Printer::hideCursor()` | `Printer& hideCursor()` | 隐藏光标 | `Printer&` | `tc::printer().hideCursor();` |
+| `Printer::showCursor()` | `Printer& showCursor()` | 显示光标 | `Printer&` | `tc::printer().showCursor();` |
+| `Printer::print(Args... args)` | `template<typename... Args> Printer& print(Args&&... args)` | 打印内容，不换行 | `Printer&` | `tc::printer().print("Hello");` |
+| `Printer::println(Args... args)` | `template<typename... Args> Printer& println(Args&&... args)` | 打印内容并换行 | `Printer&` | `tc::printer().println("Hello");` |
+| `Printer::getSize()` | `std::pair<int, int> getSize()` | 获取终端尺寸 | `std::pair<int, int>` | `tc::printer().getSize();` |
+| `Printer::flush()` | `Printer& flush()` | 刷新缓冲区 | `Printer&` | `tc::printer().flush();` |
 
-进度条功能：
+## ProgressBar类
 
+### 构造函数
+- **原定义**: `ProgressBar(int width, const std::string& doneChar, const std::string& todoChar, int color)`
+- **功能**: 创建进度条对象
+- **参数**:
+  - `width`: 进度条宽度
+  - `doneChar`: 已完成部分字符
+  - `todoChar`: 未完成部分字符
+  - `color`: 进度条颜色
+- **示例**: `tc::ProgressBar bar(30, "█", "░", TCOLOR_GREEN);`
+
+### 主要方法
+
+| 方法 | 原定义 | 功能 | 返回值 | 示例 |
+|------|--------|------|--------|------|
+| `ProgressBar::show(double progress, const std::string& message)` | `void show(double progress, const std::string& message = "")` | 显示进度 | `void` | `bar.show(0.75, "处理中");` |
+| `ProgressBar::finish(const std::string& message)` | `void finish(const std::string& message = "")` | 完成进度条 | `void` | `bar.finish("完成");` |
+
+## 宏定义参考
+
+### 按键宏
 ```cpp
-tc::ProgressBar bar(width, doneChar, todoChar, color);
-bar.show(progress, message);    // 显示进度
-bar.finish(message);            // 完成进度条
+KEY_ESC, KEY_ENTER, KEY_SPACE, KEY_TAB, KEY_BACKSPACE
+KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT
+KEY_F1 到 KEY_F12
+KEY_INSERT, KEY_DELETE, KEY_HOME, KEY_END, KEY_PAGEUP, KEY_PAGEDOWN
 ```
 
-## 主要颜色宏
-
-### 前景色
-- `TCOLOR_RED`, `TCOLOR_GREEN`, `TCOLOR_BLUE` 等
-- `TCOLOR_RESET` - 重置所有属性
-
-### 背景色  
-- `BCOLOR_RED`, `BCOLOR_GREEN`, `BCOLOR_BLUE` 等
-
-### 字体样式
-- `TFONT_BOLD` - 粗体
-- `TFONT_UNDERLINE` - 下划线
-- `TFONT_ITALIC` - 斜体
-
-### RGB颜色
-- `TCOLOR_RGB(r, g, b)` - RGB前景色
-
-## 按键宏定义
-
+### 时间宏
 ```cpp
-KEY_ESC, KEY_ENTER, KEY_SPACE    // 基本键
-KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT  // 方向键
-KEY_F1 到 KEY_F12                // 功能键
-KEY_INSERT, KEY_DELETE           // 编辑键
-KEY_HOME, KEY_END, KEY_PAGEUP, KEY_PAGEDOWN  // 导航键
+SYS_YEAR, SYS_MONTH, SYS_DAY
+SYS_HOUR, SYS_MINUTE, SYS_SECOND
+SYS_TIMESTAMP  // Unix时间戳
 ```
 
-## 系统时间宏
-
+### 系统宏
 ```cpp
-SYS_YEAR, SYS_MONTH, SYS_DAY     // 年月日
-SYS_HOUR, SYS_MINUTE, SYS_SECOND // 时分秒
-SYS_TIMESTAMP                    // Unix时间戳
+OS_WINDOWSNT11, OS_WINDOWSNT10, OS_WINDOWSNT6
+OS_LINUX, OS_UBUNTU, OS_DEBIAN, OS_FEDORA
+OS_MACOS, OS_IOS, OS_ANDROID
+OS_UNKNOWN  // 未知系统
 ```
 
-## 操作系统宏
-
-主要系统类型：
-- `OS_WINDOWSNT11` - Windows 11
-- `OS_WINDOWSNT10` - Windows 10  
-- `OS_LINUX` - Linux
-- `OS_MACOS` - macOS
-- `OS_ANDROID` - Android
-
-## 使用示例
-
-### 基本输出
+### 颜色和样式宏
 ```cpp
-tc::println("Hello", "World");
-tc::tout << "流式输出" << std::endl;
+// 前景色
+TCOLOR_RED, TCOLOR_GREEN, TCOLOR_BLUE, TCOLOR_RESET
+// 背景色
+BCOLOR_RED, BCOLOR_GREEN, BCOLOR_BLUE, BCOLOR_DEFAULT
+// 字体样式
+TFONT_BOLD, TFONT_UNDERLINE, TFONT_ITALIC, TFONT_RESET
+// RGB颜色
+TCOLOR_RGB(r, g, b)
 ```
 
-### 颜色控制
-```cpp
-tc::println(TCOLOR_RED, "红色文本", TCOLOR_RESET);
-std::cout << tc::red("红色字符串");
-```
-
-### 终端控制
-```cpp
-tc::printer()
-    .clear()
-    .moveCursor(10, 5)
-    .print("位置文本")
-    .moveCursor(Direction::Down, 2)
-    .println("下移两行");
-```
-
-### 进度条
-```cpp
-tc::ProgressBar bar(40, "█", "░", TCOLOR_CYAN);
-for (int i = 0; i <= 100; i++) {
-    bar.show(i / 100.0, "处理中...");
-    tc::wait(0.01);
-}
-bar.finish("完成");
-```
-
-> 完整API列表请参考源代码注释，此文档仅包含主要接口。
+> 完整源代码和更多细节请参考TC.hpp头文件注释。

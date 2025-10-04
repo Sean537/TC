@@ -1,14 +1,11 @@
-# TC
-
-> 新增：ANSI 默认启用 + Windows 宏开关  
-本库默认使用 ANSI 转义序列；如需在 Windows 上禁用 ANSI 转而使用 Win32 Console API，请启用宏 `TC_ENABLE_WIN32_CONSOLE_API`。详见 `doc/ansi_usage.md`。.hpp - ✨ 跨平台终端控制头文件库
+# TC.hpp - ✨ 跨平台终端控制头文件库
 
 [![C++17](https://img.shields.io/badge/C%2B%2B-17%2B-blue.svg)](https://en.cppreference.com/w/cpp/compiler_support)
 ![平台](https://img.shields.io/badge/平台-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)
 ![Header-Only](https://img.shields.io/badge/Header--Only-Yes-green.svg)
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> 🚀 一个现代化的 C++17 终端控制库，旨在用最简单的语法解决开发过程中会遇到的各种问题。目前功能包括终端彩色输出、延时、进度条、基础控制、系统信息检测、获取时间等，跨平台、零依赖、纯头文件！
+🚀 一个现代化的 C++17 终端控制库，旨在用最简单的语法解决开发过程中会遇到的各种问题。目前功能包括终端彩色输出、延时、进度条、基础控制、系统信息检测、获取时间等，跨平台、零依赖、纯头文件！
 
 ---
 
@@ -20,6 +17,12 @@
 - ⏱️ 延时与打字机特效
 - 📊 进度条、链式API、终端尺寸/光标控制
 - 🧩 代码风格简洁，易于集成
+
+> ⚠️ **重要说明**
+>
+> TC.hpp 默认在所有平台上使用 ANSI 转义序列实现彩色文本输出、光标移动等终端功能。如需在 Windows 系统上禁用 ANSI 转义序列并改用 Win32 控制台 API，请启用 `TC_ENABLE_WIN32_CONSOLE_API` 宏。但需注意，Win32 API 对部分字体样式和颜色存在兼容性限制。
+>
+> 若需适配 Windows 10 1809 以下版本的 cmd 和 PowerShell，建议开启此宏。启用 Win32 API 模式后，若原代码通过 `std::cout` 输出ANSI转义内容（如使用便捷颜色函数），请将 `std::cout` 替换为 `tc::tout`，否则转义序列将直接输出导致显示错误。使用 `tc::tout`、`tc::print`、`tc::println` 后，Win32 不支持的样式和颜色将自动忽略并以默认样式显示。
 
 ---
 
@@ -143,7 +146,9 @@ tc::ColorController::setColor(tc::ColorController::Color::RESET);
 
 #### 便捷颜色函数
 
-> ⚠ 注意：便捷颜色函数本质上是在字符串头尾添加 ANSI 转义序列，最好不要在输出上滥用，并且部分终端不支持 ANSI 转移序列。想要做文本带颜色输出，推荐移步其它方法。
+> ⚠ 注意：便捷颜色函数本质上是为字符串添加 ANSI 转义序列，由于部分终端不支持 ANSI 转移序列或是支持有限（如旧的 cmd.exe），除非你没有适配这些终端的需求，否则最好不要在输出上滥用。
+>
+> 如果你启用了 `TC_ENABLE_WIN32_CONSOLE_API` 宏，请将输出了本函数返回值的 `std::cout` 换成 `tc::tout`，这样彩色内容在 Windows 上不会显示为彩色，但文本能正常显示。否则会直接输出 ANSI 转义序列导致内容错误显示。
 
 ```cpp
 // 基本颜色函数
@@ -174,33 +179,34 @@ std::cout << tc::brightYellow("亮黄色文本") << std::endl;
 
 | 宏名                      | 效果             | 兼容性说明 |
 |---------------------------|------------------|------------|
-| TFONT_BOLD                | 粗体/加粗        | 所有平台完全支持 |
-| TFONT_FAINT               | 微弱/淡色        | Windows完全支持，其他终端部分支持 |
-| TFONT_ITALIC              | 斜体             | Windows完全支持，其他终端部分支持 |
-| TFONT_UNDERLINE           | 下划线           | 所有平台完全支持 |
-| TFONT_BLINK_SLOW          | 慢速闪烁         | Windows完全支持，其他终端部分支持 |
-| TFONT_BLINK_FAST          | 快速闪烁         | Windows完全支持，其他终端很少支持 |
-| TFONT_REVERSE             | 反色             | 所有平台完全支持 |
-| TFONT_CONCEAL             | 隐藏             | Windows完全支持，其他终端很少支持 |
-| TFONT_CROSSED             | 删除线           | Windows完全支持，其他终端部分支持 |
-| TFONT_DEFAULT             | 默认字体         | Windows完全支持，其他终端很少支持 |
-| TFONT_FRAKTUR             | Fraktur字体      | Windows完全支持，其他终端极少支持 |
-| TFONT_DOUBLE_UNDERLINE    | 双下划线/粗体关闭| Windows完全支持，其他终端部分支持 |
-| TFONT_NORMAL              | 粗体/淡色关闭    | 所有平台完全支持 |
-| TFONT_NOT_ITALIC          | 关闭斜体/Fraktur | Windows完全支持，其他终端部分支持 |
-| TFONT_NO_UNDERLINE        | 关闭下划线       | 所有平台完全支持 |
-| TFONT_NO_BLINK            | 关闭闪烁         | Windows完全支持，其他终端很少支持 |
-| TFONT_NO_REVERSE          | 关闭反色         | 所有平台完全支持 |
-| TFONT_REVEAL              | 关闭隐藏         | Windows完全支持，其他终端很少支持 |
-| TFONT_NOT_CROSSED         | 关闭删除线       | Windows完全支持，其他终端部分支持 |
+| TFONT_BOLD                | 粗体/加粗        | ANSI完全支持，Win32完全支持 |
+| TFONT_FAINT               | 微弱/淡色        | ANSI部分支持，Win32不支持 |
+| TFONT_ITALIC              | 斜体             | ANSI部分支持，Win32不支持 |
+| TFONT_UNDERLINE           | 下划线           | ANSI大多支持，Win32不支持 |
+| TFONT_BLINK_SLOW          | 慢速闪烁         | ANSI部分支持，Win32不支持 |
+| TFONT_BLINK_FAST          | 快速闪烁         | ANSI很少支持，Win32不支持 |
+| TFONT_REVERSE             | 反色             | ANSI大多支持，Win32不支持 |
+| TFONT_CONCEAL             | 隐藏             | ANSI很少支持，Win32不支持 |
+| TFONT_CROSSED             | 删除线           | ANSI部分支持，Win32不支持 |
+| TFONT_DEFAULT             | 默认字体         | ANSI很少支持，Win32不支持 |
+| TFONT_FRAKTUR             | Fraktur字体      | ANSI极少支持，Win32不支持 |
+| TFONT_DOUBLE_UNDERLINE    | 双下划线/粗体关闭| ANSI部分支持，Win32不支持 |
+| TFONT_NORMAL              | 粗体/淡色关闭    | ANSI大多支持，Win32完全支持 |
+| TFONT_NOT_ITALIC          | 关闭斜体/Fraktur | ANSI部分支持，Win32不支持 |
+| TFONT_NO_UNDERLINE        | 关闭下划线       | ANSI大多支持，Win32不支持 |
+| TFONT_NO_BLINK            | 关闭闪烁         | ANSI很少支持，Win32不支持 |
+| TFONT_NO_REVERSE          | 关闭反色         | ANSI大多支持，Win32不支持 |
+| TFONT_REVEAL              | 关闭隐藏         | ANSI很少支持，Win32不支持 |
+| TFONT_NOT_CROSSED         | 关闭删除线       | ANSI部分支持，Win32不支持 |
 | TFONT_THICK               | 粗体（别名）     | 同TFONT_BOLD |
 | TFONT_RESET               | 全部重置         | 所有平台完全支持 |
 
 > ⚠️ **兼容性说明**：
 >
-> - TC.hpp 在 Windows 平台上使用 Windows Console API（Win32 API）实现终端控制功能，而不使用 ANSI 转义序列，因此所有字体样式在 Windows 平台上都能完全支持，不受终端对 ANSI 转义序列支持程度的限制。
-> - Linux/macOS 下使用 ANSI 转义序列实现，主流终端（如 GNOME Terminal、iTerm2、Konsole、Alacritty 等）大多支持常用样式（粗体、下划线、反色、部分斜体/删除线）。
-> - TFONT_FRAKTUR、TFONT_DEFAULT、TFONT_DOUBLE_UNDERLINE 等为扩展/实验性样式，在非 Windows 平台上支持度较低。
+> - TC.hpp 默认在所有平台上使用 ANSI 转义序列实现终端控制功能。
+> - 如果定义了 `TC_ENABLE_WIN32_CONSOLE_API` 宏，Windows 平台将使用 Win32 Console API 实现，但受限于 Win32 API 特性，对部分字体样式有兼容性问题（如斜体、闪烁、删除线等不支持）。
+> - Linux/macOS 平台始终使用 ANSI 转义序列，支持程度取决于终端模拟器。主流终端大多支持常用样式（粗体、下划线、反色），部分支持斜体/删除线，很少支持闪烁/隐藏等高级样式。
+> - TFONT_FRAKTUR、TFONT_DEFAULT、TFONT_DOUBLE_UNDERLINE 等为扩展/实验性样式，在大多数终端上支持度较低。
 
 用法示例：`tc::println(TCOLOR_RED, BCOLOR_YELLOW, TFONT_BOLD, "红字黄底粗体")`
 

@@ -79,15 +79,15 @@ public:
                 if (s == "\033[0m") { ColorController::setColor(ColorController::Color::RESET); return; }
                 if (s == "\033[1m") { ColorController::setBold(true); return; }
                 if (s == "\033[22m") { ColorController::setBold(false); return; }
-                // 字体样式处理 - Windows控制台API不支持，直接输出ANSI序列
-                if (s == "\033[3m") { std::cout << s; return; }  // 斜体
-                if (s == "\033[23m") { std::cout << s; return; }   // 关闭斜体
-                if (s == "\033[4m") { std::cout << s; return; }   // 下划线
-                if (s == "\033[24m") { std::cout << s; return; }   // 关闭下划线
-                if (s == "\033[7m") { std::cout << s; return; }    // 反色
-                if (s == "\033[27m") { std::cout << s; return; }  // 关闭反色
-                if (s == "\033[9m") { std::cout << s; return; }   // 删除线
-                if (s == "\033[29m") { std::cout << s; return; }   // 关闭删除线
+                // 字体样式处理 - Windows控制台API不支持斜体、下划线、反色、删除线等样式，直接忽略
+                if (s == "\033[3m") { return; }  // 斜体 - 不支持，忽略
+                if (s == "\033[23m") { return; }   // 关闭斜体 - 不支持，忽略
+                if (s == "\033[4m") { return; }   // 下划线 - 不支持，忽略
+                if (s == "\033[24m") { return; }   // 关闭下划线 - 不支持，忽略
+                if (s == "\033[7m") { return; }    // 反色 - 不支持，忽略
+                if (s == "\033[27m") { return; }  // 关闭反色 - 不支持，忽略
+                if (s == "\033[9m") { return; }   // 删除线 - 不支持，忽略
+                if (s == "\033[29m") { return; }   // 关闭删除线 - 不支持，忽略
                 // 前景色常量
                 if (s == "\033[30m") { ColorController::setColor(ColorController::Color::BLACK); return; }
                 if (s == "\033[31m") { ColorController::setColor(ColorController::Color::RED); return; }
