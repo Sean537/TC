@@ -36,6 +36,8 @@
 ./codebuddy
 
 # Build
+./bin
+./build
 .xmake
 Build
 bin

@@ -1,136 +1,105 @@
-# TC库ANSI转义码支持参考
+# TC 库 ANSI 转义码支持与兼容性参考
 
-本文档提供TC库实际支持的ANSI转义码功能参考，基于TC库的实际实现。
+本文档基于源码实现梳理出 TC 的实际功能与兼容性情况。请注意：
+- “库支持”指 TC 具备输出或映射该功能的能力（有宏/接口或可直出 ANSI 序列）；“是否可见/效果如何”由“终端”决定。
+- Windows 下存在两条实现路径：
+  - 默认（未定义 TC_ENABLE_WIN32_CONSOLE_API）：颜色/样式走 ANSI 转义，TC 在 Win32Console 中启用虚拟终端处理（VT / ENABLE_VIRTUAL_TERMINAL_PROCESSING）以让 ANSI 生效；光标/清屏等“终端控制”统一走 Win32 API。
+  - 定义 TC_ENABLE_WIN32_CONSOLE_API：颜色/样式走 Win32 API，Win32Console 会关闭 VT；tc::tout / tc::print 会解析常见 ANSI 颜色序列并映射到 Win32 行为。此路径在样式维度（斜体/下划线/反色/闪烁等）与 ANSI 路径不等价，部分样式被忽略。
+- Windows 上 TC 在构造 Win32Console 时设置控制台代码页为 UTF-8（SetConsoleOutputCP/SetConsoleCP），但 MSVC 的窄流与终端字体/控制台宿主仍可能影响中文显示，必要时请结合 setlocale/_setmode 或 wcout。
 
-## TC库实际支持的ANSI功能
+## 实现路径总览
 
-### 基础颜色和样式支持
+- 颜色/样式
+  - 未定义 TC_ENABLE_WIN32_CONSOLE_API：TCOLOR_*/BCOLOR_*/TFONT_* 直接输出 ANSI；RGB 使用 38;2;r;g;b。Win10 1809+ 需 VT 才能正确渲染。
+  - 定义 TC_ENABLE_WIN32_CONSOLE_API：上述宏为包装器，经 ColorController/Win32Console 走 Win32 API；tc::tout / tc::print 在 Windows 分支会识别若干 ANSI 序列并转为 Win32 行为（主要是颜色/重置/粗体），不支持的样式将被忽略。
+- 终端控制（清屏/光标）始终：Windows 用 Win32 API（通过 Win32Console），非 Windows 输出 ANSI。
+- 256 色与真彩：库侧可直接输出 ANSI（38;5;n / 48;5;n / 38;2;r;g;b / 48;2;r;g;b）；是否呈现取决于终端能力。
 
-TC库支持以下基础的ANSI转义码：
+## 功能矩阵（按类别）
 
-| ANSI代码 | TC宏定义 | 功能 | 实际支持 |
-|----------|----------|------|----------|
-| `\033[0m` | `TCOLOR_RESET` | 重置所有样式 | ✅ 支持 |
-| `\033[1m` | `TFONT_BOLD` | 粗体/加粗 | ✅ 支持 |
-| `\033[4m` | `TFONT_UNDERLINE` | 下划线 | ✅ 支持 |
-| `\033[7m` | `TFONT_REVERSE` | 反色 | ✅ 支持 |
+说明：
+- ANSI兼容 指“典型现代终端在启用 ANSI/VT 条件下的渲染情况”；Win32兼容 指“定义 TC_ENABLE_WIN32_CONSOLE_API、走 Win32 API 时的表现”。  
+- 条目中的“库侧”描述 TC 如何输出/映射该能力。
 
-### 标准前景色（文字颜色）
+### 1) 颜色与样式
 
-| ANSI代码 | TC宏定义 | 颜色 | 实际支持 |
-|----------|----------|------|----------|
-| `\033[30m` | `TCOLOR_BLACK` | 黑色 | ✅ 支持 |
-| `\033[31m` | `TCOLOR_RED` | 红色 | ✅ 支持 |
-| `\033[32m` | `TCOLOR_GREEN` | 绿色 | ✅ 支持 |
-| `\033[33m` | `TCOLOR_YELLOW` | 黄色 | ✅ 支持 |
-| `\033[34m` | `TCOLOR_BLUE` | 蓝色 | ✅ 支持 |
-| `\033[35m` | `TCOLOR_MAGENTA` | 洋红 | ✅ 支持 |
-| `\033[36m` | `TCOLOR_CYAN` | 青色 | ✅ 支持 |
-| `\033[37m` | `TCOLOR_WHITE` | 白色 | ✅ 支持 |
+| 功能项 | ANSI示例 | TC 封装/库侧 | ANSI兼容 | Win32兼容 | 备注 |
+|---|---|---|---|---|---|
+| 重置 | \033[0m | TCOLOR_RESET / TFONT_RESET | 广泛支持 | 映射为重置颜色 | Windows 下通过 API 重置属性 |
+| 粗体 | \033[1m | TFONT_BOLD | 广泛支持 | 通过强度位近似 | Win32 使用 FOREGROUND_INTENSITY 近似 |
+| 下划线 | \033[4m | TFONT_UNDERLINE | 多数现代终端支持 | 通常不渲染 | Win32 路径被忽略（不生效） |
+| 反色 | \033[7m | TFONT_REVERSE | 多数现代终端支持 | 通常不渲染 | Win32 路径被忽略（不生效） |
+| 斜体 | \033[3m | 可直出 ANSI | 终端差异较大 | 不渲染 | Win32 路径被忽略 |
+| 微弱 | \033[2m | 可直出 ANSI | 终端差异较大 | 不渲染 | Win32 路径被忽略 |
+| 闪烁 | \033[5m/\033[6m | 可直出 ANSI | 多数终端关闭或不渲染 | 不渲染 | 不建议依赖 |
+| 隐藏 | \033[8m | 可直出 ANSI | 多数终端支持 | 不渲染 | Win32 路径被忽略 |
+| 删除线 | \033[9m | 可直出 ANSI | 终端差异较大 | 不渲染 | Win32 路径被忽略 |
+| 标准前景色 | \033[30..37m | TCOLOR_* | 广泛支持 | 可映射近似色 | Win32 颜色为 16 色 |
+| 标准背景色 | \033[40..47m | BCOLOR_* | 广泛支持 | 可映射近似色 | 同上 |
+| 亮色前景 | \033[90..97m | 可直出 ANSI | 现代终端良好 | 近似映射 | Win32 仍受 16 色限制 |
+| 亮色背景 | \033[100..107m | 可直出 ANSI | 现代终端良好 | 近似映射 | 同上 |
+| 256 色 | 38;5;n / 48;5;n | 可直出 ANSI | 终端普遍支持 | 需 ANSI+VT；近似 | Win32 路径不原生支持 |
+| RGB 真彩 | 38;2;r;g;b / 48;2;r;g;b | TCOLOR_RGB(r,g,b) (ANSI) | 取决终端与主题 | 需 ANSI+VT；近似 | Win32 路径以 16 色近似 |
 
-### 标准背景色
+注：定义 TC_ENABLE_WIN32_CONSOLE_API 后，tc::tout 与 tc::print 对常见 ANSI 颜色/重置/粗体会尝试做解析映射；其余样式多被忽略。
 
-| ANSI代码 | TC宏定义 | 颜色 | 实际支持 |
-|----------|----------|------|----------|
-| `\033[40m` | `BCOLOR_BLACK` | 黑色背景 | ✅ 支持 |
-| `\033[41m` | `BCOLOR_RED` | 红色背景 | ✅ 支持 |
-| `\033[42m` | `BCOLOR_GREEN` | 绿色背景 | ✅ 支持 |
-| `\033[43m` | `BCOLOR_YELLOW` | 黄色背景 | ✅ 支持 |
-| `\033[44m` | `BCOLOR_BLUE` | 蓝色背景 | ✅ 支持 |
-| `\033[45m` | `BCOLOR_MAGENTA` | 洋红背景 | ✅ 支持 |
-| `\033[46m` | `BCOLOR_CYAN` | 青色背景 | ✅ 支持 |
-| `\033[47m` | `BCOLOR_WHITE` | 白色背景 | ✅ 支持 |
+### 2) 光标与屏幕控制
 
-## TC库不支持的ANSI功能
-
-以下ANSI功能在TC库中**不**支持：
-
-### 不支持的样式
-- `\033[2m` (TFONT_FAINT) - 微弱/淡色
-- `\033[3m` (TFONT_ITALIC) - 斜体
-- `\033[5m` (TFONT_BLINK_SLOW) - 慢速闪烁
-- `\033[6m` (TFONT_BLINK_FAST) - 快速闪烁
-- `\033[8m` (TFONT_CONCEAL) - 隐藏文本
-- `\033[9m` (TFONT_CROSSED) - 删除线
-
-### 不支持的亮色
-- `\033[90m` - `\033[97m` (亮色前景色)
-- `\033[100m` - `\033[107m` (亮色背景色)
-
-### 不支持的256色和RGB模式
-- `\033[38;5;<n>m` (256色前景色)
-- `\033[48;5;<n>m` (256色背景色)
-- `\033[38;2;<r>;<g>;<b>m` (RGB前景色)
-- `\033[48;2;<r>;<g>;<b>m` (RGB背景色)
-
-### 不支持的光标和屏幕控制
-- 光标移动控制 (`\033[H`, `\033[A`, `\033[B`, 等)
-- 光标可见性控制 (`\033[?25l`, `\033[?25h`)
-- 屏幕清屏操作 (`\033[2J`, `\033[J`, `\033[K`, 等)
-- 屏幕缓冲区控制 (`\033[?47h`, `\033[?47l`)
-
-## TC库的ANSI实现策略
-
-TC库采用简单的ANSI转义码实现策略：
-
-```cpp
-// TC库实际的颜色宏定义（来自tc_colors.hpp）
-#define TCOLOR_RESET "\033[0m"
-#define TCOLOR_BLACK "\033[30m"
-#define TCOLOR_RED "\033[31m"
-#define TCOLOR_GREEN "\033[32m"
-#define TCOLOR_YELLOW "\033[33m"
-#define TCOLOR_BLUE "\033[34m"
-#define TCOLOR_MAGENTA "\033[35m"
-#define TCOLOR_CYAN "\033[36m"
-#define TCOLOR_WHITE "\033[37m"
-
-#define BCOLOR_BLACK "\033[40m"
-#define BCOLOR_RED "\033[41m"
-#define BCOLOR_GREEN "\033[42m"
-#define BCOLOR_YELLOW "\033[43m"
-#define BCOLOR_BLUE "\033[44m"
-#define BCOLOR_MAGENTA "\033[45m"
-#define BCOLOR_CYAN "\033[46m"
-#define BCOLOR_WHITE "\033[47m"
-
-#define TFONT_BOLD "\033[1m"
-#define TFONT_UNDERLINE "\033[4m"
-#define TFONT_REVERSE "\033[7m"
-```
+| 功能项 | ANSI示例 | TC 封装/库侧 | ANSI兼容 | Win32兼容 | 备注 |
+|---|---|---|---|---|---|
+| 清屏 | \033[2J | tc::terminal::clear() / tc::Printer::clear() | 现代终端支持 | Win32 API 清屏 | Windows 一律走 API |
+| 光标定位 | \033[y;xH | tc::terminal::moveCursor(x,y) / Printer::moveCursor | 现代终端支持 | Win32 API 定位 | Windows 一律走 API（0 基转换） |
+| 光标显隐 | \033[?25l / \033[?25h | tc::Printer::hideCursor/showCursor | 现代终端支持 | Win32 API 显隐 | Windows 一律走 API |
+| 获取尺寸 | — | tc::terminal::getSize() | ioctl TIOCGWINSZ | Win32 API 查询 | 无通用 ANSI |
 
 ## 使用示例
 
-### 基础颜色使用
+基础颜色（ANSI 路径）：
 ```cpp
 #include "tc.hpp"
-
 int main() {
-    // 使用TC库的颜色宏
     tc::println(TCOLOR_RED, "红色文本", TCOLOR_RESET);
-    tc::println(BCOLOR_GREEN, "绿色背景文本", TCOLOR_RESET);
-    
-    // 组合使用样式
-    tc::println(TCOLOR_BLUE, TFONT_BOLD, "蓝色粗体文本", TCOLOR_RESET);
-    
+    tc::println(BCOLOR_GREEN, "绿色背景", TCOLOR_RESET);
+    tc::tout << TCOLOR_BLUE << "蓝色流式输出" << TCOLOR_RESET << std::endl;
     return 0;
 }
 ```
 
-### 流式输出使用
+Windows 控制台建议初始化（仅示意，按需使用）：
 ```cpp
-#include "tc.hpp"
+#ifdef _WIN32
+#include <windows.h>
+static void init_console_utf8_vt() {
+    SetConsoleOutputCP(CP_UTF8);
+    SetConsoleCP(CP_UTF8);
+    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (h != INVALID_HANDLE_VALUE) {
+        DWORD m = 0;
+        if (GetConsoleMode(h, &m)) SetConsoleMode(h, m | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+    }
+}
+#endif
 
 int main() {
-    // 使用全局输出流
-    tc::tout << TCOLOR_RED << "红色流输出" << TCOLOR_RESET << std::endl;
-    
-    return 0;
+#ifdef _WIN32
+    init_console_utf8_vt();
+#endif
+    // ...
 }
 ```
 
-## 兼容性说明
+## 兼容性要点与排障
 
-TC库专注于提供基础的ANSI转义码支持，适用于大多数现代终端环境。对于高级的终端控制功能，建议使用专门的终端控制库。
+- Windows
+  - 默认路径（未定义 TC_ENABLE_WIN32_CONSOLE_API）：依赖 VT 渲染 ANSI。建议使用 Windows Terminal 或新版 PowerShell/ConHost；在旧环境可能无法渲染斜体/闪烁/真彩。
+  - 定义 TC_ENABLE_WIN32_CONSOLE_API：关闭 VT，颜色/重置/粗体通过 Win32 API 映射；斜体/下划线/反色/删除线等样式多数不生效。
+  - 代码页与中文：TC 会将控制台设为 UTF-8，但 MSVC 窄流/宿主控制台仍可能导致乱码；必要时 setlocale(LC_ALL,".UTF-8")、_setmode(stdout,_O_U8TEXT) 并使用 wcout。
+- 非 Windows
+  - 大多数现代终端对 ANSI/256 色/RGB 支持良好；极少数简化终端可能不支持某些样式或真彩。
+- 若期望“尽可能一致的样式呈现”，优先走 ANSI 路径并使用现代终端；Win32 路径更偏向“保守兼容”。
 
-> 注意：TC库不支持高级的ANSI功能如光标控制、屏幕操作等，这些功能需要专门的终端控制库来实现。
+## 关键实现摘录（便于对照）
+
+- 未定义 TC_ENABLE_WIN32_CONSOLE_API：TCOLOR_*/BCOLOR_*/TFONT_* 直接输出 ANSI；RGB 使用 \033[38;2;r;g;b m。
+- 定义 TC_ENABLE_WIN32_CONSOLE_API：上述宏为包装器，经 ColorController/Win32Console 使用 Win32 API；Win32Console 构造时关闭 VT；tc::tout / tc::print 会解析若干 ANSI 并映射到 Win32（颜色/重置/粗体），多数样式被忽略。
+- 终端控制（清屏/光标）在 Windows 始终走 Win32 API，非 Windows 输出 ANSI。
