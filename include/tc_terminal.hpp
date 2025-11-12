@@ -129,7 +129,7 @@ public:
         };
         (check(std::forward<Args>(args)), ...);
         
-        (void)std::initializer_list<int>{(std::cout << std::forward<Args>(args), 0)...}; 
+        (std::cout << ... << std::forward<Args>(args));
         if (needsFlush) {
             flush();
         }
@@ -145,7 +145,7 @@ public:
      */
     template<typename... Args>
     Printer& println(Args&&... args) { 
-        (void)std::initializer_list<int>{(std::cout << std::forward<Args>(args), 0)...}; 
+        (std::cout << ... << std::forward<Args>(args));
         std::cout << std::endl;  // endl 自带 flush
         return *this; 
     }

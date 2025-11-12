@@ -66,7 +66,8 @@ public:
     template<typename... Args>
     const PrintProxy& print(Args&&... args) const {
 #ifndef _WIN32
-        (void)std::initializer_list<int>{(std::cout << std::forward<Args>(args), 0)...};
+        // 使用 C++17 折叠表达式替代 initializer_list 展开，减少运行时开销
+        (std::cout << ... << std::forward<Args>(args));
 #else
         auto process = [](const auto& arg) {
             using T = std::decay_t<decltype(arg)>;
@@ -227,8 +228,11 @@ public:
             } else {
                 std::cout << arg;
             }
-        };
-        (void)std::initializer_list<int>{(process(std::forward<Args>(args)), 0)...};
+    };
+#if defined(_WIN32)
+    // 对每个参数调用 process，使用逗号折叠表达式展开
+    (process(std::forward<Args>(args)), ...);
+#endif
 #endif
         return *this;
     }
@@ -246,7 +250,7 @@ public:
     template<typename... Args>
     const PrintProxy& println(Args&&... args) const {
 #ifndef _WIN32
-        (void)std::initializer_list<int>{(std::cout << std::forward<Args>(args), 0)...};
+    (std::cout << ... << std::forward<Args>(args));
 #else
         print(std::forward<Args>(args)...);
 #endif
@@ -306,7 +310,7 @@ inline const PrintProxy& println() {
 template<typename... Args>
 inline void print(Args&&... args) {
 #ifndef _WIN32
-    (void)std::initializer_list<int>{(std::cout << std::forward<Args>(args), 0)...};
+    (std::cout << ... << std::forward<Args>(args));
 #else
     static PrintProxy p;
     p.print(std::forward<Args>(args)...);
@@ -322,7 +326,7 @@ inline void print(Args&&... args) {
 template<typename... Args>
 inline void println(Args&&... args) {
 #ifndef _WIN32
-    (void)std::initializer_list<int>{(std::cout << std::forward<Args>(args), 0)...};
+    (std::cout << ... << std::forward<Args>(args));
     std::cout << std::endl;
 #else
     static PrintProxy p;

@@ -552,7 +552,7 @@ public:
      * @param color 要设置的背景色 | Background color to set
      */
     static void setBackground(Color color) {
-#ifdef _WIN32 && TC_ENBALE_WIN32_CONSOLE_API
+#if defined(_WIN32) && defined(TC_ENABLE_WIN32_CONSOLE_API)
         auto& console = Win32Console::getInstance();
         WORD bgColor = 0;
         
