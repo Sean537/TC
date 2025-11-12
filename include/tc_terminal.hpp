@@ -28,6 +28,7 @@
 #include <type_traits>  // 类型特征 | Type traits
 #include <cstring>      // C字符串操作 | C string operations
 #include <string>       // C++字符串 | C++ string
+#include "tc_print.hpp"
 
 // 平台特定包含 | Platform-specific includes
 #ifdef _WIN32
@@ -129,7 +130,8 @@ public:
         };
         (check(std::forward<Args>(args)), ...);
         
-        (std::cout << ... << std::forward<Args>(args));
+        // 使用打印 helper 以保持与 tc_print 的行为一致（处理平台和特殊类型）
+        (tc::detail::print_one(std::forward<Args>(args)), ...);
         if (needsFlush) {
             flush();
         }
@@ -145,7 +147,7 @@ public:
      */
     template<typename... Args>
     Printer& println(Args&&... args) { 
-        (std::cout << ... << std::forward<Args>(args));
+        (tc::detail::print_one(std::forward<Args>(args)), ...);
         std::cout << std::endl;  // endl 自带 flush
         return *this; 
     }
