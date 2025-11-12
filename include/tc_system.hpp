@@ -144,7 +144,11 @@ namespace tc {
     inline std::string executeCommand(const char* cmd) {
         std::string result;
         using pipe_ptr = std::unique_ptr<FILE, int(*)(FILE*)>;
+#ifdef _MSC_VER
+        pipe_ptr pipe(_popen(cmd, "r"), _pclose);   //MSVC实现
+#else
         pipe_ptr pipe(popen(cmd, "r"), pclose);
+#endif
 
         if (!pipe) {
             return "";
