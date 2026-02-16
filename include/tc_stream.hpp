@@ -14,7 +14,7 @@
  * - Stream-style delay operation class (TSleepStream)
  * - Stream output with color and style support
  * 
- * 版本 Version: 1.1.1
+ * 版本 Version: 1.1.2 Beta
  * 作者 Author: 537 Studio
  * 许可 License: MIT
  */
@@ -116,8 +116,99 @@ public:
      */
     template<typename T>
     TOut& operator<<(T&& value) {
-        os_ << std::forward<T>(value); // 转发值到底层流 | Forward value to underlying stream
+#if defined(_WIN32) && defined(TC_ENABLE_WIN32_CONSOLE_API)
+        // 启用Win32 Console API：检测并处理ANSI序列
+        std::ostringstream oss;
+        oss << std::forward<T>(value);
+        std::string s = oss.str();
+        
+        // 检查是否是ANSI序列
+        if (s.length() >= 2 && s[0] == '\033' && s[1] == '[') {
+            // 处理ANSI序列
+            processANSISequence(s);
+        } else {
+            os_ << s;
+        }
+#else
+        // 默认行为：直接输出
+        os_ << std::forward<T>(value);
+#endif
         return *this;
+    }
+    
+    /**
+     * 处理ANSI转义序列
+     * Process ANSI escape sequence
+     * 
+     * @param s ANSI序列字符串 | ANSI sequence string
+     */
+    void processANSISequence(const std::string& s) {
+        // 重置样式 - 处理TFONT_RESET和其他重置序列
+        if (s == "\033[0m") { 
+            tc::ColorController::setColor(tc::ColorController::Color::RESET); 
+            return; 
+        }
+        
+        // 字体样式 - Windows控制台API不支持斜体、下划线、闪烁和反色，直接忽略
+        if (s == "\033[1m") { tc::ColorController::setBold(true); return; }
+        if (s == "\033[22m") { tc::ColorController::setBold(false); return; }
+        // 斜体、下划线、闪烁和反色在Windows控制台API中不支持，直接忽略
+        if (s == "\033[2m") { return; }  // 淡色开始
+        if (s == "\033[3m") { return; }  // 斜体开始
+        if (s == "\033[23m") { return; } // 斜体结束
+        if (s == "\033[4m") { return; }  // 下划线开始
+        if (s == "\033[24m") { return; } // 下划线结束
+        if (s == "\033[5m") { return; }  // 闪烁开始
+        if (s == "\033[25m") { return; } // 闪烁结束
+        if (s == "\033[6m") { return; }  // 快速闪烁开始
+        if (s == "\033[7m") { return; }  // 反色开始
+        if (s == "\033[27m") { return; } // 反色结束
+        if (s == "\033[8m") { return; }  // 隐藏开始
+        if (s == "\033[28m") { return; } // 隐藏结束
+        if (s == "\033[9m") { return; }  // 删除线开始
+        if (s == "\033[29m") { return; } // 删除线结束
+        if (s == "\033[10m") { return; } // 默认字体
+        if (s == "\033[20m") { return; } // Fraktur字体
+        if (s == "\033[21m") { return; } // 双下划线/粗体关闭
+        
+        // 前景色
+        if (s == "\033[30m") { tc::ColorController::setColor(tc::ColorController::Color::BLACK); return; }
+        if (s == "\033[31m") { tc::ColorController::setColor(tc::ColorController::Color::RED); return; }
+        if (s == "\033[32m") { tc::ColorController::setColor(tc::ColorController::Color::GREEN); return; }
+        if (s == "\033[33m") { tc::ColorController::setColor(tc::ColorController::Color::YELLOW); return; }
+        if (s == "\033[34m") { tc::ColorController::setColor(tc::ColorController::Color::BLUE); return; }
+        if (s == "\033[35m") { tc::ColorController::setColor(tc::ColorController::Color::MAGENTA); return; }
+        if (s == "\033[36m") { tc::ColorController::setColor(tc::ColorController::Color::CYAN); return; }
+        if (s == "\033[37m") { tc::ColorController::setColor(tc::ColorController::Color::WHITE); return; }
+        if (s == "\033[90m") { tc::ColorController::setColor(tc::ColorController::Color::BRIGHT_BLACK); return; }
+        if (s == "\033[91m") { tc::ColorController::setColor(tc::ColorController::Color::BRIGHT_RED); return; }
+        if (s == "\033[92m") { tc::ColorController::setColor(tc::ColorController::Color::BRIGHT_GREEN); return; }
+        if (s == "\033[93m") { tc::ColorController::setColor(tc::ColorController::Color::BRIGHT_YELLOW); return; }
+        if (s == "\033[94m") { tc::ColorController::setColor(tc::ColorController::Color::BRIGHT_BLUE); return; }
+        if (s == "\033[95m") { tc::ColorController::setColor(tc::ColorController::Color::BRIGHT_MAGENTA); return; }
+        if (s == "\033[96m") { tc::ColorController::setColor(tc::ColorController::Color::BRIGHT_CYAN); return; }
+        if (s == "\033[97m") { tc::ColorController::setColor(tc::ColorController::Color::BRIGHT_WHITE); return; }
+        
+        // 背景色
+        if (s == "\033[40m") { tc::ColorController::setBackground(tc::ColorController::Color::BLACK); return; }
+        if (s == "\033[41m") { tc::ColorController::setBackground(tc::ColorController::Color::RED); return; }
+        if (s == "\033[42m") { tc::ColorController::setBackground(tc::ColorController::Color::GREEN); return; }
+        if (s == "\033[43m") { tc::ColorController::setBackground(tc::ColorController::Color::YELLOW); return; }
+        if (s == "\033[44m") { tc::ColorController::setBackground(tc::ColorController::Color::BLUE); return; }
+        if (s == "\033[45m") { tc::ColorController::setBackground(tc::ColorController::Color::MAGENTA); return; }
+        if (s == "\033[46m") { tc::ColorController::setBackground(tc::ColorController::Color::CYAN); return; }
+        if (s == "\033[47m") { tc::ColorController::setBackground(tc::ColorController::Color::WHITE); return; }
+        if (s == "\033[100m") { tc::ColorController::setBackground(tc::ColorController::Color::BRIGHT_BLACK); return; }
+        if (s == "\033[101m") { tc::ColorController::setBackground(tc::ColorController::Color::BRIGHT_RED); return; }
+        if (s == "\033[102m") { tc::ColorController::setBackground(tc::ColorController::Color::BRIGHT_GREEN); return; }
+        if (s == "\033[103m") { tc::ColorController::setBackground(tc::ColorController::Color::BRIGHT_YELLOW); return; }
+        if (s == "\033[104m") { tc::ColorController::setBackground(tc::ColorController::Color::BRIGHT_BLUE); return; }
+        if (s == "\033[105m") { tc::ColorController::setBackground(tc::ColorController::Color::BRIGHT_MAGENTA); return; }
+        if (s == "\033[106m") { tc::ColorController::setBackground(tc::ColorController::Color::BRIGHT_CYAN); return; }
+        if (s == "\033[107m") { tc::ColorController::setBackground(tc::ColorController::Color::BRIGHT_WHITE); return; }
+        
+        // 如果无法识别，直接输出原始序列
+        os_ << s;
     }
     
     /**

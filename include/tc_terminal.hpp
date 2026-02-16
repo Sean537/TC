@@ -14,7 +14,7 @@
  * - Cross-platform terminal operation support
  * - Convenient functions in terminal namespace
  * 
- * 版本 Version: 1.1.1
+ * 版本 Version: 1.1.2 Beta
  * 作者 Author: 537 Studio
  * 许可 License: MIT
  */
@@ -28,6 +28,7 @@
 #include <type_traits>  // 类型特征 | Type traits
 #include <cstring>      // C字符串操作 | C string operations
 #include <string>       // C++字符串 | C++ string
+#include "tc_print.hpp"
 
 // 平台特定包含 | Platform-specific includes
 #ifdef _WIN32
@@ -69,9 +70,15 @@ public:
      * 
      * @return 对象自身引用，支持链式调用 | Self reference for chaining
      */
-    Printer& clear() { 
+    Printer& clear() {
+#ifdef _WIN32
+        // Windows：使用 Win32 API 清屏
+        Win32Console::getInstance().clearScreen();
+        return *this;
+#else
         std::cout << "\033[2J\033[H"; // ANSI清屏和光标定位序列 | ANSI clear screen and cursor positioning sequence
-        return *this; 
+        return *this;
+#endif
     }
     
     /**
@@ -82,9 +89,15 @@ public:
      * @param y 行坐标（从1开始） | Row coordinate (1-based)
      * @return 对象自身引用，支持链式调用 | Self reference for chaining
      */
-    Printer& moveCursor(int x, int y) { 
+    Printer& moveCursor(int x, int y) {
+#ifdef _WIN32
+        // Windows：使用 Win32 API，注意 0 基坐标
+        Win32Console::getInstance().moveCursor(x - 1, y - 1);
+        return *this;
+#else
         std::cout << "\033[" << y << ";" << x << "H"; // ANSI光标定位序列 | ANSI cursor positioning sequence
-        return *this; 
+        return *this;
+#endif
     }
     
     /**
@@ -117,7 +130,8 @@ public:
         };
         (check(std::forward<Args>(args)), ...);
         
-        (void)std::initializer_list<int>{(std::cout << std::forward<Args>(args), 0)...}; 
+        // 使用打印 helper 以保持与 tc_print 的行为一致（处理平台和特殊类型）
+        (tc::detail::print_one(std::forward<Args>(args)), ...);
         if (needsFlush) {
             flush();
         }
@@ -133,7 +147,7 @@ public:
      */
     template<typename... Args>
     Printer& println(Args&&... args) { 
-        (void)std::initializer_list<int>{(std::cout << std::forward<Args>(args), 0)...}; 
+        (tc::detail::print_one(std::forward<Args>(args)), ...);
         std::cout << std::endl;  // endl 自带 flush
         return *this; 
     }
@@ -144,10 +158,22 @@ public:
      * 
      * @return 对象自身引用，支持链式调用 | Self reference for chaining
      */
-    Printer& hideCursor() { 
+    Printer& hideCursor() {
+#ifdef _WIN32
+        // Windows：隐藏光标
+        HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+        CONSOLE_CURSOR_INFO info;
+        if (GetConsoleCursorInfo(h, &info)) {
+            info.bVisible = FALSE;
+            SetConsoleCursorInfo(h, &info);
+        }
+        flush();  // 立即刷新以确保光标状态更新
+        return *this;
+#else
         std::cout << "\033[?25l"; // ANSI隐藏光标序列 | ANSI hide cursor sequence
         flush();  // 立即刷新以确保光标状态更新
-        return *this; 
+        return *this;
+#endif
     }
     
     /**
@@ -156,10 +182,22 @@ public:
      * 
      * @return 对象自身引用，支持链式调用 | Self reference for chaining
      */
-    Printer& showCursor() { 
+    Printer& showCursor() {
+#ifdef _WIN32
+        // Windows：显示光标
+        HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+        CONSOLE_CURSOR_INFO info;
+        if (GetConsoleCursorInfo(h, &info)) {
+            info.bVisible = TRUE;
+            SetConsoleCursorInfo(h, &info);
+        }
+        flush();  // 立即刷新以确保光标状态更新
+        return *this;
+#else
         std::cout << "\033[?25h"; // ANSI显示光标序列 | ANSI show cursor sequence
         flush();  // 立即刷新以确保光标状态更新
-        return *this; 
+        return *this;
+#endif
     }
     
     /**
@@ -182,6 +220,24 @@ public:
      * @return 对象自身引用，支持链式调用 | Self reference for chaining
      */
     Printer& moveCursor(Direction dir, int n) {
+#ifdef _WIN32
+        // Windows：相对移动光标
+        HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+        CONSOLE_SCREEN_BUFFER_INFO csbi;
+        if (GetConsoleScreenBufferInfo(h, &csbi)) {
+            SHORT x = csbi.dwCursorPosition.X;
+            SHORT y = csbi.dwCursorPosition.Y;
+            switch(dir) {
+                case Direction::Up:    y = (y - n) < 0 ? 0 : y - n; break;
+                case Direction::Down:  y = y + n; break;
+                case Direction::Right: x = x + n; break;
+                case Direction::Left:  x = (x - n) < 0 ? 0 : x - n; break;
+            }
+            COORD coord = {x, y};
+            SetConsoleCursorPosition(h, coord);
+        }
+        return *this;
+#else
         switch(dir) {
             case Direction::Up: std::cout << "\033[" << n << "A"; break;     // 向上移动 | Move up
             case Direction::Down: std::cout << "\033[" << n << "B"; break;   // 向下移动 | Move down
@@ -189,6 +245,7 @@ public:
             case Direction::Left: std::cout << "\033[" << n << "D"; break;   // 向左移动 | Move left
         }
         return *this;
+#endif
     }
     
     /**

@@ -1,20 +1,20 @@
 /*
  * tc_system.hpp - TC库系统检测模块
  * TC System Detection Module
- * 
+ *
  * 这个文件包含了TC库中的系统检测功能，包括：
  * - 操作系统类型宏定义
  * - 运行时系统检测函数
  * - 系统版本信息获取
  * - 跨平台系统识别支持
- * 
+ *
  * This file contains system detection functionality in the TC library, including:
  * - Operating system type macro definitions
  * - Runtime system detection functions
  * - System version information retrieval
  * - Cross-platform system identification support
- * 
- * 版本 Version: 1.1.1
+ *
+ * 版本 Version: 1.1.2 Beta
  * 作者 Author: 537 Studio
  * 许可 License: MIT
  */
@@ -26,6 +26,11 @@
 // Windows平台特定代码 | Windows platform specific code
 #ifdef _WIN32
     #include <windows.h>
+
+    #if !defined(__CYGWIN__)
+        #define popen _popen
+        #define pclose _pclose
+    #endif
 #else
 // Linux/Unix 平台相关头文件
 #include <sys/utsname.h>
@@ -36,10 +41,10 @@
 /**
  * 操作系统类型常量
  * Operating system type constants
- * 
+ *
  * 这些宏定义了各种操作系统的标识符，用于systemCheck函数的返回值。
  * 每个操作系统类型都有一个唯一的数字代码。
- * 
+ *
  * These macros define identifiers for various operating systems,
  * used as return values for the systemCheck function.
  * Each OS type has a unique numeric code.
@@ -129,45 +134,49 @@ namespace tc {
     /**
      * 执行系统命令并获取输出
      * Execute system command and get output
-     * 
+     *
      * 这个函数执行指定的系统命令并返回其输出。
      * This function executes the specified system command and returns its output.
-     * 
+     *
      * @param cmd 要执行的命令 | Command to execute
      * @return 命令的输出 | Command output
      */
     inline std::string executeCommand(const char* cmd) {
         std::string result;
         using pipe_ptr = std::unique_ptr<FILE, int(*)(FILE*)>;
+#ifdef _MSC_VER
+        pipe_ptr pipe(_popen(cmd, "r"), _pclose);   //MSVC实现
+#else
         pipe_ptr pipe(popen(cmd, "r"), pclose);
-        
+#endif
+
         if (!pipe) {
             return "";
         }
-        
+
         char buffer[128];
         while (fgets(buffer, sizeof(buffer), pipe.get()) != nullptr) {
             result += buffer;
         }
-        
+
         // 移除末尾的换行符
         if (!result.empty() && result[result.length()-1] == '\n') {
             result.erase(result.length()-1);
         }
-        
+
         return result;
     }
 
     /**
      * 检测当前操作系统类型
      * Detect current operating system type
-     * 
+     *
      * 这个函数通过各种平台特定的API和检测方法，
      * 识别操作系统类型和版本。
-     * 
+     *
      * This function identifies the operating system type and version
      * through various platform-specific APIs and detection methods.
-     * 
+     *
      * @return 操作系统类型代码（如OS_WINDOWS, OS_LINUX等） | Operating system type code (e.g., OS_WINDOWS, OS_LINUX, etc.)
      */
     inline int systemCheck() {
@@ -186,7 +195,7 @@ namespace tc {
             if (hMod) {
                 RtlGetVersionPtr fx = (RtlGetVersionPtr)::GetProcAddress(hMod, "RtlGetVersion");
                 if (fx) {
-                    RTL_OSVERSIONINFOW rovi = {0};
+                    RTL_OSVERSIONINFOW rovi;
                     rovi.dwOSVersionInfoSize = sizeof(rovi);
                     if (fx(&rovi) == 0) {
                         // 细分Windows主版本号
@@ -200,9 +209,9 @@ namespace tc {
                     }
                 }
             }
-            
+
             // 兼容老方案（注意：在较新的Windows上可能会受到应用程序兼容性影响）
-            OSVERSIONINFOEX osvi = {0};
+            OSVERSIONINFOEX osvi;
             osvi.dwOSVersionInfoSize = sizeof(osvi);
             #pragma warning(push)
             #pragma warning(disable: 4996) // 禁用GetVersionEx弃用警告
@@ -215,7 +224,7 @@ namespace tc {
                 if (osvi.dwMajorVersion > 10) return OS_WINDOWSNT11;
             }
             #pragma warning(pop)
-            
+
             // 如果上述方法都失败，尝试使用PowerShell命令获取系统版本
             std::string psOutput = executeCommand("powershell -Command \"(Get-CimInstance -ClassName Win32_OperatingSystem).Version\"");
             if (!psOutput.empty()) {
@@ -230,17 +239,17 @@ namespace tc {
                     if (majorVersion > 10) return OS_WINDOWS;
                 }
             }
-            
+
             return OS_WINDOWS;
-        
+
         // macOS/iOS 平台检测
         #elif defined(__APPLE__)
             #include <TargetConditionals.h>
-            
+
             // 首先尝试使用系统命令获取设备类型和操作系统信息
             std::string deviceType = executeCommand("uname -m");
             std::string productType = executeCommand("sw_vers -productName 2>/dev/null");
-            
+
             // 检查是否为macOS
             if (productType.find("Mac") != std::string::npos) {
                 std::string swVers = executeCommand("sw_vers -productVersion");
@@ -259,18 +268,18 @@ namespace tc {
                         }
                     }
                 }
-                
+
                 // 如果系统命令失败，回退到使用sysctlbyname
                 #include <sys/sysctl.h>
                 char str[256];
                 size_t size = sizeof(str);
                 int ret = sysctlbyname("kern.osrelease", str, &size, NULL, 0);
-                
+
                 if (ret == 0) {
                     // 解析内核版本号，格式为: 22.5.0 (macOS 13.4 Ventura)
                     int kernel_major = 0;
                     sscanf(str, "%d", &kernel_major);
-                    
+
                     // 根据Darwin内核版本映射到macOS版本
                     switch (kernel_major) {
                         case 25: return OS_MACOS_TAHOE;      // macOS 26 Tahoe (Darwin 25.x)
@@ -287,18 +296,18 @@ namespace tc {
                 }
                 return OS_MACOS; // 默认macOS
             }
-            
+
             // 检查是否为iOS/iPadOS/watchOS/tvOS等
-            
+
             // 使用sysctl获取设备型号和系统信息
             #include <sys/sysctl.h>
             char buffer[256];
             size_t size = sizeof(buffer);
-            
+
             // 获取硬件型号
             if (sysctlbyname("hw.machine", buffer, &size, NULL, 0) == 0) {
                 std::string machine = buffer;
-                
+
                 // 根据设备型号前缀判断设备类型
                 // iPhone: "iPhone"
                 // iPad: "iPad"
@@ -307,7 +316,7 @@ namespace tc {
                 // Apple Watch: "Watch"
                 // HomePod: "AudioAccessory"
                 // Vision Pro: "RealityDevice"
-                
+
                 if (machine.find("iPhone") == 0) {
                     return OS_IOS;
                 } else if (machine.find("iPad") == 0) {
@@ -332,15 +341,15 @@ namespace tc {
                     return OS_AUDIOOS;
                 } else if (machine.find("RealityDevice") == 0) {
                     return OS_VISIONOS;
-                } else if (machine.find("Macmini") == 0 || 
-                           machine.find("MacBook") == 0 || 
-                           machine.find("iMac") == 0 || 
+                } else if (machine.find("Macmini") == 0 ||
+                           machine.find("MacBook") == 0 ||
+                           machine.find("iMac") == 0 ||
                            machine.find("Mac") == 0) {
                     // 如果是Mac但使用Apple Silicon，可能会有不同的标识
                     return OS_MACOS;
                 }
             }
-            
+
             // 如果无法确定具体类型，尝试使用kern.ostype
             size = sizeof(buffer);
             if (sysctlbyname("kern.ostype", buffer, &size, NULL, 0) == 0) {
@@ -352,7 +361,7 @@ namespace tc {
                         std::string release = buffer;
                         int kernel_major = 0;
                         sscanf(buffer, "%d", &kernel_major);
-                        
+
                         // 根据内核版本大致判断
                         if (kernel_major >= 20) {
                             // 可能是iOS 14+, macOS 11+, watchOS 7+, tvOS 14+
@@ -362,7 +371,7 @@ namespace tc {
                     }
                 }
             }
-            
+
             // 默认返回macOS
             return OS_MACOS;
 
@@ -374,12 +383,12 @@ namespace tc {
             #else
                 // 运行时检测Linux发行版
                 // ...existing code...
-                
+
                 // 首先尝试使用lsb_release命令获取发行版信息
                 std::string lsbRelease = executeCommand("lsb_release -i -s 2>/dev/null");
                 if (!lsbRelease.empty()) {
                     std::transform(lsbRelease.begin(), lsbRelease.end(), lsbRelease.begin(), ::tolower);
-                    
+
                     if (lsbRelease.find("ubuntu") != std::string::npos) return OS_UBUNTU;
                     if (lsbRelease.find("debian") != std::string::npos) return OS_DEBIAN;
                     if (lsbRelease.find("fedora") != std::string::npos) return OS_FEDORA;
@@ -400,13 +409,13 @@ namespace tc {
                     if (lsbRelease.find("pop") != std::string::npos) return OS_POPOS;
                     if (lsbRelease.find("chromeos") != std::string::npos || lsbRelease.find("chrome os") != std::string::npos) return OS_CHROMEOS;
                 }
-                
+
                 // 如果lsb_release命令失败，尝试读取/etc/os-release文件
                 FILE* fp = fopen("/etc/os-release", "r");
                 if (fp) {
                     char line[256];
                     std::string id, name;
-                    
+
                     while (fgets(line, sizeof(line), fp)) {
                         if (strncmp(line, "ID=", 3) == 0) {
                             id = line + 3;
@@ -422,7 +431,7 @@ namespace tc {
                         }
                     }
                     fclose(fp);
-                    
+
                     // 根据ID或NAME识别发行版
                     if (!id.empty()) {
                         if (id == "ubuntu" || name.find("Ubuntu") != std::string::npos)
@@ -465,7 +474,7 @@ namespace tc {
                             return OS_CHROMEOS;
                     }
                 }
-                
+
                 // 尝试其他方法检测发行版
                 if (access("/etc/kali-release", F_OK) != -1)
                     return OS_KALI;
@@ -488,14 +497,14 @@ namespace tc {
                     return OS_CENTOS;
                 else if (access("/etc/redhat-release", F_OK) != -1)
                     return OS_REDHAT;
-                
+
                 // 使用uname获取更多系统信息
                 struct utsname un;
                 if (uname(&un) == 0) {
                     // 可以进一步分析un.sysname, un.release等
                     std::string release = un.release;
                     std::transform(release.begin(), release.end(), release.begin(), ::tolower);
-                    
+
                     if (release.find("ubuntu") != std::string::npos) return OS_UBUNTU;
                     if (release.find("debian") != std::string::npos) return OS_DEBIAN;
                     if (release.find("fedora") != std::string::npos) return OS_FEDORA;
@@ -506,11 +515,11 @@ namespace tc {
                     if (release.find("gentoo") != std::string::npos) return OS_GENTOO;
                     if (release.find("slackware") != std::string::npos) return OS_SLACKWARE;
                 }
-                
+
                 // 默认返回通用Linux
                 return OS_LINUX;
             #endif
-        
+
         // BSD系列检测
         #elif defined(__FreeBSD__)
             // 尝试使用系统命令获取FreeBSD版本
@@ -519,22 +528,22 @@ namespace tc {
                 // 可以进一步解析版本号
                 return OS_FREEBSD;
             }
-            
+
             // 如果命令失败，使用uname
             std::string unameOutput = executeCommand("uname -s");
             if (unameOutput.find("FreeBSD") != std::string::npos) {
                 return OS_FREEBSD;
             }
-            
+
             return OS_BSD;
-            
+
         // 默认情况：未知操作系统
         #else
             // 尝试使用uname命令获取系统信息
             std::string unameOutput = executeCommand("uname -s");
             if (!unameOutput.empty()) {
                 std::transform(unameOutput.begin(), unameOutput.end(), unameOutput.begin(), ::toupper);
-                
+
                 if (unameOutput.find("LINUX") != std::string::npos) return OS_LINUX;
                 if (unameOutput.find("DARWIN") != std::string::npos) return OS_MACOS;
                 if (unameOutput.find("FREEBSD") != std::string::npos) return OS_FREEBSD;
@@ -544,12 +553,12 @@ namespace tc {
                 if (unameOutput.find("SUNOS") != std::string::npos || unameOutput.find("SOLARIS") != std::string::npos) return OS_SOLARIS;
                 if (unameOutput.find("HP-UX") != std::string::npos) return OS_HPUX;
                 if (unameOutput.find("AIX") != std::string::npos) return OS_AIX;
-                
+
                 // 如果是某种UNIX变体
                 if (unameOutput.find("BSD") != std::string::npos) return OS_BSD;
                 if (unameOutput.find("UNIX") != std::string::npos) return OS_UNIX;
             }
-            
+
             return OS_UNKNOWN;
         #endif
     } // systemCheck
@@ -557,10 +566,10 @@ namespace tc {
     /**
      * 获取操作系统名称
      * Get operating system name
-     * 
+     *
      * 根据操作系统代码返回对应的操作系统名称。
      * Returns the corresponding operating system name based on the OS code.
-     * 
+     *
      * @param osCode 操作系统代码（由systemCheck函数返回） | Operating system code (returned by systemCheck function)
      * @return 操作系统名称字符串 | Operating system name string
      */
@@ -568,13 +577,13 @@ namespace tc {
         switch(osCode) {
             // 未知操作系统 | Unknown operating system
             case OS_UNKNOWN: return "Unknown OS";
-            
+
             // Windows系列 | Windows family
             case OS_WINDOWS: return "Windows";
             case OS_WINDOWSNT6: return "Windows 7/8/8.1";
             case OS_WINDOWSNT10: return "Windows 10";
             case OS_WINDOWSNT11: return "Windows 11";
-            
+
             // Linux发行版 | Linux distributions
             case OS_LINUX: return "Linux";
             case OS_UBUNTU: return "Ubuntu Linux";
@@ -597,7 +606,7 @@ namespace tc {
             case OS_POPOS: return "Pop!_OS";
             case OS_CHROMEOS: return "Chrome OS/Chromium OS";
             case OS_ANDROID: return "Android";
-            
+
             // macOS和Mac OS X版本 | macOS and Mac OS X versions
             case OS_MACOS: return "macOS";
             case OS_MACOS_SONOMA: return "macOS 14 Sonoma";
@@ -607,7 +616,7 @@ namespace tc {
             case OS_MACOS_CATALINA: return "macOS 10.15 Catalina";
             case OS_MACOS_MOJAVE: return "macOS 10.14 Mojave";
             case OS_MACOS_HIGHSIERRA: return "macOS 10.13 High Sierra";
-            
+
             // 其他Apple操作系统 | Other Apple operating systems
             case OS_IOS: return "iOS";
             case OS_IPADOS: return "iPadOS";
@@ -616,21 +625,21 @@ namespace tc {
             case OS_VISIONOS: return "visionOS";
             case OS_BRIDGEOS: return "bridgeOS";
             case OS_AUDIOOS: return "audioOS";
-            
+
             // BSD系列 | BSD family
             case OS_BSD: return "BSD";
             case OS_FREEBSD: return "FreeBSD";
-            
+
             // 其他操作系统 | Other operating systems
             case OS_UNIX: return "UNIX";
-            
+
             // 新兴操作系统 | Emerging operating systems
             case OS_FUCHSIA: return "Google Fuchsia";
             case OS_HARMONYOS: return "Harmony OS";
-            
+
             // 其它操作系统 | Other operating systems
             case OS_REACTOS: return "ReactOS";
-        
+
             // 默认情况 | Default case
             default: return "Unknown OS";
         }
@@ -639,15 +648,15 @@ namespace tc {
     /**
      * 获取操作系统版本信息
      * Get operating system version information
-     * 
+     *
      * 获取当前操作系统的详细版本信息。
      * Get detailed version information of the current operating system.
-     * 
+     *
      * @return 操作系统版本信息字符串 | Operating system version information string
      */
     inline std::string getOSVersionInfo() {
         std::string versionInfo;
-        
+
         #ifdef _WIN32
             // Windows版本信息
             typedef LONG (WINAPI *RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
@@ -655,19 +664,19 @@ namespace tc {
             if (hMod) {
                 RtlGetVersionPtr fx = (RtlGetVersionPtr)::GetProcAddress(hMod, "RtlGetVersion");
                 if (fx) {
-                    RTL_OSVERSIONINFOW rovi = {0};
+                    RTL_OSVERSIONINFOW rovi;
                     rovi.dwOSVersionInfoSize = sizeof(rovi);
                     if (fx(&rovi) == 0) {
                         char buffer[256];
-                        sprintf(buffer, "Windows %d.%d.%d", 
-                                rovi.dwMajorVersion, 
-                                rovi.dwMinorVersion, 
+                        sprintf(buffer, "Windows %lu.%lu.%lu",
+                                rovi.dwMajorVersion,
+                                rovi.dwMinorVersion,
                                 rovi.dwBuildNumber);
                         versionInfo = buffer;
                     }
                 }
             }
-            
+
             // 如果上述方法失败，尝试使用PowerShell命令
             if (versionInfo.empty()) {
                 std::string psOutput = executeCommand("powershell -Command \"(Get-CimInstance -ClassName Win32_OperatingSystem).Caption\"");
@@ -702,7 +711,7 @@ namespace tc {
                     if (fp) {
                         char line[256];
                         std::string prettyName;
-                        
+
                         while (fgets(line, sizeof(line), fp)) {
                             if (strncmp(line, "PRETTY_NAME=", 12) == 0) {
                                 prettyName = line + 12;
@@ -713,13 +722,13 @@ namespace tc {
                             }
                         }
                         fclose(fp);
-                        
+
                         if (!prettyName.empty()) {
                             versionInfo = prettyName;
                         }
                     }
                 }
-                
+
                 // 如果上述方法都失败，使用uname
                 if (versionInfo.empty()) {
                     struct utsname un;
@@ -743,7 +752,7 @@ namespace tc {
                 versionInfo = "Unknown OS Version";
             }
         #endif
-        
+
         return versionInfo;
     }
 }   // namespace tc
