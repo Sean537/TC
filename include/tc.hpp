@@ -43,7 +43,7 @@
  * TC库版本号
  * TC library version number
  */
-#define TC_VERSION "1.1.2 Beta"
+#define TC_VERSION "1.1.2"
 
 /**
  * 包含所需的标准库头文件
