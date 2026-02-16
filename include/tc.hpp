@@ -2,7 +2,7 @@
  * tc.hpp - TC库主头文件
  * TC Library Main Header File
  * 
- * 版本 Version: 1.1.2 Beta
+ * 版本 Version: 1.1.2
  * 
  * 这是TC（Terminal Control）库的主头文件，一个现代化的C++17终端控制库。
  * TC库提供了跨平台的终端颜色、样式、光标控制、进度条等功能，
@@ -16,7 +16,7 @@
  * - https://github.com/Sean537/TC
  * - https://gitee.com/sean537/TC
  * 
- * 版权所有 Copyright (C) 2024-2025 537 Studio. All rights reserved.
+ * 版权所有 Copyright (C) 2024-2026 537 Studio. All rights reserved.
  * 
  * 贡献者 Contributors:
  * - Sean537

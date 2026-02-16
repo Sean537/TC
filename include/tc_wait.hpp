@@ -12,7 +12,7 @@
  * - Cross-platform key waiting functionality
  * - Specific key waiting support
  * 
- * 版本 Version: 1.1.2 Beta
+ * 版本 Version: 1.1.2
  * 作者 Author: 537 Studio
  * 许可 License: MIT
  */
