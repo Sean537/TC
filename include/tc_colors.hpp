@@ -16,7 +16,7 @@
  * - RGB color support
  * - Convenient color functions
  * 
- * 版本 Version: 1.1.2
+ * 版本 Version: 1.1.3
  * 作者 Author: 537 Studio
  * 许可 License: MIT
  */
@@ -28,6 +28,8 @@
 #include <iostream>    // 输入输出流 | Input/output streams
 #include <sstream>     // 字符串流 | String streams
 #include <stack>       // 栈容器 | Stack container
+#include <string>      // 字符串 | String
+#include <regex>       // 正则表达式 | Regular expressions
 
 // 平台特定包含 | Platform-specific includes
 #ifdef _WIN32
@@ -139,10 +141,6 @@ namespace tc {
  * 
  * 定义了Windows控制台API使用的颜色常量，这些常量对应于
  * Windows控制台的16色调色板。每个颜色由位标志组合而成。
- * 
- * Defines color constants used by the Windows Console API, these constants
- * correspond to the 16-color palette of the Windows console. Each color is
- * formed by combining bit flags.
  */
 namespace win32_colors {
     constexpr WORD BLACK = 0;
@@ -166,13 +164,6 @@ namespace win32_colors {
 /**
  * Windows控制台管理类
  * Windows Console Manager Class
- * 
- * 这个类封装了Windows控制台API的操作，提供颜色设置、光标控制、
- * 清屏等功能。采用单例模式设计，确保全局只有一个控制台管理实例。
- * 
- * This class encapsulates Windows Console API operations, providing functionality
- * for color setting, cursor control, screen clearing, etc. It uses the singleton
- * design pattern to ensure only one console manager instance exists globally.
  */
 class Win32Console {
 private:
@@ -180,319 +171,150 @@ private:
     CONSOLE_SCREEN_BUFFER_INFO originalInfo_; // 原始缓冲区信息 | Original buffer info
     std::stack<WORD> colorStack_;            // 颜色栈，用于保存和恢复颜色 | Color stack for saving/restoring colors
     bool initialized_ = false;               // 初始化标志 | Initialization flag
+    bool vtEnabled_ = false;                 // 虚拟终端处理是否启用 | Whether VT processing is enabled
 
-    /**
-     * 私有构造函数，初始化控制台和UTF-8支持
-     * Private constructor, initializes console and UTF-8 support
-     * 
-     * 单例模式的一部分，防止外部直接创建实例。
-     * 设置UTF-8编码并尝试启用ANSI转义序列支持。
-     * 
-     * Part of singleton pattern, prevents direct instance creation from outside.
-     * Sets UTF-8 encoding and tries to enable ANSI escape sequence support.
-     */
     Win32Console() {
-        // 获取标准输出句柄 | Get standard output handle
         hConsole_ = GetStdHandle(STD_OUTPUT_HANDLE);
         
         if (hConsole_ != INVALID_HANDLE_VALUE) {
-            // 获取原始控制台信息 | Get original console information
             GetConsoleScreenBufferInfo(hConsole_, &originalInfo_);
             initialized_ = true;
             
             // 设置UTF-8编码支持 | Set UTF-8 encoding support
-            SetConsoleOutputCP(CP_UTF8);  // 输出编码 | Output encoding
-            SetConsoleCP(CP_UTF8);        // 输入编码 | Input encoding
+            SetConsoleOutputCP(CP_UTF8);
+            SetConsoleCP(CP_UTF8);
             
-            // 根据宏切换 ANSI 虚拟终端处理 | Toggle ANSI virtual terminal processing by macro
             DWORD dwMode = 0;
             if (GetConsoleMode(hConsole_, &dwMode)) {
 #if defined(TC_ENABLE_WIN32_CONSOLE_API)
-                // 禁用 ANSI 虚拟终端处理，但保持其他模式不变以避免字体渲染问题
+                // 强制禁用 ANSI 虚拟终端处理 | Force disable ANSI VT processing
                 SetConsoleMode(hConsole_, dwMode & ~ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+                vtEnabled_ = false;
 #else
-                // 默认启用 ANSI 虚拟终端处理（Win10 1809+ 支持）
-                SetConsoleMode(hConsole_, dwMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+                // 尝试启用 ANSI 虚拟终端处理（Win10 1809+ 支持）
+                if (SetConsoleMode(hConsole_, dwMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING)) {
+                    vtEnabled_ = true;
+                } else {
+                    vtEnabled_ = false;
+                }
 #endif
             }
         }
     }
 
 public:
-    /**
-     * 获取单例实例
-     * Get singleton instance
-     * 
-     * @return Win32Console的单例引用 | Singleton reference to Win32Console
-     */
     static Win32Console& getInstance() {
-        static Win32Console instance;  // 静态局部变量保证线程安全的单例 | Static local variable ensures thread-safe singleton
+        static Win32Console instance;
         return instance;
     }
 
-    /**
-     * 判断控制台是否成功初始化
-     * Check if console was successfully initialized
-     * 
-     * @return 初始化状态 | Initialization status
-     */
     bool isInitialized() const { return initialized_; }
+    bool isVTEnabled() const { return vtEnabled_; }
 
-    /**
-     * 设置控制台文本颜色
-     * Set console text color
-     * 
-     * @param color Windows控制台颜色属性 | Windows console color attribute
-     */
     void setColor(WORD color) {
         if (initialized_) {
             SetConsoleTextAttribute(hConsole_, color);
         }
     }
 
-    /**
-     * 保存当前颜色并设置新颜色
-     * Save current color and set new color
-     * 
-     * @param color 要设置的新颜色 | New color to set
-     */
     void pushColor(WORD color) {
         if (initialized_) {
-            // 获取当前颜色并保存到栈中 | Get current color and save to stack
             CONSOLE_SCREEN_BUFFER_INFO info;
             GetConsoleScreenBufferInfo(hConsole_, &info);
             colorStack_.push(info.wAttributes);
-            
-            // 设置新颜色 | Set new color
             setColor(color);
         }
     }
 
-    /**
-     * 恢复之前保存的颜色
-     * Restore previously saved color
-     */
     void popColor() {
         if (initialized_ && !colorStack_.empty()) {
-            // 从栈中弹出颜色并设置 | Pop color from stack and set it
             setColor(colorStack_.top());
             colorStack_.pop();
         }
     }
 
-    /**
-     * 重置为原始控制台颜色
-     * Reset to original console color
-     */
     void resetColor() {
         if (initialized_) {
             setColor(originalInfo_.wAttributes);
         }
     }
 
-    /**
-     * 获取当前控制台颜色
-     * Get current console color
-     * 
-     * @return 当前颜色属性 | Current color attribute
-     */
     WORD getCurrentColor() const {
         if (initialized_) {
             CONSOLE_SCREEN_BUFFER_INFO info;
             GetConsoleScreenBufferInfo(hConsole_, &info);
             return info.wAttributes;
         }
-        return win32_colors::WHITE;  // 默认返回白色 | Default to white
+        return win32_colors::WHITE;
     }
 
-    /**
-     * 移动控制台光标到指定位置
-     * Move console cursor to specified position
-     * 
-     * @param x 列坐标（从0开始） | Column coordinate (0-based)
-     * @param y 行坐标（从0开始） | Row coordinate (0-based)
-     */
     void moveCursor(int x, int y) {
         if (initialized_) {
-            // 创建坐标并设置光标位置 | Create coordinates and set cursor position
             COORD coord = {static_cast<SHORT>(x), static_cast<SHORT>(y)};
             SetConsoleCursorPosition(hConsole_, coord);
         }
     }
 
-    /**
-     * 清空控制台屏幕
-     * Clear console screen
-     */
     void clearScreen() {
         if (initialized_) {
-            // 获取当前缓冲区信息 | Get current buffer info
             CONSOLE_SCREEN_BUFFER_INFO info;
             GetConsoleScreenBufferInfo(hConsole_, &info);
-            
             DWORD written;
             COORD topLeft = {0, 0};
-            
-            // 用空格填充整个缓冲区 | Fill entire buffer with spaces
-            FillConsoleOutputCharacter(hConsole_, ' ', 
-                info.dwSize.X * info.dwSize.Y, topLeft, &written);
-                
-            // 用当前属性填充整个缓冲区 | Fill entire buffer with current attributes
-            FillConsoleOutputAttribute(hConsole_, info.wAttributes,
-                info.dwSize.X * info.dwSize.Y, topLeft, &written);
-                
-            // 将光标移回左上角 | Move cursor back to top-left
+            FillConsoleOutputCharacter(hConsole_, ' ', info.dwSize.X * info.dwSize.Y, topLeft, &written);
+            FillConsoleOutputAttribute(hConsole_, info.wAttributes, info.dwSize.X * info.dwSize.Y, topLeft, &written);
             SetConsoleCursorPosition(hConsole_, topLeft);
         }
     }
 
-    /**
-     * 获取控制台窗口大小
-     * Get console window size
-     * 
-     * @return 包含宽度和高度的对组 | Pair containing width and height
-     */
     std::pair<int, int> getConsoleSize() const {
         if (initialized_) {
             CONSOLE_SCREEN_BUFFER_INFO info;
             GetConsoleScreenBufferInfo(hConsole_, &info);
-            // 计算可见窗口大小 | Calculate visible window size
             return {info.srWindow.Right - info.srWindow.Left + 1,
                    info.srWindow.Bottom - info.srWindow.Top + 1};
         }
-        return {80, 25};  // 默认大小 | Default size
+        return {80, 25};
     }
 
-    /**
-     * 将RGB颜色近似转换为Windows控制台16色
-     * Approximate RGB color to Windows console 16-color
-     * 
-     * @param r 红色分量(0-255) | Red component (0-255)
-     * @param g 绿色分量(0-255) | Green component (0-255)
-     * @param b 蓝色分量(0-255) | Blue component (0-255)
-     * @return Windows控制台颜色属性 | Windows console color attribute
-     */
     WORD rgbToWin32Color(int r, int g, int b) const {
-        // 简单的RGB到16色映射算法 | Simple RGB to 16-color mapping algorithm
-        bool isRed = r > 128;    // 红色分量是否足够高 | Is red component high enough
-        bool isGreen = g > 128;  // 绿色分量是否足够高 | Is green component high enough
-        bool isBlue = b > 128;   // 蓝色分量是否足够高 | Is blue component high enough
-        bool isBright = (r + g + b) > 384;  // 整体亮度是否足够高 | Is overall brightness high enough
-        
+        bool isRed = r > 128;
+        bool isGreen = g > 128;
+        bool isBlue = b > 128;
+        bool isBright = (r + g + b) > 384;
         WORD color = 0;
-        // 根据各分量设置对应的位 | Set corresponding bits based on components
         if (isRed) color |= FOREGROUND_RED;
         if (isGreen) color |= FOREGROUND_GREEN;
         if (isBlue) color |= FOREGROUND_BLUE;
         if (isBright) color |= FOREGROUND_INTENSITY;
-        
-        // 如果结果为0（黑色），返回白色作为默认值 | If result is 0 (black), return white as default
         return color ? color : win32_colors::WHITE;
     }
 
-    /**
-     * 析构函数，重置控制台颜色
-     * Destructor, resets console color
-     */
     ~Win32Console() {
         if (initialized_) {
-            resetColor();  // 恢复原始颜色 | Restore original color
+            resetColor();
         }
     }
 };
-
-#else // 非Windows平台（Unix/Linux/macOS等） | Non-Windows platforms (Unix/Linux/macOS etc.)
-
-/**
- * ANSI转义序列命名空间
- * ANSI escape sequence namespace
- * 
- * 这个命名空间为非Windows平台定义了ANSI转义序列常量，
- * 用于控制终端文本颜色和样式。
- * 
- * This namespace defines ANSI escape sequence constants for non-Windows platforms,
- * used to control terminal text colors and styles.
- */
-namespace ansi {
-    constexpr const char* ESC = "\033[";
-    constexpr const char* RESET = "\033[0m";
-    
-    constexpr const char* BLACK = "\033[30m";
-    constexpr const char* RED = "\033[31m";
-    constexpr const char* GREEN = "\033[32m";
-    constexpr const char* YELLOW = "\033[33m";
-    constexpr const char* BLUE = "\033[34m";
-    constexpr const char* MAGENTA = "\033[35m";
-    constexpr const char* CYAN = "\033[36m";
-    constexpr const char* WHITE = "\033[37m";
-    
-    constexpr const char* BRIGHT_BLACK = "\033[90m";
-    constexpr const char* BRIGHT_RED = "\033[91m";
-    constexpr const char* BRIGHT_GREEN = "\033[92m";
-    constexpr const char* BRIGHT_YELLOW = "\033[93m";
-    constexpr const char* BRIGHT_BLUE = "\033[94m";
-    constexpr const char* BRIGHT_MAGENTA = "\033[95m";
-    constexpr const char* BRIGHT_CYAN = "\033[96m";
-    constexpr const char* BRIGHT_WHITE = "\033[97m";
-    
-    constexpr const char* BOLD = "\033[1m";
-    constexpr const char* DIM = "\033[2m";
-    constexpr const char* ITALIC = "\033[3m";
-    constexpr const char* UNDERLINE = "\033[4m";
-    constexpr const char* BLINK = "\033[5m";
-    constexpr const char* REVERSE = "\033[7m";
-    constexpr const char* STRIKETHROUGH = "\033[9m";
-}
 #endif
 
 /**
  * 跨平台颜色控制类
  * Cross-platform color controller class
- * 
- * 这个类提供了统一的颜色和样式设置接口，在不同平台上使用相应的实现。
- * 在Windows上使用Win32Console API，在其他平台上使用ANSI转义序列。
- * 
- * This class provides a unified interface for color and style settings,
- * using the appropriate implementation on different platforms.
- * On Windows it uses the Win32Console API, on other platforms it uses ANSI escape sequences.
  */
 class ColorController {
 public:
-    /**
-     * 颜色枚举，定义了支持的所有颜色
-     * Color enumeration defining all supported colors
-     */
     enum class Color {
-        BLACK,        // 黑色 | Black
-        RED,          // 红色 | Red
-        GREEN,        // 绿色 | Green
-        YELLOW,       // 黄色 | Yellow
-        BLUE,         // 蓝色 | Blue
-        MAGENTA,      // 洋红色 | Magenta
-        CYAN,         // 青色 | Cyan
-        WHITE,        // 白色 | White
-        BRIGHT_BLACK, // 亮黑色/灰色 | Bright black/gray
-        BRIGHT_RED,   // 亮红色 | Bright red
-        BRIGHT_GREEN, // 亮绿色 | Bright green
-        BRIGHT_YELLOW,// 亮黄色 | Bright yellow
-        BRIGHT_BLUE,  // 亮蓝色 | Bright blue
-        BRIGHT_MAGENTA,// 亮洋红色 | Bright magenta
-        BRIGHT_CYAN,  // 亮青色 | Bright cyan
-        BRIGHT_WHITE, // 亮白色 | Bright white
-        RESET         // 重置为默认颜色 | Reset to default color
+        BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE,
+        BRIGHT_BLACK, BRIGHT_RED, BRIGHT_GREEN, BRIGHT_YELLOW,
+        BRIGHT_BLUE, BRIGHT_MAGENTA, BRIGHT_CYAN, BRIGHT_WHITE,
+        RESET
     };
 
-    /**
-     * 设置控制台文本颜色
-     * Set console text color
-     * 
-     * @param color 要设置的颜色 | Color to set
-     */
     static void setColor(Color color) {
 #ifdef _WIN32
         auto& console = Win32Console::getInstance();
         WORD winColor;
-        
         switch (color) {
             case Color::BLACK: winColor = win32_colors::BLACK; break;
             case Color::RED: winColor = win32_colors::DARK_RED; break;
@@ -510,54 +332,40 @@ public:
             case Color::BRIGHT_MAGENTA: winColor = win32_colors::MAGENTA; break;
             case Color::BRIGHT_CYAN: winColor = win32_colors::CYAN; break;
             case Color::BRIGHT_WHITE: winColor = win32_colors::WHITE; break;
-            case Color::RESET: 
-            default: 
-                console.resetColor();
-                return;
+            case Color::RESET: default: console.resetColor(); return;
         }
         console.setColor(winColor);
 #else
         const char* ansiColor;
-        
         switch (color) {
-            case Color::BLACK: ansiColor = ansi::BLACK; break;
-            case Color::RED: ansiColor = ansi::RED; break;
-            case Color::GREEN: ansiColor = ansi::GREEN; break;
-            case Color::YELLOW: ansiColor = ansi::YELLOW; break;
-            case Color::BLUE: ansiColor = ansi::BLUE; break;
-            case Color::MAGENTA: ansiColor = ansi::MAGENTA; break;
-            case Color::CYAN: ansiColor = ansi::CYAN; break;
-            case Color::WHITE: ansiColor = ansi::WHITE; break;
-            case Color::BRIGHT_BLACK: ansiColor = ansi::BRIGHT_BLACK; break;
-            case Color::BRIGHT_RED: ansiColor = ansi::BRIGHT_RED; break;
-            case Color::BRIGHT_GREEN: ansiColor = ansi::BRIGHT_GREEN; break;
-            case Color::BRIGHT_YELLOW: ansiColor = ansi::BRIGHT_YELLOW; break;
-            case Color::BRIGHT_BLUE: ansiColor = ansi::BRIGHT_BLUE; break;
-            case Color::BRIGHT_MAGENTA: ansiColor = ansi::BRIGHT_MAGENTA; break;
-            case Color::BRIGHT_CYAN: ansiColor = ansi::BRIGHT_CYAN; break;
-            case Color::BRIGHT_WHITE: ansiColor = ansi::BRIGHT_WHITE; break;
-            case Color::RESET: 
-            default: 
-                ansiColor = ansi::RESET;
-                break;
+            case Color::BLACK: ansiColor = "\033[30m"; break;
+            case Color::RED: ansiColor = "\033[31m"; break;
+            case Color::GREEN: ansiColor = "\033[32m"; break;
+            case Color::YELLOW: ansiColor = "\033[33m"; break;
+            case Color::BLUE: ansiColor = "\033[34m"; break;
+            case Color::MAGENTA: ansiColor = "\033[35m"; break;
+            case Color::CYAN: ansiColor = "\033[36m"; break;
+            case Color::WHITE: ansiColor = "\033[37m"; break;
+            case Color::BRIGHT_BLACK: ansiColor = "\033[90m"; break;
+            case Color::BRIGHT_RED: ansiColor = "\033[91m"; break;
+            case Color::BRIGHT_GREEN: ansiColor = "\033[92m"; break;
+            case Color::BRIGHT_YELLOW: ansiColor = "\033[93m"; break;
+            case Color::BRIGHT_BLUE: ansiColor = "\033[94m"; break;
+            case Color::BRIGHT_MAGENTA: ansiColor = "\033[95m"; break;
+            case Color::BRIGHT_CYAN: ansiColor = "\033[96m"; break;
+            case Color::BRIGHT_WHITE: ansiColor = "\033[97m"; break;
+            case Color::RESET: default: ansiColor = "\033[0m"; break;
         }
         std::cout << ansiColor;
 #endif
     }
 
-    /**
-     * 设置背景颜色
-     * Set background color
-     * 
-     * @param color 要设置的背景色 | Background color to set
-     */
     static void setBackground(Color color) {
-#if defined(_WIN32) && defined(TC_ENABLE_WIN32_CONSOLE_API)
+#ifdef _WIN32
         auto& console = Win32Console::getInstance();
         WORD bgColor = 0;
-        
         switch (color) {
-            case Color::BLACK: bgColor = 0; break;  // Windows中没有BACKGROUND_BLACK，使用0
+            case Color::BLACK: bgColor = 0; break;
             case Color::RED: bgColor = BACKGROUND_RED; break;
             case Color::GREEN: bgColor = BACKGROUND_GREEN; break;
             case Color::YELLOW: bgColor = BACKGROUND_RED | BACKGROUND_GREEN; break;
@@ -573,19 +381,12 @@ public:
             case Color::BRIGHT_MAGENTA: bgColor = BACKGROUND_RED | BACKGROUND_BLUE | BACKGROUND_INTENSITY; break;
             case Color::BRIGHT_CYAN: bgColor = BACKGROUND_GREEN | BACKGROUND_BLUE | BACKGROUND_INTENSITY; break;
             case Color::BRIGHT_WHITE: bgColor = BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE | BACKGROUND_INTENSITY; break;
-            case Color::RESET:
-            default:
-                console.resetColor();
-                return;
+            case Color::RESET: default: console.resetColor(); return;
         }
-        
-        // 获取当前前景色并组合背景色
         WORD currentColor = console.getCurrentColor();
-        WORD newColor = (currentColor & 0x0F) | bgColor;  // 保留前景色，设置背景色
-        console.setColor(newColor);
+        console.setColor((currentColor & 0x0F) | bgColor);
 #else
         const char* ansiBgColor;
-        
         switch (color) {
             case Color::BLACK: ansiBgColor = "\033[40m"; break;
             case Color::RED: ansiBgColor = "\033[41m"; break;
@@ -603,54 +404,28 @@ public:
             case Color::BRIGHT_MAGENTA: ansiBgColor = "\033[105m"; break;
             case Color::BRIGHT_CYAN: ansiBgColor = "\033[106m"; break;
             case Color::BRIGHT_WHITE: ansiBgColor = "\033[107m"; break;
-            case Color::RESET:
-            default:
-                ansiBgColor = "\033[49m";
-                break;
+            case Color::RESET: default: ansiBgColor = "\033[49m"; break;
         }
         std::cout << ansiBgColor;
 #endif
     }
 
-    /**
-     * 设置RGB颜色
-     * Set RGB color
-     * 
-     * @param r 红色分量(0-255) | Red component (0-255)
-     * @param g 绿色分量(0-255) | Green component (0-255)
-     * @param b 蓝色分量(0-255) | Blue component (0-255)
-     */
     static void setRGBColor(int r, int g, int b) {
 #ifdef _WIN32
         auto& console = Win32Console::getInstance();
-        WORD winColor = console.rgbToWin32Color(r, g, b);
-        console.setColor(winColor);
+        console.setColor(console.rgbToWin32Color(r, g, b));
 #else
         std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m";
 #endif
     }
 
-    /**
-     * 设置文本粗体样式
-     * Set text bold style
-     * 
-     * @param enable 是否启用粗体 | Whether to enable bold
-     */
     static void setBold(bool enable) {
 #ifdef _WIN32
         auto& console = Win32Console::getInstance();
-        WORD currentColor = console.getCurrentColor();
-        if (enable) {
-            console.setColor(currentColor | FOREGROUND_INTENSITY);
-        } else {
-            console.setColor(currentColor & ~FOREGROUND_INTENSITY);
-        }
+        WORD current = console.getCurrentColor();
+        console.setColor(enable ? (current | FOREGROUND_INTENSITY) : (current & ~FOREGROUND_INTENSITY));
 #else
-        if (enable) {
-            std::cout << ansi::BOLD;
-        } else {
-            std::cout << ansi::RESET;
-        }
+        std::cout << (enable ? "\033[1m" : "\033[22m");
 #endif
     }
 };
@@ -658,475 +433,203 @@ public:
 /**
  * 颜色包装器类
  * Color wrapper class
- * 
- * 这个类封装了颜色设置，便于在流式输出中使用。
- * 例如：std::cout << ColorWrapper(ColorController::Color::RED) << "红色文本" << ColorWrapper(ColorController::Color::RESET);
- * 
- * This class encapsulates color settings for easy use in stream output.
- * Example: std::cout << ColorWrapper(ColorController::Color::RED) << "Red text" << ColorWrapper(ColorController::Color::RESET);
  */
 class ColorWrapper {
 private:
-    ColorController::Color color_; // 存储的颜色枚举值 | Stored color enumeration value
-    bool isBackground_;            // 是否为背景色 | Whether this is a background color
+    ColorController::Color color_;
+    bool isBackground_;
     
 public:
-    /**
-     * 构造函数
-     * Constructor
-     * 
-     * @param color 要使用的颜色 | Color to use
-     * @param isBackground 是否为背景色 | Whether this is a background color
-     */
     explicit ColorWrapper(ColorController::Color color, bool isBackground = false) : color_(color), isBackground_(isBackground) {}
     
-    /**
-     * 转换为字符串操作符，使对象可以用于字符串连接
-     * Conversion to string operator, allowing the object to be used in string concatenation
-     * 
-     * @return 对应的ANSI转义序列字符串 | Corresponding ANSI escape sequence string
-     */
     operator std::string() const {
-#if defined(_WIN32) && defined(TC_ENABLE_WIN32_CONSOLE_API)
-        // Windows 且启用宏：返回空字符串，因为使用Win32 API
+#if defined(_WIN32)
+        auto& console = Win32Console::getInstance();
+        if (console.isVTEnabled()) {
+            // VT模式下返回正常ANSI
+            goto return_ansi;
+        }
+#if defined(TC_ENABLE_WIN32_CONSOLE_API)
+        // Win32 API 模式下，无法通过字符串携带颜色信息，返回空以保证文本纯净
         return "";
-#else
-        // 非 Windows：返回ANSI转义序列
-        const char* ansiCode;
+#endif
+#endif
+
+return_ansi:
+        const char* code;
         if (isBackground_) {
             switch (color_) {
-                case ColorController::Color::BLACK: ansiCode = "\033[40m"; break;
-                case ColorController::Color::RED: ansiCode = "\033[41m"; break;
-                case ColorController::Color::GREEN: ansiCode = "\033[42m"; break;
-                case ColorController::Color::YELLOW: ansiCode = "\033[43m"; break;
-                case ColorController::Color::BLUE: ansiCode = "\033[44m"; break;
-                case ColorController::Color::MAGENTA: ansiCode = "\033[45m"; break;
-                case ColorController::Color::CYAN: ansiCode = "\033[46m"; break;
-                case ColorController::Color::WHITE: ansiCode = "\033[47m"; break;
-                case ColorController::Color::BRIGHT_BLACK: ansiCode = "\033[100m"; break;
-                case ColorController::Color::BRIGHT_RED: ansiCode = "\033[101m"; break;
-                case ColorController::Color::BRIGHT_GREEN: ansiCode = "\033[102m"; break;
-                case ColorController::Color::BRIGHT_YELLOW: ansiCode = "\033[103m"; break;
-                case ColorController::Color::BRIGHT_BLUE: ansiCode = "\033[104m"; break;
-                case ColorController::Color::BRIGHT_MAGENTA: ansiCode = "\033[105m"; break;
-                case ColorController::Color::BRIGHT_CYAN: ansiCode = "\033[106m"; break;
-                case ColorController::Color::BRIGHT_WHITE: ansiCode = "\033[107m"; break;
-                case ColorController::Color::RESET: ansiCode = "\033[49m"; break;
-                default: ansiCode = "\033[49m"; break;
+                case ColorController::Color::BLACK: code = "\033[40m"; break;
+                case ColorController::Color::RED: code = "\033[41m"; break;
+                case ColorController::Color::GREEN: code = "\033[42m"; break;
+                case ColorController::Color::YELLOW: code = "\033[43m"; break;
+                case ColorController::Color::BLUE: code = "\033[44m"; break;
+                case ColorController::Color::MAGENTA: code = "\033[45m"; break;
+                case ColorController::Color::CYAN: code = "\033[46m"; break;
+                case ColorController::Color::WHITE: code = "\033[47m"; break;
+                case ColorController::Color::BRIGHT_BLACK: code = "\033[100m"; break;
+                case ColorController::Color::BRIGHT_RED: code = "\033[101m"; break;
+                case ColorController::Color::BRIGHT_GREEN: code = "\033[102m"; break;
+                case ColorController::Color::BRIGHT_YELLOW: code = "\033[103m"; break;
+                case ColorController::Color::BRIGHT_BLUE: code = "\033[104m"; break;
+                case ColorController::Color::BRIGHT_MAGENTA: code = "\033[105m"; break;
+                case ColorController::Color::BRIGHT_CYAN: code = "\033[106m"; break;
+                case ColorController::Color::BRIGHT_WHITE: code = "\033[107m"; break;
+                default: code = "\033[49m"; break;
             }
         } else {
             switch (color_) {
-                case ColorController::Color::BLACK: ansiCode = "\033[30m"; break;
-                case ColorController::Color::RED: ansiCode = "\033[31m"; break;
-                case ColorController::Color::GREEN: ansiCode = "\033[32m"; break;
-                case ColorController::Color::YELLOW: ansiCode = "\033[33m"; break;
-                case ColorController::Color::BLUE: ansiCode = "\033[34m"; break;
-                case ColorController::Color::MAGENTA: ansiCode = "\033[35m"; break;
-                case ColorController::Color::CYAN: ansiCode = "\033[36m"; break;
-                case ColorController::Color::WHITE: ansiCode = "\033[37m"; break;
-                case ColorController::Color::BRIGHT_BLACK: ansiCode = "\033[90m"; break;
-                case ColorController::Color::BRIGHT_RED: ansiCode = "\033[91m"; break;
-                case ColorController::Color::BRIGHT_GREEN: ansiCode = "\033[92m"; break;
-                case ColorController::Color::BRIGHT_YELLOW: ansiCode = "\033[93m"; break;
-                case ColorController::Color::BRIGHT_BLUE: ansiCode = "\033[94m"; break;
-                case ColorController::Color::BRIGHT_MAGENTA: ansiCode = "\033[95m"; break;
-                case ColorController::Color::BRIGHT_CYAN: ansiCode = "\033[96m"; break;
-                case ColorController::Color::BRIGHT_WHITE: ansiCode = "\033[97m"; break;
-                case ColorController::Color::RESET: ansiCode = "\033[0m"; break;
-                default: ansiCode = "\033[0m"; break;
+                case ColorController::Color::BLACK: code = "\033[30m"; break;
+                case ColorController::Color::RED: code = "\033[31m"; break;
+                case ColorController::Color::GREEN: code = "\033[32m"; break;
+                case ColorController::Color::YELLOW: code = "\033[33m"; break;
+                case ColorController::Color::BLUE: code = "\033[34m"; break;
+                case ColorController::Color::MAGENTA: code = "\033[35m"; break;
+                case ColorController::Color::CYAN: code = "\033[36m"; break;
+                case ColorController::Color::WHITE: code = "\033[37m"; break;
+                case ColorController::Color::BRIGHT_BLACK: code = "\033[90m"; break;
+                case ColorController::Color::BRIGHT_RED: code = "\033[91m"; break;
+                case ColorController::Color::BRIGHT_GREEN: code = "\033[92m"; break;
+                case ColorController::Color::BRIGHT_YELLOW: code = "\033[93m"; break;
+                case ColorController::Color::BRIGHT_BLUE: code = "\033[94m"; break;
+                case ColorController::Color::BRIGHT_MAGENTA: code = "\033[95m"; break;
+                case ColorController::Color::BRIGHT_CYAN: code = "\033[96m"; break;
+                case ColorController::Color::BRIGHT_WHITE: code = "\033[97m"; break;
+                case ColorController::Color::RESET: default: code = "\033[0m"; break;
             }
         }
-        return std::string(ansiCode);
-#endif
+        return std::string(code);
     }
 
-    /**
-     * 输出流操作符重载，使对象可以直接用于流式输出
-     * Output stream operator overload, allowing the object to be used directly in stream output
-     * 
-     * @param os 输出流 | Output stream
-     * @param wrapper 颜色包装器对象 | Color wrapper object
-     * @return 输出流引用，用于链式调用 | Output stream reference for chaining
-     */
     friend std::ostream& operator<<(std::ostream& os, const ColorWrapper& wrapper) {
-#if defined(_WIN32) && defined(TC_ENABLE_WIN32_CONSOLE_API)
-        // Windows 且启用宏：调用 Win32 API，不输出 ANSI
-        if (wrapper.isBackground_) {
-            ColorController::setBackground(wrapper.color_);
-        } else {
-            ColorController::setColor(wrapper.color_);
-        }
-        return os;
+#if defined(_WIN32)
+        auto& console = Win32Console::getInstance();
+        if (!console.isVTEnabled()) {
+#if defined(TC_ENABLE_WIN32_CONSOLE_API)
+            if (wrapper.isBackground_) ColorController::setBackground(wrapper.color_);
+            else ColorController::setColor(wrapper.color_);
+            return os;
 #else
-        // 非 Windows：使用 ANSI 转义序列
-        const char* ansiCode;
-        if (wrapper.isBackground_) {
-            switch (wrapper.color_) {
-                case ColorController::Color::BLACK: ansiCode = "\033[40m"; break;
-                case ColorController::Color::RED: ansiCode = "\033[41m"; break;
-                case ColorController::Color::GREEN: ansiCode = "\033[42m"; break;
-                case ColorController::Color::YELLOW: ansiCode = "\033[43m"; break;
-                case ColorController::Color::BLUE: ansiCode = "\033[44m"; break;
-                case ColorController::Color::MAGENTA: ansiCode = "\033[45m"; break;
-                case ColorController::Color::CYAN: ansiCode = "\033[46m"; break;
-                case ColorController::Color::WHITE: ansiCode = "\033[47m"; break;
-                case ColorController::Color::BRIGHT_BLACK: ansiCode = "\033[100m"; break;
-                case ColorController::Color::BRIGHT_RED: ansiCode = "\033[101m"; break;
-                case ColorController::Color::BRIGHT_GREEN: ansiCode = "\033[102m"; break;
-                case ColorController::Color::BRIGHT_YELLOW: ansiCode = "\033[103m"; break;
-                case ColorController::Color::BRIGHT_BLUE: ansiCode = "\033[104m"; break;
-                case ColorController::Color::BRIGHT_MAGENTA: ansiCode = "\033[105m"; break;
-                case ColorController::Color::BRIGHT_CYAN: ansiCode = "\033[106m"; break;
-                case ColorController::Color::BRIGHT_WHITE: ansiCode = "\033[107m"; break;
-                case ColorController::Color::RESET:
-                default:
-                    ansiCode = "\033[49m";
-                    break;
-            }
-        } else {
-            switch (wrapper.color_) {
-                case ColorController::Color::BLACK: ansiCode = "\033[30m"; break;
-                case ColorController::Color::RED: ansiCode = "\033[31m"; break;
-                case ColorController::Color::GREEN: ansiCode = "\033[32m"; break;
-                case ColorController::Color::YELLOW: ansiCode = "\033[33m"; break;
-                case ColorController::Color::BLUE: ansiCode = "\033[34m"; break;
-                case ColorController::Color::MAGENTA: ansiCode = "\033[35m"; break;
-                case ColorController::Color::CYAN: ansiCode = "\033[36m"; break;
-                case ColorController::Color::WHITE: ansiCode = "\033[37m"; break;
-                case ColorController::Color::BRIGHT_BLACK: ansiCode = "\033[90m"; break;
-                case ColorController::Color::BRIGHT_RED: ansiCode = "\033[91m"; break;
-                case ColorController::Color::BRIGHT_GREEN: ansiCode = "\033[92m"; break;
-                case ColorController::Color::BRIGHT_YELLOW: ansiCode = "\033[93m"; break;
-                case ColorController::Color::BRIGHT_BLUE: ansiCode = "\033[94m"; break;
-                case ColorController::Color::BRIGHT_MAGENTA: ansiCode = "\033[95m"; break;
-                case ColorController::Color::BRIGHT_CYAN: ansiCode = "\033[96m"; break;
-                case ColorController::Color::BRIGHT_WHITE: ansiCode = "\033[97m"; break;
-                case ColorController::Color::RESET:
-                default:
-                    ansiCode = "\033[0m";
-                    break;
-            }
-        }
-        return os << ansiCode;
+            // 非VT环境且未开启API模式：过滤ANSI以保障文本输出
+            return os;
 #endif
+        }
+#endif
+        return os << (std::string)wrapper;
     }
 };
 
 /**
  * RGB颜色包装器类
  * RGB color wrapper class
- * 
- * 这个类封装了RGB颜色设置，便于在流式输出中使用。
- * 例如：std::cout << RGBColorWrapper(255, 0, 0) << "红色文本" << ColorWrapper(ColorController::Color::RESET);
- * 
- * This class encapsulates RGB color settings for easy use in stream output.
- * Example: std::cout << RGBColorWrapper(255, 0, 0) << "Red text" << ColorWrapper(ColorController::Color::RESET);
  */
 class RGBColorWrapper {
 private:
-    int r_, g_, b_; // RGB颜色分量 | RGB color components
-    
+    int r_, g_, b_;
 public:
-    /**
-     * 构造函数
-     * Constructor
-     * 
-     * @param r 红色分量(0-255) | Red component (0-255)
-     * @param g 绿色分量(0-255) | Green component (0-255)
-     * @param b 蓝色分量(0-255) | Blue component (0-255)
-     */
     RGBColorWrapper(int r, int g, int b) : r_(r), g_(g), b_(b) {}
-    
-    /**
-     * 输出流操作符重载，使对象可以直接用于流式输出
-     * Output stream operator overload, allowing the object to be used directly in stream output
-     * 
-     * @param os 输出流 | Output stream
-     * @param wrapper RGB颜色包装器对象 | RGB color wrapper object
-     * @return 输出流引用，用于链式调用 | Output stream reference for chaining
-     */
     friend std::ostream& operator<<(std::ostream& os, const RGBColorWrapper& wrapper) {
-#if defined(_WIN32) && defined(TC_ENABLE_WIN32_CONSOLE_API)
-        // Windows 且启用宏：调用 Win32 API，不输出 ANSI
-        ColorController::setRGBColor(wrapper.r_, wrapper.g_, wrapper.b_);
-        return os;
+#if defined(_WIN32)
+        auto& console = Win32Console::getInstance();
+        if (!console.isVTEnabled()) {
+#if defined(TC_ENABLE_WIN32_CONSOLE_API)
+            ColorController::setRGBColor(wrapper.r_, wrapper.g_, wrapper.b_);
+            return os;
 #else
-        std::ostringstream ansiCode;
-        ansiCode << "\033[38;2;" << wrapper.r_ << ";" << wrapper.g_ << ";" << wrapper.b_ << "m";
-        return os << ansiCode.str();
+            return os;
 #endif
+        }
+#endif
+        return os << "\033[38;2;" << wrapper.r_ << ";" << wrapper.g_ << ";" << wrapper.b_ << "m";
     }
 };
 
 /**
  * 字体样式包装器类
  * Font style wrapper class
- * 
- * 这个类封装了字体样式设置，便于在流式输出中使用。
- * 例如：std::cout << FontStyleWrapper(FontStyleWrapper::BOLD) << "粗体文本" << FontStyleWrapper(FontStyleWrapper::RESET);
- * 
- * This class encapsulates font style settings for easy use in stream output.
- * Example: std::cout << FontStyleWrapper(FontStyleWrapper::BOLD) << "Bold text" << FontStyleWrapper(FontStyleWrapper::RESET);
  */
 class FontStyleWrapper {
 public:
-    /**
-     * 字体样式枚举
-     * Font style enumeration
-     */
     enum Style {
-        BOLD = 1,        // 粗体 | Bold
-        FAINT = 2,       // 淡色 | Faint
-        ITALIC = 3,      // 斜体 | Italic
-        UNDERLINE = 4,   // 下划线 | Underline
-        BLINK_SLOW = 5,  // 慢速闪烁 | Slow blink
-        BLINK_FAST = 6,  // 快速闪烁 | Fast blink
-        REVERSE = 7,     // 反色 | Reverse
-        CONCEAL = 8,     // 隐藏 | Conceal
-        CROSSED = 9,     // 删除线 | Crossed out
-        DEFAULT = 10,    // 默认字体 | Default font
-        FRAKTUR = 20,    // Fraktur字体 | Fraktur font
-        DOUBLE_UNDERLINE = 21, // 双下划线 | Double underline
-        NORMAL = 22,     // 正常强度 | Normal intensity
-        NOT_ITALIC = 23, // 非斜体 | Not italic
-        NO_UNDERLINE = 24, // 无下划线 | No underline
-        NO_BLINK = 25,   // 无闪烁 | No blink
-        NO_REVERSE = 27, // 无反色 | No reverse
-        REVEAL = 28,     // 显示 | Reveal
-        NOT_CROSSED = 29, // 无删除线 | Not crossed
-        RESET = 0        // 重置 | Reset
+        BOLD, FAINT, ITALIC, UNDERLINE, BLINK_SLOW, BLINK_FAST, REVERSE, CONCEAL, CROSSED,
+        DEFAULT, FRAKTUR, DOUBLE_UNDERLINE, NORMAL, NOT_ITALIC, NO_UNDERLINE, NO_BLINK,
+        NO_REVERSE, REVEAL, NOT_CROSSED, RESET
     };
-    
 private:
-    Style style_; // 字体样式 | Font style
-    
+    Style style_;
 public:
-    /**
-     * 构造函数
-     * Constructor
-     * 
-     * @param style 字体样式 | Font style
-     */
     explicit FontStyleWrapper(Style style) : style_(style) {}
-    
-    /**
-     * 输出流操作符重载，使对象可以直接用于流式输出
-     * Output stream operator overload, allowing the object to be used directly in stream output
-     * 
-     * @param os 输出流 | Output stream
-     * @param wrapper 字体样式包装器对象 | Font style wrapper object
-     * @return 输出流引用，用于链式调用 | Output stream reference for chaining
-     */
     friend std::ostream& operator<<(std::ostream& os, const FontStyleWrapper& wrapper) {
-#if defined(_WIN32) && defined(TC_ENABLE_WIN32_CONSOLE_API)
-        // Windows 且启用宏：调用 Win32 API
-        switch (wrapper.style_) {
-            case BOLD: ColorController::setBold(true); break;
-            case RESET: ColorController::setColor(ColorController::Color::RESET); break;
-            // Windows控制台API不支持斜体、下划线、反色、删除线等字体样式，直接忽略
-            case ITALIC: break;  // 斜体 - 不支持，忽略
-            case UNDERLINE: break;  // 下划线 - 不支持，忽略
-            case REVERSE: break;  // 反色 - 不支持，忽略
-            case CROSSED: break;  // 删除线 - 不支持，忽略
-            default: break;
-        }
-        return os;
+#if defined(_WIN32)
+        auto& console = Win32Console::getInstance();
+        if (!console.isVTEnabled()) {
+#if defined(TC_ENABLE_WIN32_CONSOLE_API)
+            if (wrapper.style_ == BOLD) ColorController::setBold(true);
+            else if (wrapper.style_ == NORMAL || wrapper.style_ == RESET) ColorController::setBold(false);
+            if (wrapper.style_ == RESET) console.resetColor();
+            return os;
 #else
-        // 默认使用ANSI序列
-        switch (wrapper.style_) {
-            case BOLD: return os << "\033[1m";
-            case ITALIC: return os << "\033[3m";
-            case UNDERLINE: return os << "\033[4m";
-            case REVERSE: return os << "\033[7m";
-            case CROSSED: return os << "\033[9m";
-            case RESET: return os << "\033[0m";
-            default: return os << "\033[0m";
+            return os;
+#endif
         }
 #endif
+        const char* code;
+        switch (wrapper.style_) {
+            case BOLD: code = "\033[1m"; break;
+            case FAINT: code = "\033[2m"; break;
+            case ITALIC: code = "\033[3m"; break;
+            case UNDERLINE: code = "\033[4m"; break;
+            case BLINK_SLOW: code = "\033[5m"; break;
+            case BLINK_FAST: code = "\033[6m"; break;
+            case REVERSE: code = "\033[7m"; break;
+            case CONCEAL: code = "\033[8m"; break;
+            case CROSSED: code = "\033[9m"; break;
+            case DEFAULT: code = "\033[10m"; break;
+            case FRAKTUR: code = "\033[20m"; break;
+            case DOUBLE_UNDERLINE: code = "\033[21m"; break;
+            case NORMAL: code = "\033[22m"; break;
+            case NOT_ITALIC: code = "\033[23m"; break;
+            case NO_UNDERLINE: code = "\033[24m"; break;
+            case NO_BLINK: code = "\033[25m"; break;
+            case NO_REVERSE: code = "\033[27m"; break;
+            case REVEAL: code = "\033[28m"; break;
+            case NOT_CROSSED: code = "\033[29m"; break;
+            case RESET: default: code = "\033[0m"; break;
+        }
+        return os << code;
     }
 };
 
 /**
- * 便利的颜色函数
- * Convenient color functions
- * 
- * 这些函数提供了简单的方式来为文本添加颜色，返回已着色的字符串。
- * 这些函数不会直接输出到终端，而是返回可以存储或进一步处理的字符串。
- * 
- * These functions provide a simple way to add color to text, returning the colored string.
- * They don't output directly to the terminal but return a string that can be stored or further processed.
- */
-
-/**
- * 为文本添加指定颜色
- * Add specified color to text
- * 
- * @param text 要着色的文本 | Text to colorize
- * @param color 要应用的颜色 | Color to apply
- * @return 带有颜色代码的字符串 | String with color codes
+ * 颜色应用辅助函数
  */
 inline std::string colorize(const std::string& text, ColorController::Color color) {
-    std::ostringstream oss;
-    // 添加颜色代码，文本，然后重置颜色 | Add color code, text, then reset color
-    oss << ColorWrapper(color) << text << ColorWrapper(ColorController::Color::RESET);
-    return oss.str();
+    return (std::string)ColorWrapper(color) + text + (std::string)ColorWrapper(ColorController::Color::RESET);
 }
 
-/**
- * 为文本添加RGB颜色
- * Add RGB color to text
- * 
- * @param text 要着色的文本 | Text to colorize
- * @param r 红色分量(0-255) | Red component (0-255)
- * @param g 绿色分量(0-255) | Green component (0-255)
- * @param b 蓝色分量(0-255) | Blue component (0-255)
- * @return 带有RGB颜色代码的字符串 | String with RGB color codes
- */
 inline std::string colorizeRGB(const std::string& text, int r, int g, int b) {
-    std::ostringstream oss;
-    // 添加RGB颜色代码，文本，然后重置颜色 | Add RGB color code, text, then reset color
-    oss << RGBColorWrapper(r, g, b) << text << ColorWrapper(ColorController::Color::RESET);
-    return oss.str();
+#if defined(_WIN32) && defined(TC_ENABLE_WIN32_CONSOLE_API)
+    if (!Win32Console::getInstance().isVTEnabled()) return text;
+#endif
+    std::stringstream ss;
+    ss << "\033[38;2;" << r << ";" << g << ";" << b << "m" << text << "\033[0m";
+    return ss.str();
 }
 
-/**
- * 为文本添加红色
- * Add red color to text
- * 
- * @param text 要着色的文本 | Text to colorize
- * @return 红色文本字符串 | Red text string
- */
-inline std::string red(const std::string& text) {
-    return colorize(text, ColorController::Color::RED);
-}
-
-/**
- * 为文本添加绿色
- * Add green color to text
- * 
- * @param text 要着色的文本 | Text to colorize
- * @return 绿色文本字符串 | Green text string
- */
-inline std::string green(const std::string& text) {
-    return colorize(text, ColorController::Color::GREEN);
-}
-
-/**
- * 为文本添加蓝色
- * Add blue color to text
- * 
- * @param text 要着色的文本 | Text to colorize
- * @return 蓝色文本字符串 | Blue text string
- */
-inline std::string blue(const std::string& text) {
-    return colorize(text, ColorController::Color::BLUE);
-}
-
-/**
- * 为文本添加黄色
- * Add yellow color to text
- * 
- * @param text 要着色的文本 | Text to colorize
- * @return 黄色文本字符串 | Yellow text string
- */
-inline std::string yellow(const std::string& text) {
-    return colorize(text, ColorController::Color::YELLOW);
-}
-
-/**
- * 为文本添加青色
- * Add cyan color to text
- * 
- * @param text 要着色的文本 | Text to colorize
- * @return 青色文本字符串 | Cyan text string
- */
-inline std::string cyan(const std::string& text) {
-    return colorize(text, ColorController::Color::CYAN);
-}
-
-/**
- * 为文本添加洋红色
- * Add magenta color to text
- * 
- * @param text 要着色的文本 | Text to colorize
- * @return 洋红色文本字符串 | Magenta text string
- */
-inline std::string magenta(const std::string& text) {
-    return colorize(text, ColorController::Color::MAGENTA);
-}
-
-/**
- * 为文本添加白色
- * Add white color to text
- * 
- * @param text 要着色的文本 | Text to colorize
- * @return 白色文本字符串 | White text string
- */
-inline std::string white(const std::string& text) {
-    return colorize(text, ColorController::Color::WHITE);
-}
-
-/**
- * 为文本添加亮红色
- * Add bright red color to text
- * 
- * @param text 要着色的文本 | Text to colorize
- * @return 亮红色文本字符串 | Bright red text string
- */
-inline std::string brightRed(const std::string& text) {
-    return colorize(text, ColorController::Color::BRIGHT_RED);
-}
-
-/**
- * 为文本添加亮绿色
- * Add bright green color to text
- * 
- * @param text 要着色的文本 | Text to colorize
- * @return 亮绿色文本字符串 | Bright green text string
- */
-inline std::string brightGreen(const std::string& text) {
-    return colorize(text, ColorController::Color::BRIGHT_GREEN);
-}
-
-/**
- * 为文本添加亮蓝色
- * Add bright blue color to text
- * 
- * @param text 要着色的文本 | Text to colorize
- * @return 亮蓝色文本字符串 | Bright blue text string
- */
-inline std::string brightBlue(const std::string& text) {
-    return colorize(text, ColorController::Color::BRIGHT_BLUE);
-}
-
-/**
- * 为文本添加亮黄色
- * Add bright yellow color to text
- * 
- * @param text 要着色的文本 | Text to colorize
- * @return 亮黄色文本字符串 | Bright yellow text string
- */
-inline std::string brightYellow(const std::string& text) {
-    return colorize(text, ColorController::Color::BRIGHT_YELLOW);
-}
+inline std::string red(const std::string& text) { return colorize(text, ColorController::Color::RED); }
+inline std::string green(const std::string& text) { return colorize(text, ColorController::Color::GREEN); }
+inline std::string blue(const std::string& text) { return colorize(text, ColorController::Color::BLUE); }
+inline std::string yellow(const std::string& text) { return colorize(text, ColorController::Color::YELLOW); }
+inline std::string cyan(const std::string& text) { return colorize(text, ColorController::Color::CYAN); }
+inline std::string magenta(const std::string& text) { return colorize(text, ColorController::Color::MAGENTA); }
+inline std::string white(const std::string& text) { return colorize(text, ColorController::Color::WHITE); }
+inline std::string brightRed(const std::string& text) { return colorize(text, ColorController::Color::BRIGHT_RED); }
+inline std::string brightGreen(const std::string& text) { return colorize(text, ColorController::Color::BRIGHT_GREEN); }
+inline std::string brightBlue(const std::string& text) { return colorize(text, ColorController::Color::BRIGHT_BLUE); }
+inline std::string brightYellow(const std::string& text) { return colorize(text, ColorController::Color::BRIGHT_YELLOW); }
 
 } // namespace tc
 
-/**
- * RGB颜色宏，便于流式创建RGB颜色
- * RGB color macro for easy creation of RGB colors in stream
- * 
- * 这个宏允许直接在流式输出中使用RGB颜色
- * 例如：std::cout << TCOLOR_RGB(255, 0, 0) << "红色文本" << TCOLOR_RESET;
- * 
- * This macro allows direct use of RGB colors in stream output
- * Example: std::cout << TCOLOR_RGB(255, 0, 0) << "Red text" << TCOLOR_RESET;
- * 
- * @param r 红色分量(0-255) | Red component (0-255)
- * @param g 绿色分量(0-255) | Green component (0-255)
- * @param b 蓝色分量(0-255) | Blue component (0-255)
- * @return RGBColorWrapper对象 | RGBColorWrapper object
- */
 #define TCOLOR_RGB(r, g, b) tc::RGBColorWrapper(r, g, b)
 
 #endif // TC_COLORS_HPP
