@@ -7,7 +7,7 @@
  * - 支持可变参数的打印函数
  * - 链式调用的PrintProxy类
  * 
- * 版本 Version: 1.1.3
+ * 版本 Version: 1.1.3 Beta
  * 作者 Author: 537 Studio
  * 许可 License: MIT
  */
