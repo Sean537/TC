@@ -14,7 +14,7 @@
  * - Cross-platform terminal operation support
  * - Convenient functions in terminal namespace
  * 
- * 版本 Version: 1.1.2 Beta
+ * 版本 Version: 1.1.2
  * 作者 Author: 537 Studio
  * 许可 License: MIT
  */

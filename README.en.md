@@ -1,101 +1,101 @@
-# TC
-
-> Update: ANSI by default + Windows macro switch  
-By default the library uses ANSI escapes. To force Windows to disable ANSI and use Win32 Console API, enable `TC_ENABLE_WIN32_CONSOLE_API`. See `doc/ansi_usage.md`..hpp - ✨ Cross-Platform Terminal Control Header Library
+﻿# TC.hpp -  ✨ Cross-platform terminal control (headeronly)
 
 [![C++17](https://img.shields.io/badge/C%2B%2B-17%2B-blue.svg)](https://en.cppreference.com/w/cpp/compiler_support)
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)
 ![Header-Only](https://img.shields.io/badge/Header--Only-Yes-green.svg)
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> 🚀 A modern C++17 terminal control library designed to solve various problems encountered during development with the simplest syntax. Current features include terminal color output, delay, progress bar, terminal control, system information detection, time acquisition, etc. Cross-platform, header-only, and zero dependencies!
+ 🚀 TC.hpp is a modern C++17 headeronly library for terminal control. It provides colors (including RGB), font styles, cursor/terminal control, progress bars, delays/typewriter effects, system info and time utilities  crossplatform and zero dependencies.
 
 ---
 
-## ✨ Features
+## ✨ Highlights
 
-- 🖥️ Cross-platform: Auto-adapts to Windows/Unix-like terminals
-- 🎨 Rich colors: Foreground, background, RGB, font styles
-- 💡 Modern C++17, header-only, zero dependencies
-- ⏱️ Delay and typewriter effect
-- 📊 Progress bar, chainable API, terminal size/cursor control
-- 🧩 Clean code style, easy to integrate
+- Crossplatform (Windows / Linux / macOS)
+- Rich color support (foreground, background, RGB)
+- Font styles and effects (bold, underline, reverse, etc.)
+- Progress bars, chainable Printer API, terminal size & cursor control
+- Headeronly, C++17, zero external dependencies
+
+> ⚠️ **Important (ANSI vs Win32)**
+>
+> By default TC.hpp uses ANSI escape sequences on all platforms for colors and cursor control.
+> If you need Win32 Console API behavior on Windows (recommended for very old Windows versions < 10/1809), define `TC_ENABLE_WIN32_CONSOLE_API`.
+> Warning: Win32 API mode has compatibility limitations for certain font styles (italic, blink, crossed, etc.).
+>
+> If you enable Win32 mode and your code prints ANSIwrapped strings via convenience functions, use `tc::tout` / `tc::print` / `tc::println` instead of `std::cout` to avoid raw escape codes appearing in the console.
 
 ---
 
-## 🚀 Quick Start
+## Quick start
 
-### 1. Include Header
+1. Include the header:
 
 ```cpp
 #include "tc.hpp"
 ```
 
-### 2. Main Usage Example
+2. Example usage:
 
 ```cpp
 #include "tc.hpp"
 
 int main() {
-    // 🌈 Color & Style
+    // 🌈 colors & styles
     tc::tout << TCOLOR_GREEN << "Hello world!" << TCOLOR_RESET << std::endl;
     tc::tout << TFONT_BOLD << "Bold text" << TFONT_RESET << std::endl;
     tc::tout << TCOLOR_RGB(255,0,0) << "RGB Red" << TCOLOR_RESET << std::endl;
     std::cout << tc::red("Red text") << std::endl;
-    
-    // ⏱️ Delayed output
+
+    // ⏱️ delay
     tc::tout << "Wait..." << std::endl;
     tc::tsleep(1000);
     tc::tout << "Done!" << std::endl;
 
-    // 🖨️ Python-style print
+    // 🖨️ Python-style printing
     tc::print("Hello ", "world!\n");
-    tc::println("Age: ", 25, ", Score: ", 95.5);
-    tc::println(TCOLOR_RED, "Red text");
-    tc::println(TCOLOR_GREEN, BCOLOR_YELLOW, "Green text, yellow background");
-    tc::println(TCOLOR_BLUE, BCOLOR_WHITE, TFONT_BOLD, "Blue bold, white background");
+    tc::println("Age:", 25, ", Score:", 95.5);
 
-    // 🖋️ Printer chainable API
+    // 🖋️ Printer chain API
     tc::printer()
-        .clear()    // Clear screen
+        .clear()
         .moveCursor(10,5)
         .print("Move cursor to (10,5)")
-        .hideCursor()   // Hide cursor
-        .moveCursor(tc::Printer::Direction::Down, 2) // Relative move (down 2 lines)
+        .hideCursor()
+        .moveCursor(tc::Printer::Direction::Down, 2)
         .println("At (10,7)")
-        .println() // New line
-        .showCursor();  // Show cursor
+        .showCursor();
 
-    // 📏 Terminal size
+    // 📏 terminal size
     auto size = tc::printer().getSize();
     tc::println("Terminal size: ", size.first, "x", size.second);
 
-    // ⏳ Progress bar
-    tc::ProgressBar bar(30, "█", "░", TCOLOR_GREEN);
+    // ⏳ progress bar
+    tc::ProgressBar bar(30, "", "", TCOLOR_GREEN);
     for (int i = 0; i <= 100; ++i) {
         bar.show(i / 100.0, "Processing...");
         tc::wait(0.02);
     }
     bar.finish();
 
-    // 🖥️ Run system command
+    // 🖥️ run system command
     tc::systemConsole("echo TC systemConsole test");
 
-    // 🕒 Get system time
+    // 🕒 get system time
     int year = tc::getSystemTime(SYS_YEAR);
     int month = tc::getSystemTime(SYS_MONTH);
     int day = tc::getSystemTime(SYS_DAY);
     int hour = tc::getSystemTime(SYS_HOUR);
     int minute = tc::getSystemTime(SYS_MINUTE);
     int second = tc::getSystemTime(SYS_SECOND);
-    int timestamp = tc::getSystemTime(); // Unix timestamp by default
-    tc::println("Current time: ", year, "-", month, "-", day, " ", hour, ":", minute, ":", second, " (Unix: ", timestamp, ")");
+    int timestamp = tc::getSystemTime(); // Unix timestamp (default)
+    tc::println("Now time: ", year, "-", month, "-", day, " ", hour, ":", minute, ":", second, " (Unix: ", timestamp, ")");
 
-    // 🛡️ Detect system environment
+    // 🛡️ check system environment
     int os = tc::systemCheck();
     const char* osName = tc::getOSName(os);
     std::string osVersionInfo = tc::getOSVersionInfo();
-    
+
     tc::println("Current system: ", osName);
     tc::println("System version: ", osVersionInfo);
 
@@ -105,16 +105,16 @@ int main() {
 
 ---
 
-## 🧩 Main APIs & Macros
+## 🧩 Main APIs & macros
 
-### 🎨 Color & Style
+### 🎨 Color & style
 
-#### Global Color Macros (Direct Use)
+#### Global color/style macros
 
 ```cpp
-// Foreground colors
+// Frontground color
 TCOLOR_RED, TCOLOR_GREEN, TCOLOR_YELLOW, TCOLOR_BLUE, TCOLOR_MAGENTA, TCOLOR_CYAN, TCOLOR_WHITE, TCOLOR_RESET
-// Background colors
+// Background color
 BCOLOR_RED, BCOLOR_GREEN, BCOLOR_YELLOW, BCOLOR_BLUE, BCOLOR_MAGENTA, BCOLOR_CYAN, BCOLOR_WHITE, BCOLOR_DEFAULT
 // Font styles
 TFONT_BOLD, TFONT_FAINT, TFONT_ITALIC, TFONT_UNDERLINE, TFONT_BLINK_SLOW, TFONT_BLINK_FAST, TFONT_REVERSE, TFONT_CONCEAL, TFONT_CROSSED, TFONT_DEFAULT, TFONT_FRAKTUR, TFONT_DOUBLE_UNDERLINE, TFONT_NORMAL, TFONT_NOT_ITALIC, TFONT_NO_UNDERLINE, TFONT_NO_BLINK, TFONT_NO_REVERSE, TFONT_REVEAL, TFONT_NOT_CROSSED, TFONT_THICK, TFONT_RESET
@@ -122,7 +122,7 @@ TFONT_BOLD, TFONT_FAINT, TFONT_ITALIC, TFONT_UNDERLINE, TFONT_BLINK_SLOW, TFONT_
 TCOLOR_RGB(r, g, b)
 ```
 
-#### Color Controller Class (ColorController)
+#### Color Controller (ColorController)
 
 ```cpp
 // Set color
@@ -141,9 +141,11 @@ std::cout << "Bold text" << std::endl;
 tc::ColorController::setColor(tc::ColorController::Color::RESET);
 ```
 
-#### Convenient Color Functions
+#### Convenient color functions
 
-> ⚠ Note: Convenient color functions essentially add ANSI escape sequences to the beginning and end of strings. It's best not to overuse them in outputs, and some terminals do not support ANSI escape sequences. If you want to output colored text, it's recommended to use other methods instead.
+> ⚠ Note: the convenience color functions simply wrap strings with ANSI escape sequences. Some terminals do not support ANSI sequences or support them only partially (for example, older cmd.exe). Unless you do not need to support such terminals, avoid overusing these helpers in output.
+>
+> If you enabled the `TC_ENABLE_WIN32_CONSOLE_API` macro, use `tc::tout` instead of `std::cout` when printing values returned by these functions. That prevents raw ANSI escape codes from appearing on Windows; otherwise the escape sequences may be printed as literal characters.
 
 ```cpp
 // Basic color functions
@@ -154,7 +156,7 @@ std::cout << coloredText << std::endl;
 std::string rgbText = tc::colorizeRGB("RGB colored text", 255, 128, 0);
 std::cout << rgbText << std::endl;
 
-// Standard color functions
+// Standard color helpers
 std::cout << tc::red("Red text") << std::endl;
 std::cout << tc::green("Green text") << std::endl;
 std::cout << tc::blue("Blue text") << std::endl;
@@ -163,48 +165,49 @@ std::cout << tc::cyan("Cyan text") << std::endl;
 std::cout << tc::magenta("Magenta text") << std::endl;
 std::cout << tc::white("White text") << std::endl;
 
-// Bright color functions
+// Bright variants
 std::cout << tc::brightRed("Bright red text") << std::endl;
 std::cout << tc::brightGreen("Bright green text") << std::endl;
 std::cout << tc::brightBlue("Bright blue text") << std::endl;
 std::cout << tc::brightYellow("Bright yellow text") << std::endl;
 ```
 
-### Font Style Macros (TFONT_XXX)
+### Font style macros (TFONT_XXX)
 
 | Macro Name                 | Effect             | Compatibility Notes |
 |---------------------------|--------------------|--------------------|
-| TFONT_BOLD                | Bold               | Fully supported on all platforms |
-| TFONT_FAINT               | Faint/dim          | Fully supported on Windows, partially on other terminals |
-| TFONT_ITALIC              | Italic             | Fully supported on Windows, partially on other terminals |
-| TFONT_UNDERLINE           | Underline          | Fully supported on all platforms |
-| TFONT_BLINK_SLOW          | Slow blink         | Fully supported on Windows, partially on other terminals |
-| TFONT_BLINK_FAST          | Fast blink         | Fully supported on Windows, rarely on other terminals |
-| TFONT_REVERSE             | Reverse            | Fully supported on all platforms |
-| TFONT_CONCEAL             | Conceal            | Fully supported on Windows, rarely on other terminals |
-| TFONT_CROSSED             | Strikethrough      | Fully supported on Windows, partially on other terminals |
-| TFONT_DEFAULT             | Default font       | Fully supported on Windows, rarely on other terminals |
-| TFONT_FRAKTUR             | Fraktur font       | Fully supported on Windows, very rarely on other terminals |
-| TFONT_DOUBLE_UNDERLINE    | Double underline/off bold | Fully supported on Windows, partially on other terminals |
-| TFONT_NORMAL              | Reset bold/faint   | Fully supported on all platforms |
-| TFONT_NOT_ITALIC          | Not italic/Fraktur | Fully supported on Windows, partially on other terminals |
-| TFONT_NO_UNDERLINE        | Not underlined     | Fully supported on all platforms |
-| TFONT_NO_BLINK            | Not blinking       | Fully supported on Windows, rarely on other terminals |
-| TFONT_NO_REVERSE          | Not reversed       | Fully supported on all platforms |
-| TFONT_REVEAL              | Reveal (not concealed) | Fully supported on Windows, rarely on other terminals |
-| TFONT_NOT_CROSSED         | Not strikethrough  | Fully supported on Windows, partially on other terminals |
-| TFONT_THICK               | Bold (alias)       | Same as TFONT_BOLD |
-| TFONT_RESET               | Reset all          | Fully supported on all platforms |
+| TFONT_BOLD                | Bold               | Full ANSI support, full Win32 support |
+| TFONT_FAINT               | Faint / Dim        | Partial ANSI support, not supported on Win32 |
+| TFONT_ITALIC              | Italic             | Partial ANSI support, not supported on Win32 |
+| TFONT_UNDERLINE           | Underline          | Widely supported by ANSI, not supported on Win32 |
+| TFONT_BLINK_SLOW          | Slow blink         | Partial ANSI support, not supported on Win32 |
+| TFONT_BLINK_FAST          | Fast blink         | Rarely supported by ANSI, not supported on Win32 |
+| TFONT_REVERSE             | Reverse            | Widely supported by ANSI, not supported on Win32 |
+| TFONT_CONCEAL             | Conceal            | Rarely supported by ANSI, not supported on Win32 |
+| TFONT_CROSSED             | Strikethrough      | Partial ANSI support, not supported on Win32 |
+| TFONT_DEFAULT             | Default font       | Rarely supported by ANSI, not supported on Win32 |
+| TFONT_FRAKTUR             | Fraktur font       | Very rarely supported by ANSI, not supported on Win32 |
+| TFONT_DOUBLE_UNDERLINE    | Double underline / turn off bold | Partial ANSI support, not supported on Win32 |
+| TFONT_NORMAL              | Reset bold / faint | Widely supported by ANSI, full Win32 support |
+| TFONT_NOT_ITALIC          | Disable italic / Fraktur | Partial ANSI support, not supported on Win32 |
+| TFONT_NO_UNDERLINE        | Disable underline  | Widely supported by ANSI, not supported on Win32 |
+| TFONT_NO_BLINK            | Disable blink      | Rarely supported by ANSI, not supported on Win32 |
+| TFONT_NO_REVERSE          | Disable reverse    | Widely supported by ANSI, not supported on Win32 |
+| TFONT_REVEAL              | Reveal (undo conceal) | Rarely supported by ANSI, not supported on Win32 |
+| TFONT_NOT_CROSSED         | Disable strikethrough | Partial ANSI support, not supported on Win32 |
+| TFONT_THICK               | Thick / Bold (alias) | Same as TFONT_BOLD |
+| TFONT_RESET               | Reset all styles   | Fully supported on all platforms |
 
-> ⚠️ **Compatibility Notes:**
+> ⚠️ Compatibility notes:
 >
-> - TC.hpp uses Windows Console API (Win32 API) on Windows platforms instead of ANSI escape sequences, so all font styles are fully supported on Windows, regardless of terminal's ANSI escape sequence support.
-> - On Linux/macOS, ANSI escape sequences are used. Most terminals (GNOME Terminal, iTerm2, Konsole, Alacritty, etc.) support common styles (bold, underline, reverse, some italic/strikethrough).
-> - TFONT_FRAKTUR, TFONT_DEFAULT, TFONT_DOUBLE_UNDERLINE are experimental/rarely supported on non-Windows platforms.
+> - By default TC.hpp uses ANSI escape sequences on all platforms to implement terminal control features.
+> - If `TC_ENABLE_WIN32_CONSOLE_API` is defined, Windows will use the Win32 Console API; however, Win32 mode may not support some font styles (italic, blink, strikethrough, etc.).
+> - Linux/macOS always use ANSI escape sequences; support depends on the terminal emulator. Common styles (bold, underline, reverse) are widely supported; some terminals support italic/strikethrough; advanced styles such as blink/conceal are seldom supported.
+> - Experimental/extended styles such as `TFONT_FRAKTUR`, `TFONT_DEFAULT`, `TFONT_DOUBLE_UNDERLINE` have low support on most terminals.
 
-Example: `tc::println(TCOLOR_RED, BCOLOR_YELLOW, TFONT_BOLD, "Red text, yellow background, bold")`
+Usage example: `tc::println(TCOLOR_RED, BCOLOR_YELLOW, TFONT_BOLD, "Red text, yellow background, bold")`
 
-### 🖥️ Terminal Control
+### 🖥️ Terminal control
 
 #### tc::terminal namespace
 
@@ -221,65 +224,65 @@ auto [width, height] = tc::terminal::getSize();
 std::cout << "Terminal size: " << width << "x" << height << std::endl;
 ```
 
-#### tc::Printer Chainable Class
+#### tc::Printer (chainable class)
 
 ```cpp
-// Create Printer object and perform a series of operations
+// Create a Printer object and perform a sequence of operations
 tc::printer()
-    .clear()                                  // Clear screen
-    .hideCursor()                             // Hide cursor
-    .moveCursor(10, 5)                        // Move to absolute position
-    .println("This is position (10,5)")       // Print and new line
-    .moveCursor(tc::Printer::Direction::Down, 2) // Relative move (down 2 lines)
+    .clear()                                  // clear screen
+    .hideCursor()                             // hide cursor
+    .moveCursor(10, 5)                        // move to absolute position
+    .println("This is position (10,5)")     // print and newline
+    .moveCursor(tc::Printer::Direction::Down, 2) // relative move (down 2 lines)
     .println("Moved down 2 lines")
-    .moveCursor(1, 10)                        // Move to beginning of line 10
-    .print("At line 10: ")                    // Print without new line
+    .moveCursor(1, 10)                        // move to the beginning of line 10
+    .print("At line 10: ")                  // print without newline
     .print("Continue printing on same line")
-    .println()                                // New line
-    .showCursor();                            // Show cursor
+    .println()                                // newline
+    .showCursor();                            // show cursor
 ```
 
-### 🔤 Output & Print
+### 🔤 Output & print
 
-- `tc::tout`: Stream output (supports color/style/delay)
-- `tc::print(...)` / `tc::println(...)`: Multi-argument print, supports color/style macros
+- `tc::tout`: stream-like output (supports colors/styles/delay)
+- `tc::print(...)` / `tc::println(...)`: multi-argument printing with style macros
 
-### ⏱️ Delay & Wait
+### ⏱️ Delay & wait
 
 - `tc::tsleep(ms)` / `tc::tsleep_stream << ms`
 - `tc::wait(seconds)`
 - `tc::waitKey()`
 
-### 📊 Progress Bar
+### 📊 Progress bar
 
 - `tc::ProgressBar bar(width, doneChar, todoChar, color)`
 - `bar.show(progress, msg)`
 - `bar.finish()`
 
-### 🖥️ System Related API
+### 🖥️ System-related API
 
-- `tc::getSystemTime(int type = SYS_TIMESTAMP)`: Get current time (year, month, day, hour, minute, second, Unix timestamp)
-- `tc::systemConsole(const char* or std::string)`: Run system command
-- `tc::systemConsoleW(const wchar_t*)`: Run system command (wide character version, Windows platform only, supports Unicode commands)
-- `tc::systemCheck()`: Detect current operating system, returns an OS code
-- `tc::getOSName(int osCode)`: Returns the operating system name based on the OS code
-- `tc::getOSVersionInfo()`: Get detailed version information of the current operating system
+- `tc::getSystemTime(int type = SYS_TIMESTAMP)`: get current time (year, month, day, hour, minute, second, Unix timestamp)
+- `tc::systemConsole(const char* or std::string)`: execute a system command
+- `tc::systemConsoleW(const wchar_t*)`: execute a system command (wide-char, Windows only; supports Unicode commands)
+- `tc::systemCheck()`: detect the current operating system and return an OS code
+- `tc::getOSName(int osCode)`: return the OS name for the given code
+- `tc::getOSVersionInfo()`: get detailed OS version information
 
-#### Supported System Macros
+#### Supported system macros
 
 | Category | Macro | Description |
 |------|------|------|
-| **Windows Family** | OS_WINDOWS | Generic Windows identifier |
+| **Windows family** | OS_WINDOWS | Generic Windows identifier |
 | | OS_WINDOWSNT6 | Windows 7/8/8.1 (NT 6.x) |
 | | OS_WINDOWSNT10 | Windows 10 (NT 10.0) |
 | | OS_WINDOWSNT11 | Windows 11 (NT 10.0 build 22000+) |
-| **Linux Distributions** | OS_LINUX | Generic Linux identifier |
+| **Linux distributions** | OS_LINUX | Generic Linux identifier |
 | | OS_UBUNTU | Ubuntu Linux |
 | | OS_DEBIAN | Debian Linux |
 | | OS_FEDORA | Fedora Linux |
 | | OS_CENTOS | CentOS Linux |
 | | OS_REDHAT | Red Hat Enterprise Linux |
-| | OS_SUSE | SUSE/openSUSE Linux |
+| | OS_SUSE | SUSE / openSUSE Linux |
 | | OS_ARCH | Arch Linux |
 | | OS_GENTOO | Gentoo Linux |
 | | OS_SLACKWARE | Slackware Linux |
@@ -293,8 +296,8 @@ tc::printer()
 | | OS_ELEMENTARY | Elementary OS |
 | | OS_ZORIN | Zorin OS |
 | | OS_POPOS | Pop!_OS |
-| | OS_CHROMEOS | Chrome OS/Chromium OS |
-| **Apple Operating Systems** | OS_MACOS | Generic macOS identifier |
+| | OS_CHROMEOS | Chrome OS / Chromium OS |
+| **Apple operating systems** | OS_MACOS | Generic macOS identifier |
 | | OS_MACOS_HIGHSIERRA | macOS 10.13 High Sierra (2017) |
 | | OS_MACOS_MOJAVE | macOS 10.14 Mojave (2018) |
 | | OS_MACOS_CATALINA | macOS 10.15 Catalina (2019) |
@@ -304,22 +307,22 @@ tc::printer()
 | | OS_MACOS_SONOMA | macOS 14 Sonoma (2023) |
 | | OS_MACOS_SEQUOIA | macOS 15 Sequoia (2024) |
 | | OS_MACOS_TAHOE | macOS 26 Tahoe (2025) |
-| **Other Apple Operating Systems** | OS_IOS | iOS (iPhone/iPod touch) |
+| **Other Apple OS** | OS_IOS | iOS (iPhone / iPod touch) |
 | | OS_IPADOS | iPadOS (iPad) |
 | | OS_WATCHOS | watchOS (Apple Watch) |
 | | OS_TVOS | tvOS (Apple TV) |
 | | OS_VISIONOS | visionOS (Apple Vision Pro) |
 | | OS_BRIDGEOS | bridgeOS (Apple T2 chip) |
 | | OS_AUDIOOS | audioOS (HomePod) |
-| **BSD Family** | OS_BSD | Generic BSD identifier |
+| **BSD family** | OS_BSD | Generic BSD identifier |
 | | OS_FREEBSD | FreeBSD |
-| **Unix Family** | OS_UNIX | Generic Unix identifier |
-| **Emerging Operating Systems** | OS_FUCHSIA | Google Fuchsia |
+| **Unix family** | OS_UNIX | Generic Unix identifier |
+| **Emerging OS** | OS_FUCHSIA | Google Fuchsia |
 | | OS_HARMONYOS | Harmony OS |
-| **Other Operating Systems** | OS_REACTOS | ReactOS |
-| **Unknown Operating System** | OS_UNKNOWN | Unrecognized operating system |
+| **Other OS** | OS_REACTOS | ReactOS |
+| **Unknown** | OS_UNKNOWN | Unrecognized operating system |
 
-#### Example Usage
+#### Example usage
 
 ```cpp
 // Get system information
@@ -348,7 +351,7 @@ switch (osCode) {
 }
 ```
 
-### ⏱️ Get System Time
+### ⏱️ Get system time
 
 | Macro | Description |
 |------|------|
@@ -365,24 +368,24 @@ int year = tc::getSystemTime(SYS_YEAR);
 int timestamp = tc::getSystemTime(); // Unix timestamp
 ```
 
-### ⌨️ Key Handling
+### ⌨️ Key handling
 
-#### waitKey - Wait for Key
+#### waitKey - wait for key
 
-- `tc::waitKey()`: Wait for any key
-- `tc::waitKey(char key)` / `tc::waitKey(int key)`: Wait for specific key (e.g. tc::waitKey('A'), tc::waitKey(KEY_ESC))
+- `tc::waitKey()`: wait for any key
+- `tc::waitKey(char key)` / `tc::waitKey(int key)`: wait for a specific key (e.g. `tc::waitKey('A')`, `tc::waitKey(KEY_ESC)`)
 
 ```cpp
-tc::waitKey(); // Wait for any key
-// Wait for 'A' key
+tc::waitKey(); // wait for any key
+// wait for 'A'
 tc::waitKey('A');
-// Wait for ESC key
+// wait for ESC
 tc::waitKey(KEY_ESC);
 ```
 
-#### isKeyPressed - Check Key State
+#### isKeyPressed - check key state
 
-- `tc::isKeyPressed(char key)` / `tc::isKeyPressed(int key)`: Check if specified key is pressed
+- `tc::isKeyPressed(char key)` / `tc::isKeyPressed(int key)`: check if the specified key is pressed
 
 ```cpp
 // Check if ESC key is pressed
@@ -390,7 +393,7 @@ if (tc::isKeyPressed(KEY_ESC)) {
     std::cout << "ESC key is pressed" << std::endl;
 }
 
-// Check direction keys
+// Check arrow keys
 if (tc::isKeyPressed(KEY_UP)) {
     std::cout << "Up arrow key is pressed" << std::endl;
 }
@@ -401,7 +404,7 @@ if (tc::isKeyPressed('A') || tc::isKeyPressed('a')) {
 }
 ```
 
-#### Common Special Key Macros
+#### Common special key macros
 
 | Macro | Description |
 |------|------|
@@ -424,19 +427,21 @@ if (tc::isKeyPressed('A') || tc::isKeyPressed('a')) {
 
 ---
 
-## 🛠️ Build
+## Build
 
-- Windows: `g++ -std=c++17 test.cpp -o test.exe`
-- Linux/macOS: `g++ -std=c++17 -pthread test.cpp -o test`
+- Windows:  g++ -std=c++17 test.cpp -o test.exe
+- Linux/macOS:  g++ -std=c++17 -pthread test.cpp -o test
+
+If you use [xmake](https://xmake.io/): `xmake -a` builds all examples (output: `bin/examples`).
 
 ---
 
-## 📄 License
+## License
 
 MIT
 
 ---
 
-## 🌐 Contact
+## Contact
 
-- 📥 Email: <wushaoquan666@outlook.com>
+- Email: <wushaoquan666@outlook.com>
