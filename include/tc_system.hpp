@@ -35,6 +35,10 @@
 // Linux/Unix 平台相关头文件
 #include <sys/utsname.h>
 #include <unistd.h>
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#include <sys/sysctl.h>
+#endif
 #endif
 
 // --- 系统环境宏定义 | System environment macro definitions ---
@@ -244,8 +248,6 @@ namespace tc {
 
         // macOS/iOS 平台检测
         #elif defined(__APPLE__)
-            #include <TargetConditionals.h>
-
             // 首先尝试使用系统命令获取设备类型和操作系统信息
             std::string deviceType = executeCommand("uname -m");
             std::string productType = executeCommand("sw_vers -productName 2>/dev/null");
@@ -270,7 +272,6 @@ namespace tc {
                 }
 
                 // 如果系统命令失败，回退到使用sysctlbyname
-                #include <sys/sysctl.h>
                 char str[256];
                 size_t size = sizeof(str);
                 int ret = sysctlbyname("kern.osrelease", str, &size, NULL, 0);
@@ -300,7 +301,6 @@ namespace tc {
             // 检查是否为iOS/iPadOS/watchOS/tvOS等
 
             // 使用sysctl获取设备型号和系统信息
-            #include <sys/sysctl.h>
             char buffer[256];
             size_t size = sizeof(buffer);
 

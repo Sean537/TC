@@ -59,6 +59,10 @@ inline void print(Args&&... args) {
     (detail::print_one(std::forward<Args>(args)), ...);
 }
 
+inline PrintProxy print() {
+    return PrintProxy();
+}
+
 template<typename... Args>
 inline void println(Args&&... args) {
     (detail::print_one(std::forward<Args>(args)), ...);
@@ -68,7 +72,7 @@ inline void println(Args&&... args) {
 /**
  * 返回一个PrintProxy对象用于链式调用
  */
-inline PrintProxy printer() {
+inline PrintProxy printProxy() {
     return PrintProxy();
 }
 
