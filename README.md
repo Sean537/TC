@@ -7,6 +7,12 @@
 
 🚀 一个现代化的 C++17 终端控制库，旨在用最简单的语法解决开发过程中会遇到的各种问题。目前功能包括终端彩色输出、延时、进度条、基础控制、系统信息检测、获取时间等，跨平台、零依赖、纯头文件！
 
+<a href="https://github.com/Sean537/TC/watchers"><img alt="Watchers" src="https://img.shields.io/github/watchers/Sean537/TC?label=Watchers&logo=github&style=flat" title="Watchers" /></a>
+<a href="https://github.com/Sean537/TC/forks"><img alt="Forks" src="https://img.shields.io/github/forks/Sean537/TC?label=Forks&logo=github&style=flat" title="Forks" /></a>
+<a href="https://github.com/Sean537/TC/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/Sean537/TC?label=Stars&color=gold&logo=github&style=flat" title="Stars" /></a>
+<a href="https://github.com/Sean537/TC/issues"><img alt="Issues" src="https://img.shields.io/github/issues/Sean537/TC?label=Issues&logo=github" title="Issues" /></a>
+<a href="https://github.com/Sean537/TC/pulls"><img alt="Pull Requests" src="https://img.shields.io/github/issues-pr/Sean537/TC?label=Pull%20Requests&logo=github" title="Pull Requests" /></a>
+
 ---
 
 ## ✨ 主要特性
@@ -105,6 +111,16 @@ int main() {
     return 0;
 }
 ```
+
+<p align="center">
+    <a href="https://star-history.com/#Sean537/TC&Date">
+        <picture>
+            <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=Sean537/TC&type=Date&theme=dark" />
+            <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=Sean537/TC&type=Date" />
+            <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=Sean537/TC&type=Date" />
+        </picture>
+    </a>
+</p>
 
 ---
 
