@@ -31,6 +31,8 @@
         #define popen _popen
         #define pclose _pclose
     #endif
+#elif defined(__APPLE__)
+    #include <sys/sysctl.h>
 #else
 // Linux/Unix 平台相关头文件
 #include <sys/utsname.h>
@@ -270,7 +272,6 @@ namespace tc {
                 }
 
                 // 如果系统命令失败，回退到使用sysctlbyname
-                #include <sys/sysctl.h>
                 char str[256];
                 size_t size = sizeof(str);
                 int ret = sysctlbyname("kern.osrelease", str, &size, NULL, 0);
@@ -300,7 +301,6 @@ namespace tc {
             // 检查是否为iOS/iPadOS/watchOS/tvOS等
 
             // 使用sysctl获取设备型号和系统信息
-            #include <sys/sysctl.h>
             char buffer[256];
             size_t size = sizeof(buffer);
 
