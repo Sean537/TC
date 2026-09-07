@@ -32,6 +32,7 @@
         #define pclose _pclose
     #endif
 #elif defined(__APPLE__)
+    #include <TargetConditionals.h>
     #include <sys/sysctl.h>
 #else
 // Linux/Unix 平台相关头文件
@@ -246,8 +247,6 @@ namespace tc {
 
         // macOS/iOS 平台检测
         #elif defined(__APPLE__)
-            #include <TargetConditionals.h>
-
             // 首先尝试使用系统命令获取设备类型和操作系统信息
             std::string deviceType = executeCommand("uname -m");
             std::string productType = executeCommand("sw_vers -productName 2>/dev/null");
