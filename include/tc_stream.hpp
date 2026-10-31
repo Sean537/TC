@@ -70,7 +70,6 @@ public:
             auto& console = Win32Console::getInstance();
             if (!console.isVTEnabled()) {
                 // 不支持 ANSI 的环境：解析并处理序列
-                size_t pos = 0;
                 std::regex ansi_regex("\x1B\\[[0-9;]*[mK]"); // 匹配颜色和清行序列
                 std::smatch match;
                 
@@ -168,7 +167,7 @@ public:
     std::ostream& stream() { return os_; }
 };
 
-static TOut tout(std::cout);
+inline TOut tout(std::cout);
 
 inline TSleep tsleep(int milliseconds) {
     return TSleep(milliseconds);
@@ -181,7 +180,7 @@ public:
     }
 };
 
-static TSleepStream tsleep_stream;
+inline TSleepStream tsleep_stream;
 
 } // namespace tc
 

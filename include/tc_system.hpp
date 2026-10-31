@@ -197,7 +197,14 @@ namespace tc {
             typedef LONG (WINAPI *RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
             HMODULE hMod = ::GetModuleHandleW(L"ntdll.dll");
             if (hMod) {
+                #ifdef __GNUC__
+                #pragma GCC diagnostic push
+                #pragma GCC diagnostic ignored "-Wcast-function-type"
+                #endif
                 RtlGetVersionPtr fx = (RtlGetVersionPtr)::GetProcAddress(hMod, "RtlGetVersion");
+                #ifdef __GNUC__
+                #pragma GCC diagnostic pop
+                #endif
                 if (fx) {
                     RTL_OSVERSIONINFOW rovi;
                     rovi.dwOSVersionInfoSize = sizeof(rovi);
@@ -217,8 +224,14 @@ namespace tc {
             // 兼容老方案（注意：在较新的Windows上可能会受到应用程序兼容性影响）
             OSVERSIONINFOEX osvi;
             osvi.dwOSVersionInfoSize = sizeof(osvi);
+            #ifdef _MSC_VER
             #pragma warning(push)
             #pragma warning(disable: 4996) // 禁用GetVersionEx弃用警告
+            #endif
+            #ifdef __GNUC__
+            #pragma GCC diagnostic push
+            #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+            #endif
             if (GetVersionEx((OSVERSIONINFO*)&osvi)) {
                 if (osvi.dwMajorVersion == 6)  return OS_WINDOWSNT6;
                 if (osvi.dwMajorVersion == 10) {
@@ -227,7 +240,12 @@ namespace tc {
                 }
                 if (osvi.dwMajorVersion > 10) return OS_WINDOWSNT11;
             }
+            #ifdef _MSC_VER
             #pragma warning(pop)
+            #endif
+            #ifdef __GNUC__
+            #pragma GCC diagnostic pop
+            #endif
 
             // 如果上述方法都失败，尝试使用PowerShell命令获取系统版本
             std::string psOutput = executeCommand("powershell -Command \"(Get-CimInstance -ClassName Win32_OperatingSystem).Version\"");
@@ -662,7 +680,14 @@ namespace tc {
             typedef LONG (WINAPI *RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
             HMODULE hMod = ::GetModuleHandleW(L"ntdll.dll");
             if (hMod) {
+                #ifdef __GNUC__
+                #pragma GCC diagnostic push
+                #pragma GCC diagnostic ignored "-Wcast-function-type"
+                #endif
                 RtlGetVersionPtr fx = (RtlGetVersionPtr)::GetProcAddress(hMod, "RtlGetVersion");
+                #ifdef __GNUC__
+                #pragma GCC diagnostic pop
+                #endif
                 if (fx) {
                     RTL_OSVERSIONINFOW rovi;
                     rovi.dwOSVersionInfoSize = sizeof(rovi);
