@@ -267,6 +267,11 @@ tc::printer()
 - `tc::getSystemTime(int type = SYS_TIMESTAMP)`：获取当前时间（年、月、日、时、分、秒、Unix时间戳）
 - `tc::systemConsole(const char* 或 std::string)`：执行系统命令
 - `tc::systemConsoleW(const wchar_t*)`：执行系统命令（宽字符版本，仅Windows平台可用，支持Unicode命令）
+- `tc::systemConsoleOutput(const std::string& cmd)`：执行系统命令并返回控制台输出
+- `tc::sha256(const std::string& input)`：计算字符串的SHA-256哈希值
+- `tc::readFile(const std::string& path)`：读取文件全部内容
+- `tc::writeFile(const std::string& path, const std::string& content)`：写入文件内容（覆盖）
+- `tc::setFilePermissions(const std::string& path, int mode)`：跨平台更改文件权限
 - `tc::systemCheck()`：检测当前操作系统，返回操作系统代码
 - `tc::getOSName(int osCode)`：根据操作系统代码返回操作系统名称
 - `tc::getOSVersionInfo()`：获取当前操作系统的详细版本信息
