@@ -300,8 +300,8 @@ inline bool isKeyPressed(int key) {
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
     fcntl(STDIN_FILENO, F_SETFL, oldf);
     if (ch == 27) { // ESC 序列
-        ch = getchar();
-        if (ch == '[') {
+        int next = getchar();
+        if (next == '[') {
             ch = getchar();
             // 方向键
             if (key == 'A' && ch == 'A') return true;
@@ -315,6 +315,10 @@ inline bool isKeyPressed(int key) {
             if (key == KEY_END && ch == '4') { getchar(); return true; }
             if (key == KEY_PAGEUP && ch == '5') { getchar(); return true; }
             if (key == KEY_PAGEDOWN && ch == '6') { getchar(); return true; }
+        }
+        if (next != '[') {
+            if (next != EOF) ungetc(next, stdin);
+            return (key == KEY_ESC);
         }
     } else if (ch != EOF) {
         ungetc(ch, stdin);
