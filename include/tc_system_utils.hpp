@@ -334,6 +334,127 @@ inline bool isKeyPressed(char key) {
 }
 #endif
 
+/**
+ * Base 系列编码/解码函数
+ * Base series encode/decode functions
+ * 
+ * 这个函数们提供了Base16、Base32和Base64的编码和解码功能。
+ * 
+ * This function provides encoding and decoding functions for Base16, Base32 and Base64.
+ * 
+ * @param input 要编码或解码的输入字符串 | Input string to encode or decode
+ * @return 编码或解码后的字符串 | Returns the encoded or decoded string
+ */
+
+// Base16 编码/解码 | Base16 encode/decode
+inline std::string base16Encode(const std::string& input) {
+    static const char* hex = "0123456789ABCDEF";
+    std::string out;
+    for (unsigned char c : input) {
+        out.push_back(hex[c >> 4]);
+        out.push_back(hex[c & 0x0F]);
+    }
+    return out;
+}
+inline std::string base16Decode(const std::string& input) {
+    auto val = [](char c) -> int {
+        if (c >= '0' && c <= '9') return c - '0';
+        if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+        if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+        return -1;
+    };
+    std::string out;
+    for (size_t i = 0; i + 1 < input.size(); i += 2) {
+        int hi = val(input[i]);
+        int lo = val(input[i + 1]);
+        if (hi < 0 || lo < 0) break;
+        out.push_back(char((hi << 4) | lo));
+    }
+    return out;
+}
+
+// Base32 编码/解码 | Base32 encode/decode
+inline std::string base32Encode(const std::string& input) {
+    static const char* table = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+    std::string out;
+    int buffer = 0, bitsLeft = 0;
+    for (unsigned char c : input) {
+        buffer = (buffer << 8) | c;
+        bitsLeft += 8;
+        while (bitsLeft >= 5) {
+            out.push_back(table[(buffer >> (bitsLeft - 5)) & 0x1F]);
+            bitsLeft -= 5;
+        }
+    }
+    if (bitsLeft > 0) {
+        buffer <<= (5 - bitsLeft);
+        out.push_back(table[buffer & 0x1F]);
+    }
+    while (out.size() % 8) out.push_back('=');
+    return out;
+}
+inline std::string base32Decode(const std::string& input) {
+    auto val = [](char c) -> int {
+        if (c >= 'A' && c <= 'Z') return c - 'A';
+        if (c >= '2' && c <= '7') return c - '2' + 26;
+        if (c >= 'a' && c <= 'z') return c - 'a';
+        return -1;
+    };
+    std::string out;
+    int buffer = 0, bitsLeft = 0;
+    for (char c : input) {
+        if (c == '=') break;
+        int v = val(c);
+        if (v < 0) continue;
+        buffer = (buffer << 5) | v;
+        bitsLeft += 5;
+        if (bitsLeft >= 8) {
+            out.push_back(char((buffer >> (bitsLeft - 8)) & 0xFF));
+            bitsLeft -= 8;
+        }
+    }
+    return out;
+}
+
+// Base64 编码/解码 | Base64 encode/decode
+inline std::string base64Encode(const std::string& input) {
+    static const char* table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    std::string out;
+    int val = 0, valb = -6;
+    for (unsigned char c : input) {
+        val = (val << 8) + c;
+        valb += 8;
+        while (valb >= 0) {
+            out.push_back(table[(val >> valb) & 0x3F]);
+            valb -= 6;
+        }
+    }
+    if (valb > -6) out.push_back(table[((val << 8) >> (valb + 8)) & 0x3F]);
+    while (out.size() % 4) out.push_back('=');
+    return out;
+}
+
+inline std::string base64Decode(const std::string& input) {
+    static const int T[256] = {
+        -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+        -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,62,-1,-1,-1,63,52,53,54,55,56,57,58,59,60,61,-1,-1,-1,-1,-1,-1,
+        -1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,-1,-1,-1,-1,-1,
+        -1,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,-1,-1,-1,-1,-1
+    };
+    std::string out;
+    int val = 0, valb = -8;
+    for (char c : input) {
+        if (T[(unsigned char)c] == -1) break;
+        val = (val << 6) + T[(unsigned char)c];
+        valb += 6;
+        if (valb >= 0) {
+            out.push_back(char((val >> valb) & 0xFF));
+            valb -= 8;
+        }
+    }
+    return out;
+}
+
 } // namespace tc
 
 #endif // TC_SYSTEM_UTILS_HPP

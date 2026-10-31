@@ -428,6 +428,15 @@ if (tc::isKeyPressed('A') || tc::isKeyPressed('a')) {
 | KEY_RIGHT    | 右方向键 |
 | KEY_F1 ~ KEY_F12 | F1~F12 功能键 |
 
+### Base 16/32/64 编码解码
+
+- tc::base16Encode(const std::string& input)
+- tc::base16Decode(const std::string& input)
+- tc::base32Encode(const std::string& input)
+- tc::base32Decode(const std::string& input)
+- tc::base64Encode(const std::string& input)
+- tc::base64Decode(const std::string& input)
+
 ---
 
 ## 🛠️ 编译
