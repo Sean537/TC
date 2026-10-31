@@ -1,4 +1,4 @@
-// #define TC_ENABLE_WIN32_CONSOLE_API  // 在 Windows 上强制启用 Windows 控制台 API，并禁用 ANSI 转义序列（不影响便捷颜色函数和其它平台）
+#define TC_ENABLE_WIN32_CONSOLE_API  // 强制启用 Win32 Console API 宏（用于跨平台行为测试）
 #include "../include/tc.hpp"
 
 int main() {

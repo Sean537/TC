@@ -1,3 +1,4 @@
+#define TC_ENABLE_WIN32_CONSOLE_API  // 强制启用 Win32 Console API 宏（用于跨平台行为测试）
 #include "../include/tc.hpp"
 
 int main() {

@@ -14,7 +14,7 @@
  * - Real-time progress display and percentage
  * - Progress completion notification
  * 
- * 版本 Version: 1.1.2
+ * 版本 Version: 1.1.3 Beta
  * 作者 Author: 537 Studio
  * 许可 License: MIT
  */
